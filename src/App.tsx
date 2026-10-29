@@ -4,18 +4,18 @@ import { isExpeditionDone } from './game/expedition'
 import { combinableCount } from './game/pieces'
 import { act, useGame } from './game/store'
 import { DexScreen } from './ui/DexScreen'
-import { ExpeditionScreen } from './ui/ExpeditionScreen'
 import { GachaScreen } from './ui/GachaScreen'
 import { RanchScreen } from './ui/RanchScreen'
 import { RouteScreen } from './ui/RouteScreen'
 import { StarterScreen } from './ui/StarterScreen'
+import { UpgradeShop } from './ui/UpgradeShop'
 
-type Tab = 'route' | 'ranch' | 'expeditions' | 'gacha' | 'dex'
+type Tab = 'route' | 'ranch' | 'shop' | 'gacha' | 'dex'
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'route', icon: '🗺️', label: 'Ruta' },
   { id: 'ranch', icon: '🏡', label: 'Rancho' },
-  { id: 'expeditions', icon: '🧭', label: 'Expediciones' },
+  { id: 'shop', icon: '🛒', label: 'Tienda' },
   { id: 'gacha', icon: '🎰', label: 'Gacha' },
   { id: 'dex', icon: '📕', label: 'Pokédex' },
 ]
@@ -39,9 +39,9 @@ export default function App() {
     })
 
   const badges: Record<Tab, boolean> = {
-    route: !!game.run && game.run.phase !== 'walking',
+    route: (!!game.run && game.run.phase !== 'walking') || game.expeditions.some(isExpeditionDone),
     ranch: false,
-    expeditions: game.expeditions.some(isExpeditionDone),
+    shop: false,
     gacha: false,
     dex: combinableCount(game) > 0,
   }
@@ -68,7 +68,7 @@ export default function App() {
       <main className="content">
         {tab === 'route' && <RouteScreen game={game} />}
         {tab === 'ranch' && <RanchScreen game={game} />}
-        {tab === 'expeditions' && <ExpeditionScreen game={game} />}
+        {tab === 'shop' && <UpgradeShop game={game} />}
         {tab === 'gacha' && <GachaScreen game={game} />}
         {tab === 'dex' && <DexScreen game={game} />}
       </main>

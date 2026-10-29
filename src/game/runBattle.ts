@@ -1,9 +1,9 @@
 import { type Route, type RouteNode } from '../data/maps'
 import { wildMoves } from '../data/moves'
 import { makeFighter, simulateBattle, type BattleRecord } from './battle'
-import { markSeen } from './dex'
+import { addPieces, markSeen } from './dex'
 import { pickEncounter, randInt, type Rng } from './random'
-import { moneyReward, ticketReward } from './rewards'
+import { moneyReward, pieceReward, ticketReward } from './rewards'
 import { activeMon, type GameState } from './state'
 import { gainExp, maxHp } from './stats'
 
@@ -48,7 +48,12 @@ export function startWildBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) 
     moveId: mon.moveId,
     events: result.events,
     outcome: result.outcome,
-    rewards: { money: win ? moneyReward(level, rng) : 0, tickets: win ? ticketReward(rng) : 0, moneyLost: 0 },
+    rewards: {
+      money: win ? moneyReward(level, rng) : 0,
+      tickets: win ? ticketReward(enemyId, rng) : 0,
+      piece: win && pieceReward(enemyId, rng),
+      moneyLost: 0,
+    },
   }
   run.battleMsLeft = battleDuration(run.lastBattle)
 }
@@ -77,6 +82,10 @@ function settleBattle(s: GameState, r: Route) {
     s.tickets += record.rewards.tickets
     run.earned.money += record.rewards.money
     run.earned.tickets += record.rewards.tickets
+    if (record.rewards.piece) {
+      addPieces(s, record.enemy.speciesId, 1)
+      run.earned.pieces.push(record.enemy.speciesId)
+    }
     run.earned.wins++
   }
   if (run.stop === run.path.length - 1) completeRoute(s, r)
@@ -95,13 +104,15 @@ function faint(s: GameState): number {
 /** Premio final de la ruta; la EXP solo llega aquí (los combates dan dinero y tickets) */
 export function completeRoute(s: GameState, r: Route) {
   const run = s.run!
-  s.tickets += r.reward.tickets
+  const firstClear = !s.completedRoutes.includes(r.id)
+  const tickets = r.reward.tickets + (firstClear ? (r.reward.firstClearTickets ?? 0) : 0)
+  s.tickets += tickets
   s.money += r.reward.money
-  run.earned.tickets += r.reward.tickets
+  run.earned.tickets += tickets
   run.earned.money += r.reward.money
   run.earned.exp = r.reward.exp
   run.earned.levelsGained = gainExp(activeMon(s)!, r.reward.exp).levelsGained
-  if (!s.completedRoutes.includes(r.id)) s.completedRoutes.push(r.id)
+  if (firstClear) s.completedRoutes.push(r.id)
   if (r.unlocks && !s.unlockedRoutes.includes(r.unlocks)) s.unlockedRoutes.push(r.unlocks)
   run.phase = 'complete'
 }

@@ -1,54 +1,43 @@
-import { useRef, useState, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { species } from '../data/species'
 import { findMon, monPlace, type GameState, type OwnedMon } from '../game/state'
-import { resetGame } from '../game/store'
 import { Sprite } from './common'
 import { MonDetail } from './MonDetail'
-import { UpgradeShop } from './UpgradeShop'
+import { SettingsMenu } from './SettingsMenu'
 
+/** El rancho ocupa toda la pantalla; tocar un Pokémon abre su ficha en una hoja que sube desde abajo */
 export function RanchScreen({ game }: { game: GameState }) {
-  const [selectedUid, setSelectedUid] = useState(game.activeUid ?? '')
-  const [shopOpen, setShopOpen] = useState(false)
-  const detailRef = useRef<HTMLDivElement>(null)
+  const [selectedUid, setSelectedUid] = useState<string | null>(null)
   const home = game.owned.filter((m) => monPlace(game, m.uid) === 'ranch')
-  const mon = findMon(game, selectedUid) ?? home[0] ?? game.owned[0]
-
-  // El prado es alto: al tocar un Pokémon se baja hasta su ficha
-  const select = (uid: string) => {
-    setSelectedUid(uid)
-    detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  if (shopOpen) return <UpgradeShop game={game} onClose={() => setShopOpen(false)} />
+  const mon = selectedUid ? findMon(game, selectedUid) : undefined
+  const close = () => setSelectedUid(null)
 
   return (
-    <div className="screen scroll">
-      <div className="row between">
-        <h2 className="section-title">Pokérancho</h2>
-        <button className="btn small" onClick={() => setShopOpen(true)}>
-          🛒 Mejoras
-        </button>
-      </div>
+    <div className="screen ranch">
       <div className="ranch-field">
         {home.map((m) => (
           <RanchMon
             key={m.uid}
             mon={m}
-            selected={m.uid === mon?.uid}
+            selected={m.uid === selectedUid}
             active={m.uid === game.activeUid}
-            onClick={() => select(m.uid)}
+            onClick={() => setSelectedUid(m.uid)}
           />
         ))}
         {home.length === 0 && <p className="ranch-empty small">Todos tus Pokémon están fuera.</p>}
+        <SettingsMenu />
       </div>
-      <div ref={detailRef}>{mon && <MonDetail key={mon.uid} game={game} mon={mon} />}</div>
 
-      <button
-        className="btn ghost small danger"
-        onClick={() => confirm('¿Borrar la partida y empezar de cero?') && resetGame()}
-      >
-        Reiniciar partida
-      </button>
+      {mon && (
+        <div className="ranch-sheet-backdrop" onClick={close}>
+          <div className="ranch-sheet" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <MonDetail key={mon.uid} game={game} mon={mon} />
+            <button className="btn primary wide" onClick={close}>
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

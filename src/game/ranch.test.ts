@@ -26,7 +26,7 @@ describe('rancho', () => {
   it('no se puede curar ni entrenar a un Pokémon que está en ruta', () => {
     const s = stateWithStarter()
     const mon = activeMon(s)!
-    startRun(s, 'ruta-1')
+    startRun(s, 'pueblo-paleta')
     mon.hp = 1
     expect(healInstant(s, mon.uid)).toBe(false)
     expect(train(s, mon.uid)).toBeNull()
@@ -36,7 +36,7 @@ describe('rancho', () => {
     const s = stateWithStarter()
     const mon = activeMon(s)!
     mon.hp = 5
-    sendExpedition(s, mon.uid, 'ruta-1', 15)
+    sendExpedition(s, mon.uid, 'pueblo-paleta', 15)
     restInRanch(s, 60)
     expect(mon.hp).toBe(5)
   })

@@ -1,5 +1,5 @@
 import { RARITY_INFO, rarityOf, species } from '../data/species'
-import { markCaught, markSeen } from './dex'
+import { markCaught, piecesOf } from './dex'
 import { createMon } from './engine'
 import type { GameState } from './state'
 import { MAX_STARS } from './stats'
@@ -18,17 +18,12 @@ export interface CombineResult {
   money?: number
 }
 
-export const piecesOf = (s: GameState, speciesId: number): number => s.pieces[speciesId] ?? 0
+export { addPieces, piecesOf } from './dex'
 
 export const canCombine = (s: GameState, speciesId: number): boolean => piecesOf(s, speciesId) >= PIECES_PER_COMBINE
 
 export const combinableCount = (s: GameState): number =>
   Object.keys(s.pieces).filter((id) => canCombine(s, Number(id))).length
-
-export function addPieces(s: GameState, speciesId: number, count: number) {
-  s.pieces[speciesId] = piecesOf(s, speciesId) + count
-  markSeen(s, speciesId)
-}
 
 export function combineKind(s: GameState, speciesId: number): CombineKind {
   const owned = s.owned.find((m) => m.speciesId === speciesId)

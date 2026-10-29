@@ -30,7 +30,16 @@ export interface Run {
   lastBattle: BattleRecord | null
   /** Milisegundos reales que quedan del combate en curso; mientras sea > 0 no se dan pasos */
   battleMsLeft: number
-  earned: { money: number; tickets: number; exp: number; levelsGained: number; wins: number; battles: number }
+  /** Lo ganado en la ruta; `pieces` son las especies de las piezas soltadas (una entrada por pieza) */
+  earned: {
+    money: number
+    tickets: number
+    pieces: number[]
+    exp: number
+    levelsGained: number
+    wins: number
+    battles: number
+  }
 }
 
 /** Un Pokémon del rancho haciendo una ruta por su cuenta durante un tiempo fijo */
@@ -67,7 +76,7 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 8
+export const SAVE_VERSION = 10
 
 export function initialState(): GameState {
   return {
@@ -82,7 +91,7 @@ export function initialState(): GameState {
     missingnoShards: 0,
     favorites: [],
     upgrades: {},
-    unlockedRoutes: ['ruta-1'],
+    unlockedRoutes: ['pueblo-paleta'],
     completedRoutes: [],
     run: null,
     expeditions: [],

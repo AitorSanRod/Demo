@@ -26,7 +26,7 @@ export function startRun(s: GameState, routeId: string, path = pathFrom(route(ro
     phase: 'walking',
     lastBattle: null,
     battleMsLeft: 0,
-    earned: { money: 0, tickets: 0, exp: 0, levelsGained: 0, wins: 0, battles: 0 },
+    earned: { money: 0, tickets: 0, pieces: [], exp: 0, levelsGained: 0, wins: 0, battles: 0 },
   }
 }
 

@@ -649,9 +649,12 @@ p {
 .route-enemy.hit {
   animation: shake 0.4s ease;
 }
-.scene-walker.fainted .sprite,
 .route-enemy.fainted {
   animation: faint 0.6s ease forwards;
+}
+/* Nuestro Pokémon no desaparece al caer: se queda tumbado y en silueta (ver .run.defeated) */
+.scene-walker.fainted .sprite {
+  animation: player-faint 0.6s ease forwards;
 }
 .route-enemy.fleeing {
   animation: flee 0.6s ease-in forwards;
@@ -676,6 +679,12 @@ p {
   80% {
     translate: 6px 0;
     opacity: 1;
+  }
+}
+@keyframes player-faint {
+  to {
+    translate: 0 10px;
+    rotate: 12deg;
   }
 }
 @keyframes faint {
@@ -728,16 +737,89 @@ p {
 
 /* ---------------------------------------------------------------- Rancho */
 
-/* Prado donde pasean los Pokémon que están en casa: la imagen se ve entera (606×1200) */
-.ranch-field {
+/* El rancho es solo la imagen a pantalla completa, sin scroll; la ficha sube encima en .ranch-sheet */
+.ranch {
   position: relative;
-  flex-shrink: 0;
-  aspect-ratio: 606 / 1200;
-  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--line);
+}
+.ranch-field {
+  position: absolute;
+  inset: 0;
   background: url('./assets/ranch.jpg') center / cover;
   image-rendering: pixelated;
+}
+/* Engranaje de ajustes en la esquina del rancho y su menú desplegable */
+.settings-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: #0005;
+  font-size: 22px;
+  line-height: 1;
+}
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 150;
+}
+.settings-menu {
+  position: absolute;
+  top: 58px;
+  right: 8px;
+  min-width: 200px;
+  gap: 4px;
+  padding: 10px;
+  box-shadow: 0 6px 20px #0004;
+  animation: fade-in 0.15s ease-out;
+}
+.settings-item {
+  min-height: 44px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+}
+.settings-item:active {
+  background: var(--card-2);
+}
+.settings-item.danger {
+  color: var(--red);
+}
+.ranch-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  background: #0006;
+  animation: fade-in 0.2s ease-out;
+}
+.ranch-sheet {
+  width: 100%;
+  max-height: 85%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 12px calc(12px + var(--safe-bottom));
+  border-radius: 18px 18px 0 0;
+  background: var(--bg);
+  box-shadow: 0 -6px 20px #0004;
+  animation: sheet-up 0.25s ease-out;
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
 }
 .ranch-empty {
   position: absolute;
@@ -899,7 +981,7 @@ p {
 
 .action-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 .action-grid .btn {
@@ -991,7 +1073,7 @@ p {
   border-radius: 50%;
   background: radial-gradient(circle, var(--glow) 0 30%, transparent 70%);
   opacity: 0;
-  animation: capture-glow 3.6s ease-in forwards;
+  animation: capture-glow 3.6s ease-in-out forwards;
 }
 .capture-ball .pokeball {
   display: block;
@@ -1050,7 +1132,10 @@ p {
 .capture.no-drop .capture-ball {
   animation: capture-wobble 2.8s ease-in-out forwards;
 }
-.capture.no-drop .capture-ball::before,
+.capture.no-drop .capture-ball::before {
+  animation-name: capture-glow-wobble;
+  animation-duration: 2.8s;
+}
 .capture.no-drop .capture-dim {
   animation-duration: 2.8s;
 }
@@ -1117,11 +1202,47 @@ p {
     transform: rotate(0) scale(1.15);
   }
 }
+/* El brillo de la rareza crece por escalones con cada balanceo; con caída, empieza al tocar el suelo */
 @keyframes capture-glow {
   0%,
-  88% {
+  24% {
     opacity: 0;
     transform: scale(0.6);
+  }
+  45% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  67% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  89% {
+    opacity: 0.8;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+/* Mismos escalones sin la caída (tirada tocando la Pokéball) */
+@keyframes capture-glow-wobble {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  28% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  57% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  86% {
+    opacity: 0.8;
+    transform: scale(1.15);
   }
   100% {
     opacity: 1;
@@ -1456,4 +1577,45 @@ p {
   top: 4px;
   right: 6px;
   font-size: 12px;
+}
+
+/* Derrota: la ruta se queda en gris y nuestro Pokémon en negro; solo el resumen de recompensas conserva el color.
+   El filtro va en la escena y el panel, no en .run, para no afectar al resumen (que es position: fixed). */
+.run .scene,
+.run .run-hud {
+  transition: filter 0.6s ease;
+}
+.run.defeated .scene,
+.run.defeated .run-hud {
+  filter: grayscale(1);
+}
+.run.defeated .scene-walker .sprite {
+  filter: brightness(0);
+}
+
+/* ---------------------------------------------------------------- Pantalla con pestañas internas (Ruta) */
+
+.tabbed {
+  display: flex;
+  flex-direction: column;
+}
+.tabbed-bar {
+  flex-shrink: 0;
+  margin: 10px 16px 0;
+}
+/* El contenido ocupa el resto; .screen dentro (ruta en curso, listas) usa height: 100% de esta caja */
+.tabbed-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.count-badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
 }

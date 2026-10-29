@@ -27,11 +27,11 @@ Regla de dependencias: `ui → game → data`. Nunca al revés. `data` no import
 | `game/runBattle.ts` | Combates de la ruta: se resuelven al llegar y se aplican al acabar su tiempo; premio final |
 | `game/expedition.ts` | Expediciones por tiempo |
 | `game/ranch.ts` | Acciones del rancho y descanso |
-| `game/upgrades.ts` | Mejoras de la tienda del rancho (precios por nivel y compra) |
+| `game/upgrades.ts` | Mejoras de la pestaña Tienda (precios por nivel y compra) |
 | `game/gacha.ts` | Tiradas (piezas) y compra de tickets |
 | `game/shredder.ts` | Trituradora (piezas → trozos de MissingNo) y compra de piezas con trozos |
 | `game/pieces.ts` | Piezas por especie y combinación (desbloqueo, ★ o ₽) |
-| `game/dex.ts` | Vistos, capturados y favoritos |
+| `game/dex.ts` | Vistos, capturados, favoritos y contador de piezas (sin dependencias, para evitar imports circulares) |
 | `game/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
 
 ## Store y acciones

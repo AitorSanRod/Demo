@@ -2,16 +2,43 @@ import { useState } from 'react'
 import { KANTO, node, pathFrom, type Route } from '../data/maps'
 import { move } from '../data/moves'
 import { species } from '../data/species'
+import { isExpeditionDone } from '../game/expedition'
 import { runBlocker, startRun } from '../game/run'
 import { activeMon, type GameState } from '../game/state'
 import { act } from '../game/store'
 import { Sprite } from './common'
+import { ExpeditionScreen } from './ExpeditionScreen'
 import { RunView } from './RunView'
 
+type RouteTab = 'route' | 'expeditions'
+
+/** Pestaña Ruta: la ruta del Pokémon activo (mapa o ruta en curso) y las expediciones del resto del equipo */
 export function RouteScreen({ game }: { game: GameState }) {
+  const [tab, setTab] = useState<RouteTab>('route')
   const mon = activeMon(game)
-  if (!game.run || !mon) return <RouteSelect game={game} />
-  return <RunView game={game} run={game.run} mon={mon} />
+  const returned = game.expeditions.filter(isExpeditionDone).length
+
+  return (
+    <div className="screen tabbed">
+      <div className="segmented tabbed-bar">
+        <button className={tab === 'route' ? 'active' : ''} onClick={() => setTab('route')}>
+          🗺️ Ruta
+        </button>
+        <button className={tab === 'expeditions' ? 'active' : ''} onClick={() => setTab('expeditions')}>
+          🧭 Expediciones {returned > 0 && <span className="count-badge">{returned}</span>}
+        </button>
+      </div>
+      <div className="tabbed-body">
+        {tab === 'expeditions' ? (
+          <ExpeditionScreen game={game} />
+        ) : game.run && mon ? (
+          <RunView game={game} run={game.run} mon={mon} />
+        ) : (
+          <RouteSelect game={game} />
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------- Selección de ruta
@@ -45,9 +72,7 @@ function RouteSelect({ game }: { game: GameState }) {
               <p className="muted small">{unlocked ? r.description : 'Completa la ruta anterior para desbloquearla.'}</p>
               {unlocked && !open && (
                 <div className="row between">
-                  <span className="small muted">
-                    Premio: 🎟 {r.reward.tickets} · ₽ {r.reward.money}
-                  </span>
+                  <RouteReward game={game} r={r} />
                   <button className="btn" onClick={() => setOpenId(r.id)}>
                     Ver ruta
                   </button>
@@ -107,13 +132,20 @@ function RoutePlanner({ game, route: r, canStart }: { game: GameState; route: Ro
         })}
       </ol>
       <div className="row between">
-        <span className="small muted">
-          Premio: 🎟 {r.reward.tickets} · ₽ {r.reward.money}
-        </span>
+        <RouteReward game={game} r={r} />
         <button className="btn primary" disabled={!canStart} onClick={() => act((s) => startRun(s, r.id, path))}>
           ¡En marcha!
         </button>
       </div>
     </div>
   )
+}
+
+/** Premio por completar la ruta; los tickets de primera vez solo se anuncian mientras no se haya completado */
+function RouteReward({ game, r }: { game: GameState; r: Route }) {
+  const { tickets, money, exp, firstClearTickets } = r.reward
+  const parts = [`₽ ${money}`, `${exp} EXP`]
+  if (tickets > 0) parts.push(`🎟 ${tickets}`)
+  if (firstClearTickets && !game.completedRoutes.includes(r.id)) parts.push(`🎟 +${firstClearTickets} la primera vez`)
+  return <span className="small muted">Premio: {parts.join(' · ')}</span>
 }

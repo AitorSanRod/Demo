@@ -22,15 +22,17 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
   const lastStop = run.path.length - 1
   // Durante el combate se ven los PS del momento, no los finales que el motor ya ha calculado
   const hp = frame ? frame.event.playerHp : Math.floor(mon.hp)
+  const playerClass = battle && frame ? fighterClass(battle, frame, 'player') : ''
+  const defeated = run.phase === 'fainted' || playerClass === 'fainted'
 
   return (
-    <div className="screen run">
+    <div className={`screen run ${defeated ? 'defeated' : ''}`}>
       <WalkScene
         biome={r.biome}
         speciesId={mon.speciesId}
         moving={walking}
         speed={Math.min(1.8, Math.max(0.6, spm / 22))}
-        walkerClass={battle && frame ? `battling ${fighterClass(battle, frame, 'player')}` : ''}
+        walkerClass={battle ? `battling ${playerClass}` : ''}
         onStep={walking || battle ? () => act(tapRun) : undefined}
         tapLabel={battle ? '»' : '+1'}
       >

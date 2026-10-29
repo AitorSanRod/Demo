@@ -2,16 +2,11 @@ import type { GameState } from '../game/state'
 import { act } from '../game/store'
 import { buyUpgrade, nextUpgradePrice, UPGRADE_IDS, UPGRADES, upgradeLevel, type UpgradeId } from '../game/upgrades'
 
-/** Tienda del rancho: mejoras permanentes que se pagan con pokécuartos */
-export function UpgradeShop({ game, onClose }: { game: GameState; onClose: () => void }) {
+/** Pestaña Tienda: mejoras permanentes que se pagan con pokécuartos */
+export function UpgradeShop({ game }: { game: GameState }) {
   return (
     <div className="screen scroll">
-      <div className="row between">
-        <h2 className="section-title">Mejoras del rancho</h2>
-        <button className="btn ghost small" onClick={onClose}>
-          ← Volver
-        </button>
-      </div>
+      <h2 className="section-title">Mejoras</h2>
       {UPGRADE_IDS.map((id) => (
         <UpgradeCard key={id} game={game} id={id} />
       ))}

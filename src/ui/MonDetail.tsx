@@ -6,12 +6,10 @@ import { monPlace, type GameState, type MonPlace, type OwnedMon } from '../game/
 import { calcStats, expToNext, maxHp, stepsPerMinute } from '../game/stats'
 import { act } from '../game/store'
 import { Bar, MoveChip, Sprite, TypeBadge } from './common'
-import { ExpeditionForm } from './Expeditions'
 
 const PLACE_LABEL: Record<MonPlace, string> = { ranch: 'En el rancho', run: 'En ruta', expedition: 'De expedición' }
 
 export function MonDetail({ game, mon }: { game: GameState; mon: OwnedMon }) {
-  const [sending, setSending] = useState(false)
   const [message, setMessage] = useState('')
   const sp = species(mon.speciesId)
   const stats = calcStats(mon.speciesId, mon.level, mon.stars)
@@ -98,12 +96,8 @@ export function MonDetail({ game, mon }: { game: GameState; mon: OwnedMon }) {
         <button className="btn" disabled={busy || !!game.run || isActive} onClick={() => act((s) => setActive(s, mon.uid))}>
           ⭐ Activo<span className="tiny">{isActive ? 'Ya lo es' : 'Sale a las rutas'}</span>
         </button>
-        <button className={`btn ${sending ? 'primary' : ''}`} disabled={busy} onClick={() => setSending((x) => !x)}>
-          🧭 Expedición<span className="tiny">Ruta automática</span>
-        </button>
       </div>
 
-      {sending && !busy && <ExpeditionForm game={game} mon={mon} />}
     </div>
   )
 }

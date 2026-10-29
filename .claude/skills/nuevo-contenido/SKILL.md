@@ -26,6 +26,9 @@ se comporte distinto), primero implementa la regla con la skill `nueva-mecanica`
 - Encuentros con `enc({ Pidgey: 30, Rattata: 70 })`: nombre exacto de `pokemon.json` y probabilidad en %.
   Cada lista (la de la ruta y la de cada parada que la sustituya) debe sumar 100.
 - `levels` y `reward` en progresión con la ruta anterior (ver tabla en `docs/diseno.md`).
+  `reward.firstClearTickets` (opcional) son tickets extra que solo se dan la primera vez que se completa.
+- Para fijar duración y dificultad, simula con el motor real (`advanceRun` en tiempo real a x1) con los tres
+  iniciales y anota los resultados en `docs/diseno.md`.
 - `biome` debe existir en `Biome` y en `SCENES` de `src/ui/scenery.ts`. Un bioma nuevo obliga a añadir su
   escena allí.
 

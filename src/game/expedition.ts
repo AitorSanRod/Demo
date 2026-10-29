@@ -1,8 +1,8 @@
 import { route, type Route } from '../data/maps'
 import { species } from '../data/species'
-import { markSeen } from './dex'
+import { addPieces, markSeen } from './dex'
 import { pickEncounter, randInt, type Rng } from './random'
-import { moneyReward, ticketReward } from './rewards'
+import { moneyReward, pieceReward, ticketReward } from './rewards'
 import { findMon, monPlace, type Expedition, type GameState, type OwnedMon } from './state'
 import { gainExp, type LevelUpResult } from './stats'
 import { upgradeLevel } from './upgrades'
@@ -22,6 +22,8 @@ export interface ExpeditionResult extends LevelUpResult {
   exp: number
   money: number
   tickets: number
+  /** Especies de las piezas soltadas (una entrada por pieza) */
+  pieces: number[]
 }
 
 export const expeditionSlots = (s: GameState): number => BASE_EXPEDITION_SLOTS + upgradeLevel(s, 'expeditionSlots')
@@ -32,7 +34,7 @@ export function expeditionBlocker(s: GameState, uid: string): string | null {
   const place = monPlace(s, uid)
   if (place === 'run') return 'Está explorando una ruta.'
   if (place === 'expedition') return 'Ya está de expedición.'
-  if (s.expeditions.length >= expeditionSlots(s)) return 'No quedan huecos de expedición. Amplíalos en la tienda del rancho.'
+  if (s.expeditions.length >= expeditionSlots(s)) return 'No quedan huecos de expedición. Amplíalos en la Tienda.'
   if (mon.hp < 1) return `${species(mon.speciesId).name} está debilitado.`
   return null
 }
@@ -65,7 +67,7 @@ export function collectExpedition(s: GameState, uid: string, rng: Rng = Math.ran
   if (!e || !mon || !isExpeditionDone(e)) return null
   const r = route(e.routeId)
   const winRate = expeditionWinRate(mon, r)
-  const result = { battles: expeditionBattles(e.durationMin), wins: 0, exp: r.reward.exp, money: 0, tickets: 0 }
+  const result = { battles: expeditionBattles(e.durationMin), wins: 0, exp: r.reward.exp, money: 0, tickets: 0, pieces: [] as number[] }
 
   for (let i = 0; i < result.battles; i++) {
     const enemyId = pickEncounter(r.encounters, rng)
@@ -74,11 +76,13 @@ export function collectExpedition(s: GameState, uid: string, rng: Rng = Math.ran
     if (rng() >= winRate) continue
     result.wins++
     result.money += moneyReward(level, rng)
-    result.tickets += ticketReward(rng)
+    result.tickets += ticketReward(enemyId, rng)
+    if (pieceReward(enemyId, rng)) result.pieces.push(enemyId)
   }
 
   s.expeditions = s.expeditions.filter((x) => x !== e)
   s.money += result.money
   s.tickets += result.tickets
+  for (const id of result.pieces) addPieces(s, id, 1)
   return { ...result, ...gainExp(mon, result.exp) }
 }

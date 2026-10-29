@@ -19,7 +19,7 @@ function stateOnExpedition(durationMin = 60) {
   const s = initialState()
   chooseStarter(s, 1)
   const mon = activeMon(s)!
-  sendExpedition(s, mon.uid, 'ruta-1', durationMin)
+  sendExpedition(s, mon.uid, 'pueblo-paleta', durationMin)
   return { s, mon }
 }
 
@@ -50,8 +50,18 @@ describe('expediciones', () => {
     expect(result.battles).toBe(expeditionBattles(60))
     expect(result.wins).toBe(result.battles)
     expect(s.money).toBe(money + result.money)
-    expect(result.exp).toBe(route('ruta-1').reward.exp)
+    expect(result.exp).toBe(route('pueblo-paleta').reward.exp)
     expect(s.expeditions).toHaveLength(0)
+  })
+
+  it('los salvajes derrotados pueden soltar piezas, que se suman a la colección', () => {
+    const { s, mon } = stateOnExpedition(60)
+    advanceExpeditions(s, 60)
+    // Con rng muy bajo se gana cada combate y cada salvaje suelta pieza
+    const result = collectExpedition(s, mon.uid, () => 0.001)!
+    expect(result.pieces).toHaveLength(result.battles)
+    const id = result.pieces[0]
+    expect(s.pieces[id]).toBe(result.pieces.filter((p) => p === id).length)
   })
 
   it('un Pokémon débil para la ruta tiene menos probabilidad de ganar', () => {
@@ -69,7 +79,7 @@ describe('expediciones', () => {
     const second = createMon(16, 5)
     s.owned.push(second)
     expect(expeditionBlocker(s, second.uid)).toMatch(/huecos/)
-    sendExpedition(s, second.uid, 'ruta-1', 60)
+    sendExpedition(s, second.uid, 'pueblo-paleta', 60)
     expect(s.expeditions).toHaveLength(1)
   })
 
@@ -79,7 +89,7 @@ describe('expediciones', () => {
     s.owned.push(second)
     s.money = 500
     buyUpgrade(s, 'expeditionSlots')
-    sendExpedition(s, second.uid, 'ruta-1', 60)
+    sendExpedition(s, second.uid, 'pueblo-paleta', 60)
     expect(s.expeditions).toHaveLength(2)
   })
 })

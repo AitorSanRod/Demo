@@ -40,8 +40,11 @@ export interface Route {
   levels: [number, number]
   encounters: Encounter[]
   nodes: RouteNode[]
-  /** Premio al completar la ruta; `exp` es la única forma de ganar EXP además de entrenar */
-  reward: { tickets: number; money: number; exp: number }
+  /**
+   * Premio al completar la ruta; `exp` es la única forma de ganar EXP además de entrenar.
+   * `firstClearTickets` se suma solo la primera vez que se completa.
+   */
+  reward: { tickets: number; money: number; exp: number; firstClearTickets?: number }
   unlocks?: string
 }
 
@@ -69,21 +72,41 @@ export const KANTO: GameMap = {
   name: 'Kanto',
   routes: [
     {
+      // Tutorial: ~3 min con un inicial (≈21 pasos/min) y 3 combates fáciles
+      id: 'pueblo-paleta',
+      name: 'Pueblo Paleta',
+      description: 'Tu primer paseo: da una vuelta por el pueblo antes de salir a la Ruta 1.',
+      biome: 'meadow',
+      levels: [2, 3],
+      encounters: enc({ Pidgey: 40, Rattata: 40, Caterpie: 20 }),
+      reward: { tickets: 0, money: 50, exp: 100, firstClearTickets: 3 },
+      unlocks: 'ruta-1',
+      nodes: chain(
+        { id: 's', name: 'Tu casa', kind: 'start', steps: 0 },
+        { id: 'a', name: 'Jardín', kind: 'wild', steps: 18 },
+        { id: 'b', name: 'Plaza', kind: 'wild', steps: 18 },
+        { id: 'c', name: 'Afueras', kind: 'wild', steps: 20 },
+      ),
+    },
+    {
+      // ~6 min y 7 combates: con un inicial sin mejorar se pierde casi siempre
       id: 'ruta-1',
       name: 'Ruta 1',
-      description: 'Un camino tranquilo entre Pueblo Paleta y Ciudad Verde.',
+      description: 'El camino a Ciudad Verde. Más largo y peligroso de lo que parece.',
       biome: 'meadow',
-      levels: [3, 8],
+      levels: [5, 8],
       encounters: enc({ Pidgey: 30, Rattata: 30, Caterpie: 13, Weedle: 13, 'Nidoran♀': 7, 'Nidoran♂': 7 }),
       reward: { tickets: 3, money: 100, exp: 150 },
       unlocks: 'bosque-verde',
       nodes: chain(
-        { id: 's', name: 'Pueblo Paleta', kind: 'start', steps: 0 },
-        { id: 'a', name: 'Prado', kind: 'wild', steps: 50 },
-        { id: 'b', name: 'Hierba alta', kind: 'wild', steps: 100, levelBonus: 2 },
-        { id: 'c', name: 'Arboleda', kind: 'wild', steps: 120, encounters: enc({ Caterpie: 40, Weedle: 40, Pidgey: 20 }) },
-        { id: 'd', name: 'Campo', kind: 'wild', steps: 150, encounters: enc({ Rattata: 40, 'Nidoran♀': 30, 'Nidoran♂': 30 }) },
-        { id: 'e', name: 'Entrada a Ciudad Verde', kind: 'wild', steps: 70, levelBonus: 5 },
+        { id: 's', name: 'Salida del pueblo', kind: 'start', steps: 0 },
+        { id: 'a', name: 'Prado', kind: 'wild', steps: 16 },
+        { id: 'b', name: 'Hierba alta', kind: 'wild', steps: 16, levelBonus: 1 },
+        { id: 'c', name: 'Arboleda', kind: 'wild', steps: 16, encounters: enc({ Caterpie: 40, Weedle: 40, Pidgey: 20 }) },
+        { id: 'd', name: 'Senda', kind: 'wild', steps: 16 },
+        { id: 'e', name: 'Campo', kind: 'wild', steps: 16, encounters: enc({ Rattata: 40, 'Nidoran♀': 30, 'Nidoran♂': 30 }) },
+        { id: 'f', name: 'Hierba crecida', kind: 'wild', steps: 16, levelBonus: 2 },
+        { id: 'g', name: 'Entrada a Ciudad Verde', kind: 'wild', steps: 16, levelBonus: 3 },
       ),
     },
     {

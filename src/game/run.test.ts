@@ -7,7 +7,7 @@ import { activeMon, initialState } from './state'
 import { maxHp, stepsPerMinute } from './stats'
 
 const CHARMANDER = 4
-const ROUTE = 'ruta-1'
+const ROUTE = 'pueblo-paleta'
 
 function stateOnRoute(level = 5) {
   const s = initialState()
@@ -140,6 +140,28 @@ describe('advanceRun', () => {
     expect(s.run!.battleMsLeft).toBe(0)
     expect(s.completedRoutes).toContain(ROUTE)
     expect(s.unlockedRoutes).toContain(route(ROUTE).unlocks)
+  })
+
+  it('los tickets de primera vez solo se dan la primera vez que se completa', () => {
+    // Con rng alto ningún salvaje suelta ticket: solo cuentan los del premio de la ruta
+    const noDrops = () => 0.99
+    const s = stateOnRoute(50)
+    const r = route(ROUTE)
+    advanceRun(s, PLENTY_MS, noDrops)
+    expect(s.run!.earned.tickets).toBe(r.reward.tickets + r.reward.firstClearTickets!)
+    endRun(s)
+    startRun(s, ROUTE)
+    advanceRun(s, PLENTY_MS, noDrops)
+    expect(s.run!.earned.tickets).toBe(r.reward.tickets)
+  })
+
+  it('las piezas que sueltan los salvajes se suman al acabar cada combate', () => {
+    // Con rng muy bajo cada salvaje derrotado suelta pieza
+    const s = stateOnRoute(50)
+    advanceRun(s, PLENTY_MS, () => 0.001)
+    const { pieces, wins } = s.run!.earned
+    expect(pieces).toHaveLength(wins)
+    expect(s.pieces[pieces[0]]).toBe(pieces.filter((p) => p === pieces[0]).length)
   })
 
   it('si cae derrotado la ruta termina y pierde parte de lo ganado', () => {

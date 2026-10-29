@@ -52,7 +52,7 @@ function Pop({ record, frame, side }: { record: BattleRecord; frame: BattleFrame
 function popText(record: BattleRecord, frame: BattleFrame, side: Side): string {
   if (frame.ended) {
     if (side !== 'enemy' || record.outcome !== 'win') return ''
-    return `+₽ ${record.rewards.money}${record.rewards.tickets > 0 ? ' 🎟' : ''}`
+    return `+₽ ${record.rewards.money}${record.rewards.tickets > 0 ? ' 🎟' : ''}${record.rewards.piece ? ' 🧩' : ''}`
   }
   const { event, index } = frame
   if (event.side !== side) return ''
