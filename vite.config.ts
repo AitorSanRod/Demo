@@ -17,8 +17,8 @@ export default defineConfig({
         lang: 'es',
         display: 'standalone',
         orientation: 'portrait',
-        theme_color: '#1b2a1f',
-        background_color: '#1b2a1f',
+        theme_color: '#e3350d',
+        background_color: '#e3350d',
         start_url: '.',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
@@ -27,6 +27,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Por defecto solo se precachean js/css/html: se añaden las imágenes propias (fondo del rancho)
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg}'],
         // Los sprites vienen del repo de PokeAPI: se guardan en caché para jugar sin conexión
         runtimeCaching: [
           {

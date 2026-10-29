@@ -1,22 +1,27 @@
+/* Paleta de los juegos de GBA: rojo Pokédex, superficies crema y blancas, texto casi negro */
 :root {
-  --bg: #1b2a1f;
-  --bg-2: #22372a;
-  --card: #2a4233;
-  --card-2: #335240;
-  --line: #44664f;
-  --text: #f1f5ee;
-  --muted: #a9bba9;
-  --accent: #ffcb05;
-  --accent-ink: #2a2200;
-  --red: #e53935;
-  --hp-ok: #4caf50;
-  --hp-mid: #ffb300;
-  --hp-low: #e53935;
-  --exp: #42a5f5;
+  --bg: #eee8d5;
+  --bg-2: #f8f8f8;
+  --card: #f8f8f8;
+  --card-2: #eee8d5;
+  --line: #c4bea9;
+  --text: #1a1814;
+  --muted: #6e675b;
+  --accent: #e3350d;
+  --accent-ink: #f8f8f8;
+  --red: #e3350d;
+  --red-dark: #9b2008;
+  --yellow: #f7d02c;
+  --yellow-dark: #c8a800;
+  --page: #44403a;
+  --hp-ok: #38bf4b;
+  --hp-mid: #f7d02c;
+  --hp-low: #e3350d;
+  --exp: #1a6fbf;
   --radius: 14px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  color-scheme: dark;
+  color-scheme: light;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -33,7 +38,7 @@ body,
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--page);
   overscroll-behavior: none;
 }
 
@@ -73,14 +78,16 @@ p {
   align-items: center;
   gap: 10px;
   padding: calc(var(--safe-top) + 10px) 16px 10px;
-  background: var(--bg-2);
-  border-bottom: 1px solid var(--line);
+  background: var(--red);
+  border-bottom: 1px solid var(--red-dark);
+  color: var(--bg-2);
 }
 
 .logo {
   font-weight: 800;
   letter-spacing: 0.5px;
-  color: var(--accent);
+  color: var(--yellow);
+  text-shadow: 1px 1px 0 var(--red-dark);
   margin-right: auto;
 }
 
@@ -91,8 +98,8 @@ p {
 }
 
 .time-chip {
-  border: 1px solid var(--line);
-  background: var(--card);
+  border: 1px solid #fff6;
+  background: #0002;
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 12px;
@@ -107,7 +114,7 @@ p {
 
 .bottom-nav {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: var(--bg-2);
   border-top: 1px solid var(--line);
   padding-bottom: var(--safe-bottom);
@@ -212,8 +219,8 @@ p {
 }
 
 .notice {
-  background: #ffcb0522;
-  border: 1px solid #ffcb0566;
+  background: color-mix(in srgb, var(--yellow) 25%, transparent);
+  border: 1px solid var(--yellow-dark);
   border-radius: var(--radius);
   padding: 10px 12px;
   font-size: 13px;
@@ -234,7 +241,7 @@ p {
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--card-2);
+  background: var(--muted);
   color: #fff;
 }
 .tag.ok {
@@ -251,7 +258,7 @@ p {
 }
 
 .stars {
-  color: var(--accent);
+  color: var(--yellow-dark);
   letter-spacing: 1px;
 }
 
@@ -287,15 +294,15 @@ p {
   width: 100%;
 }
 .btn.danger {
-  color: #ff8a80;
-  border-color: #ff8a8055;
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 40%, transparent);
   align-self: center;
 }
 
 .bar {
   height: 8px;
   border-radius: 99px;
-  background: #0005;
+  background: #00000026;
   overflow: hidden;
 }
 .bar-fill {
@@ -349,7 +356,7 @@ p {
 .move-chip.selected {
   border-color: var(--accent);
   border-left-color: var(--type-color);
-  background: #ffcb0518;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 .move-chip:disabled {
   opacity: 0.4;
@@ -386,6 +393,39 @@ p {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.planner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Paradas unidas por una línea vertical, como un camino */
+.stop-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 3px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stop::before {
+  content: '';
+  position: absolute;
+  left: -22px;
+  top: 4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
 }
 
 /* ---------------------------------------------------------------- Run */
@@ -426,9 +466,15 @@ p {
 .scene-walker {
   position: absolute;
   left: 40%;
+  bottom: var(--ground);
   transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;
+  transition: left 0.5s ease;
+}
+/* En combate se aparta a la izquierda para dejar sitio al rival; al acabar vuelve a su sitio */
+.scene-walker.battling {
+  left: 26%;
 }
 .scene-walker .sprite {
   display: block;
@@ -481,8 +527,8 @@ p {
   left: 12px;
   right: 12px;
   z-index: 2;
-  background: #0b1a10b8;
-  border: 1px solid #ffffff22;
+  background: #f8f8f8e6;
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 8px 12px;
   display: flex;
@@ -499,28 +545,8 @@ p {
   color: var(--muted);
 }
 
-.sheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 3;
-  max-height: 74%;
-  overflow-y: auto;
-  background: var(--bg-2);
-  border-top: 3px solid var(--accent);
-  border-radius: 18px 18px 0 0;
-  padding: 14px 16px 16px;
-  animation: sheet-up 0.25s ease-out;
-}
-@keyframes sheet-up {
-  from {
-    transform: translateY(100%);
-  }
-}
-
 .loss {
-  color: #ff8a80;
+  color: var(--red);
   font-weight: 700;
 }
 
@@ -528,7 +554,7 @@ p {
   position: absolute;
   transform: translate(-50%, -50%);
   font-weight: 900;
-  color: var(--accent);
+  color: var(--yellow);
   text-shadow: 0 2px 2px #0008;
   pointer-events: none;
   animation: float-up 0.7s ease-out forwards;
@@ -549,6 +575,7 @@ p {
   transform: translateX(-50%);
   font-size: 12px;
   font-weight: 600;
+  color: #fff;
   background: #000a;
   padding: 4px 12px;
   border-radius: 99px;
@@ -556,172 +583,305 @@ p {
   white-space: nowrap;
 }
 
-.choose {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.branch-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.branch {
-  background: var(--card);
-  border: 2px solid var(--line);
-  border-radius: 12px;
-  padding: 8px;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.branch.selected {
-  border-color: var(--accent);
-}
+/* ---------------------------------------------------------------- Combate en la ruta */
 
-.complete {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: center;
-}
-
-/* ---------------------------------------------------------------- Combate */
-
-.battle-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  animation: fade-in 0.25s ease;
-}
 @keyframes fade-in {
   from {
     opacity: 0;
   }
 }
 
-.battle-field {
-  flex: 1;
-  position: relative;
-  background:
-    radial-gradient(ellipse 34% 7% at 72% 42%, #0003 99%, transparent),
-    radial-gradient(ellipse 40% 8% at 28% 86%, #0003 99%, transparent),
-    linear-gradient(#8fd3f4 0 35%, #a6d97a 35%);
-  overflow: hidden;
-}
-
-.battle-info {
+/* Capa del combate sobre la escena; los Pokémon se colocan a la altura del suelo (--ground) */
+.route-battle {
   position: absolute;
-  width: 52%;
-  background: #fbfbf2ee;
-  color: #222;
-  border-radius: 10px;
-  padding: 6px 10px;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.route-fighter {
+  position: absolute;
+  bottom: var(--ground);
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  align-items: center;
+}
+/* Mismo `left` que .scene-walker.battling para que la barra quede sobre el Pokémon del jugador */
+.route-fighter.player {
+  left: 26%;
+  height: 200px;
+}
+/* La entrada va en el contenedor; los ataques, en .route-enemy, así no se pisan las animaciones */
+.route-fighter.enemy {
+  left: 74%;
+  animation: enemy-enter 0.5s ease-out;
+}
+.route-hp {
+  width: 110px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fbfbf2ee;
+  color: #222;
   box-shadow: 0 2px 0 #0003;
+  white-space: nowrap;
+  animation: fade-in 0.3s ease-out;
 }
-.enemy-info {
-  top: 8%;
-  left: 4%;
+.route-enemy .sprite {
+  display: block;
+  object-position: center bottom;
 }
-.player-info {
-  bottom: 6%;
-  right: 4%;
+/* El rival entra desde la derecha; usa `translate` para no pisar el `transform` que lo centra */
+@keyframes enemy-enter {
+  from {
+    translate: 160px 0;
+    opacity: 0;
+  }
 }
 
-.battle-mon {
-  position: absolute;
-}
-.battle-mon.enemy {
-  top: 18%;
-  right: 12%;
-}
-.battle-mon.player {
-  bottom: 9%;
-  left: 8%;
-}
-.battle-mon.attacking.player {
+/* Animaciones de los dos Pokémon (el del jugador es .scene-walker) */
+.scene-walker.attacking.player .sprite {
   animation: lunge-player 0.35s ease;
 }
-.battle-mon.attacking.enemy {
+.route-enemy.attacking.enemy {
   animation: lunge-enemy 0.35s ease;
 }
-.battle-mon.hit {
+.scene-walker.hit .sprite,
+.route-enemy.hit {
   animation: shake 0.4s ease;
 }
-.battle-mon.fainted {
+.scene-walker.fainted .sprite,
+.route-enemy.fainted {
   animation: faint 0.6s ease forwards;
+}
+.route-enemy.fleeing {
+  animation: flee 0.6s ease-in forwards;
 }
 @keyframes lunge-player {
   50% {
-    transform: translate(18px, -12px);
+    transform: scaleX(-1) translateX(-24px);
   }
 }
 @keyframes lunge-enemy {
   50% {
-    transform: translate(-18px, 12px);
+    transform: translateX(-24px);
   }
 }
 @keyframes shake {
   20%,
   60% {
-    transform: translateX(-6px);
+    translate: -6px 0;
     opacity: 0.4;
   }
   40%,
   80% {
-    transform: translateX(6px);
+    translate: 6px 0;
     opacity: 1;
   }
 }
 @keyframes faint {
   to {
-    transform: translateY(40px);
+    translate: 0 40px;
+    opacity: 0;
+  }
+}
+@keyframes flee {
+  to {
+    translate: 200px 0;
     opacity: 0;
   }
 }
 
-.battle-text {
-  background: var(--bg-2);
-  border-top: 3px solid var(--accent);
-  padding: 14px 16px calc(14px + var(--safe-bottom));
-  min-height: 150px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
+/* Daño, fallos y premio flotando sobre el Pokémon */
+.battle-pop {
+  position: absolute;
+  top: 70px;
+  z-index: 1;
+  left: 50%;
+  translate: -50% 0;
+  font-weight: 900;
+  font-size: 18px;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #000a,
+    0 0 4px #000a;
+  animation: pop-up 0.7s ease-out forwards;
 }
-.battle-text p {
-  font-size: 16px;
-  font-weight: 600;
+.battle-pop.reward {
+  color: var(--yellow);
+  animation-duration: 1.2s;
 }
-.battle-result {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: center;
-}
-.battle-result p {
-  font-size: 14px;
+@keyframes pop-up {
+  from {
+    transform: translateY(10px) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(0) scale(1.1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-36px);
+    opacity: 0;
+  }
 }
 
 /* ---------------------------------------------------------------- Rancho */
 
-.mon-stage {
+/* Prado donde pasean los Pokémon que están en casa: la imagen se ve entera (606×1200) */
+.ranch-field {
   position: relative;
-  height: 140px;
+  flex-shrink: 0;
+  aspect-ratio: 606 / 1200;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: url('./assets/ranch.jpg') center / cover;
+  image-rendering: pixelated;
+}
+.ranch-empty {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  background: radial-gradient(ellipse 45% 12% at 50% 85%, #0004 99%, transparent), linear-gradient(#3d6a4a, #2f5a3a);
+  color: var(--muted);
+}
+.ranch-mon {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: none;
+  background: none;
+  animation: wander var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+/* Solo el activo lleva sombra en el suelo; no salta con el sprite */
+.ranch-mon.active {
+  background: radial-gradient(ellipse 40% 12% at 50% 88%, #0003 99%, transparent);
+}
+.ranch-mon.selected .ranch-hop {
+  filter: drop-shadow(0 0 3px var(--accent)) drop-shadow(0 0 1px var(--accent));
+}
+.ranch-mon.fainted,
+.ranch-mon.fainted * {
+  animation-play-state: paused;
+}
+.ranch-mon.fainted {
+  filter: grayscale(1) opacity(0.7);
+}
+/* Los sprites miran a la izquierda: se voltean mientras caminan hacia la derecha */
+.ranch-face {
+  display: block;
+  animation: face calc(var(--dur) * 2) steps(1) var(--delay) infinite;
+}
+/* Mismo ritmo que `wander`: salta solo en los tramos en que avanza */
+.ranch-hop {
+  position: relative;
+  display: block;
+  animation: hop var(--dur) var(--delay) infinite alternate;
+}
+.ranch-badge {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
+/* Avanza a trompicones: tres tramos con pausas entre ellos */
+@keyframes wander {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+  35%,
+  50% {
+    transform: translateX(calc(var(--dx) * 0.4));
+  }
+  70%,
+  80% {
+    transform: translateX(calc(var(--dx) * 0.75));
+  }
+  100% {
+    transform: translateX(var(--dx));
+  }
+}
+@keyframes hop {
+  0%,
+  15%,
+  25%,
+  35%,
+  50%,
+  60%,
+  70%,
+  80%,
+  90%,
+  100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  20%,
+  30%,
+  55%,
+  65%,
+  85%,
+  95% {
+    transform: translateY(-7px);
+    animation-timing-function: ease-in;
+  }
+}
+@keyframes face {
+  0% {
+    transform: scaleX(-1);
+  }
+  50%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.expedition-list {
+  gap: 10px;
+}
+.expedition-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.expedition-row .grow > * {
+  display: block;
+}
+.expedition-picker {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.expedition-pick {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+}
+.expedition-pick.selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+}
+
+.expedition-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.expedition-report {
   cursor: pointer;
 }
+
 .idle-bounce {
   animation: idle 2.4s ease-in-out infinite;
 }
@@ -730,15 +890,6 @@ p {
     transform: translateY(-4px) scaleY(1.02);
   }
 }
-.heart {
-  position: absolute;
-  font-size: 22px;
-  animation: float-up 0.9s ease-out forwards;
-  left: 50%;
-  top: 40%;
-  pointer-events: none;
-}
-
 .stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -758,39 +909,6 @@ p {
   gap: 2px;
 }
 
-.move-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 8px;
-}
-.team-cell {
-  background: var(--card);
-  border: 2px solid var(--line);
-  border-bottom: 3px solid var(--rarity);
-  border-radius: 12px;
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-.team-cell .bar {
-  width: 100%;
-  height: 5px;
-}
-.team-cell.selected {
-  border-color: var(--accent);
-}
-.team-cell.active {
-  background: #ffcb0518;
-}
-
 /* ---------------------------------------------------------------- Gacha */
 
 .gacha-machine {
@@ -803,8 +921,31 @@ p {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle, color-mix(in srgb, var(--glow) 35%, transparent), transparent 70%), var(--bg-2);
+  background: var(--card-2);
   padding: 10px;
+}
+
+/* La Pokéball en reposo es el botón de «Tirar x1» */
+.pokeball-button {
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+.pokeball-button .pokeball {
+  display: block;
+}
+.pokeball-button:not(:disabled):hover {
+  transform: scale(1.05);
+}
+.pokeball-button:not(:disabled):active {
+  transform: scale(0.94);
+}
+.pokeball-button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.45;
 }
 
 .pokeball {
@@ -826,42 +967,256 @@ p {
   background: #fafafa;
   border: 4px solid #141414;
 }
-.pokeball.shaking {
-  animation: wobble 0.35s ease-in-out infinite;
-}
-@keyframes wobble {
-  25% {
-    transform: rotate(-18deg);
-  }
-  75% {
-    transform: rotate(18deg);
-  }
-}
-
-.gacha-results {
-  display: flex;
-  justify-content: center;
-}
-.gacha-results.many {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  width: 100%;
-}
-.pull-card {
+.capture {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 4px;
-  border-radius: 10px;
-  border: 2px solid var(--rarity);
-  background: color-mix(in srgb, var(--rarity) 15%, transparent);
-  animation: pop 0.35s ease-out backwards;
+  gap: 10px;
 }
-@keyframes pop {
+/* Cae, bota y se balancea tres veces sobre su base, como en una captura; al final brilla con la mejor rareza.
+   Sin `.no-drop` es la tirada desde el botón */
+.capture-ball {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  transform-origin: 50% 100%;
+  animation: capture 3.6s ease-in-out forwards;
+}
+.capture-ball::before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow) 0 30%, transparent 70%);
+  opacity: 0;
+  animation: capture-glow 3.6s ease-in forwards;
+}
+.capture-ball .pokeball {
+  display: block;
+}
+@keyframes capture {
+  0% {
+    transform: translateY(-150px) rotate(0);
+    animation-timing-function: ease-in;
+  }
+  12% {
+    transform: translateY(0) rotate(0);
+    animation-timing-function: ease-out;
+  }
+  18% {
+    transform: translateY(-26px) rotate(0);
+    animation-timing-function: ease-in;
+  }
+  24%,
+  32% {
+    transform: translateY(0) rotate(0);
+  }
+  36% {
+    transform: translateY(0) rotate(-24deg);
+  }
+  41% {
+    transform: translateY(0) rotate(16deg);
+  }
+  45%,
+  54% {
+    transform: translateY(0) rotate(0);
+  }
+  58% {
+    transform: translateY(0) rotate(-24deg);
+  }
+  63% {
+    transform: translateY(0) rotate(16deg);
+  }
+  67%,
+  76% {
+    transform: translateY(0) rotate(0);
+  }
+  80% {
+    transform: translateY(0) rotate(-24deg);
+  }
+  85% {
+    transform: translateY(0) rotate(16deg);
+  }
+  89% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+  100% {
+    transform: translateY(0) rotate(0) scale(1.15);
+  }
+}
+/* Tirada tocando la Pokéball: sin caída, solo los tres balanceos (mismo ritmo que el tramo final de `capture`) */
+.capture.no-drop .capture-ball {
+  animation: capture-wobble 2.8s ease-in-out forwards;
+}
+.capture.no-drop .capture-ball::before,
+.capture.no-drop .capture-dim {
+  animation-duration: 2.8s;
+}
+/* El fondo se oscurece poco a poco hasta el tono de la pantalla de premios, que aparece al abrirse */
+.capture-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: rgb(10 8 6 / 0.78);
+  opacity: 0;
+  animation: capture-dim 3.6s ease-in forwards;
+}
+/* La Pokéball y el aviso quedan por encima de la penumbra */
+.capture-ball,
+.capture-hint {
+  z-index: 41;
+}
+.capture-hint {
+  position: relative;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+@keyframes capture-dim {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes capture-wobble {
+  0%,
+  10% {
+    transform: rotate(0);
+  }
+  16% {
+    transform: rotate(-24deg);
+  }
+  22% {
+    transform: rotate(16deg);
+  }
+  28%,
+  40% {
+    transform: rotate(0);
+  }
+  45% {
+    transform: rotate(-24deg);
+  }
+  51% {
+    transform: rotate(16deg);
+  }
+  57%,
+  68% {
+    transform: rotate(0);
+  }
+  74% {
+    transform: rotate(-24deg);
+  }
+  80% {
+    transform: rotate(16deg);
+  }
+  86% {
+    transform: rotate(0) scale(1);
+  }
+  100% {
+    transform: rotate(0) scale(1.15);
+  }
+}
+@keyframes capture-glow {
+  0%,
+  88% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+
+/* ---------------------------------------------------------------- Premios */
+
+.reward-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  /* El fondo cubre toda la ventana, pero el contenido se queda en la columna de la app (480 px) */
+  padding: calc(var(--safe-top) + 24px) max(16px, calc((100% - 480px) / 2 + 16px)) calc(var(--safe-bottom) + 24px);
+  background: rgb(10 8 6 / 0.78);
+  color: #fff;
+  animation: fade-in 0.25s ease-out;
+}
+.reward-overlay.no-fade {
+  animation: none;
+}
+.reward-title {
+  text-align: center;
+  text-shadow: 0 2px 0 #0008;
+}
+.reward-hint {
+  opacity: 0.75;
+}
+.reward-overlay .btn.ghost {
+  color: #fff;
+}
+.reward-card {
+  --reward: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: min(260px, 100%);
+  min-height: 220px;
+  padding: 20px 16px;
+  border-radius: 20px;
+  text-align: center;
+  color: #fff;
+  border: 3px solid color-mix(in srgb, var(--reward) 70%, #fff);
+  background:
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--reward) 60%, #fff) 0 18%, transparent 60%),
+    var(--reward);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--reward) 60%, transparent);
+  animation: reward-in 0.4s cubic-bezier(0.2, 1.4, 0.5, 1);
+}
+.reward-card strong {
+  font-size: 18px;
+  text-shadow: 0 1px 0 #0006;
+}
+.reward-icon {
+  font-size: 56px;
+  line-height: 1;
+}
+.reward-card.small {
+  width: 104px;
+  min-height: 0;
+  padding: 8px 6px;
+  gap: 2px;
+  border-width: 2px;
+  border-radius: 12px;
+  box-shadow: none;
+  animation: none;
+}
+.reward-card.small strong {
+  font-size: 12px;
+}
+/* En el resumen el icono (emoji o sprite) se ve a la mitad */
+.reward-card.small .reward-icon {
+  zoom: 0.5;
+}
+.reward-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+@keyframes reward-in {
   from {
-    transform: scale(0.4);
+    transform: scale(0.3) rotate(-8deg);
     opacity: 0;
   }
 }
@@ -874,6 +1229,9 @@ p {
   gap: 6px;
 }
 .dex-cell {
+  position: relative;
+  color: inherit;
+  font: inherit;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -886,6 +1244,38 @@ p {
 }
 .dex-cell.caught {
   border: 2px solid var(--rarity);
+}
+.dex-cell:disabled {
+  opacity: 1;
+}
+.dex-cell.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+/* Con piezas para combinar, la casilla late para llamar la atención */
+.dex-cell.ready {
+  border: 2px solid var(--rarity);
+  animation: ready-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ready-pulse {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--rarity) 35%, transparent);
+  }
+}
+.dex-pieces {
+  font-weight: 700;
+}
+.dex-cell.ready .dex-pieces {
+  color: var(--accent);
+}
+/* Ficha de la especie elegida: se queda pegada abajo mientras se recorre la lista */
+.dex-panel {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  border: 2px solid var(--rarity);
+  box-shadow: 0 -6px 20px #0002;
+  animation: fade-in 0.2s ease-out;
 }
 .dex-unknown {
   height: 72px;
@@ -932,13 +1322,138 @@ p {
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 11px;
-  background: #0006;
-  border: 1px solid #ff8a8055;
-  color: #ffccc7;
+  background: var(--card);
+  border: 1px solid var(--red);
+  color: var(--red-dark);
   border-radius: 10px;
   padding: 10px;
   user-select: text;
   -webkit-user-select: text;
   max-height: 50vh;
   overflow: auto;
+}
+
+/* ---------------------------------------------------------------- Tienda */
+
+.upgrade-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.upgrade-icon {
+  font-size: 32px;
+}
+
+/* ---------------------------------------------------------------- Trituradora y MissingNo */
+
+/* Pestañas dentro de una pantalla (gacha) */
+.segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--card-2);
+}
+.segmented button {
+  min-height: 40px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+.segmented button.active {
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: 0 1px 3px #0002;
+}
+.shard-balance {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.shard-icon {
+  font-size: 28px;
+}
+.shred-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  border-left: 4px solid var(--rarity);
+}
+.shred-row .grow > * {
+  display: block;
+}
+.search {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+}
+.shop-cell {
+  min-height: 0;
+}
+.shop-cell:disabled {
+  opacity: 0.5;
+}
+
+/* ---------------------------------------------------------------- Confirmación */
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px max(16px, calc((100% - 480px) / 2 + 16px));
+  background: rgb(10 8 6 / 0.6);
+  animation: fade-in 0.2s ease-out;
+}
+.confirm-dialog {
+  width: 100%;
+  animation: reward-in 0.3s ease-out;
+}
+.confirm-actions .btn {
+  min-height: 44px;
+}
+.confirm-text {
+  flex: 1;
+  line-height: 1.45;
+}
+.shred-row.marked {
+  outline: 2px solid var(--accent);
+}
+.shred-marked {
+  color: var(--accent);
+  font-weight: 700;
+}
+/* Barra de confirmación de la trituradora: se queda pegada abajo mientras haya piezas marcadas */
+.shred-confirm {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 -6px 20px #0002;
+}
+.rarity-all {
+  border-left: 4px solid var(--rarity);
+}
+.favorite-toggle.on {
+  border-color: var(--red);
+}
+.dex-favorite {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 12px;
 }

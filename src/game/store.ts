@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { initialState, SAVE_VERSION, type GameState } from './state'
+import { initialState, restoreState, type GameState } from './state'
 
 const SAVE_KEY = 'pokerancho-save'
 
@@ -7,8 +7,8 @@ function load(): GameState {
   try {
     const raw = localStorage.getItem(SAVE_KEY)
     if (raw) {
-      const parsed = JSON.parse(raw) as GameState
-      if (parsed.version === SAVE_VERSION) return parsed
+      const restored = restoreState(JSON.parse(raw))
+      if (restored) return restored
     }
   } catch {
     // Partida corrupta o almacenamiento no disponible: se empieza de cero

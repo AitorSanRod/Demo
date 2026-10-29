@@ -8,8 +8,8 @@ export function StarterScreen() {
     <div className="screen scroll starter">
       <h1>Pokérancho</h1>
       <p>
-        Tu Pokémon recorrerá las rutas por su cuenta. Tú eliges el camino y el movimiento en cada parada, y le ayudas a
-        avanzar tocando la pantalla. Si se debilita, vuelve al rancho a descansar.
+        Tu Pokémon recorre las rutas por su cuenta: eliges el camino antes de salir y él camina y combate solo.
+        En el rancho eliges su movimiento, lo entrenas y mandas al resto de tu equipo de expedición.
       </p>
       <h2 className="section-title">Elige tu compañero</h2>
       <div className="starter-list">

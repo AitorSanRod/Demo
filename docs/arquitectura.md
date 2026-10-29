@@ -1,0 +1,97 @@
+# Arquitectura
+
+## Capas
+
+```
+src/data/   Datos estáticos y consultas sobre ellos. No conoce el estado de la partida.
+src/game/   Reglas del juego. Funciones puras sobre GameState. Sin React, sin DOM (salvo store.ts).
+src/ui/     Componentes React. Leen GameState y disparan acciones con act().
+scripts/    Utilidades de desarrollo (regenerar pokemon.json, iconos PWA). No se empaquetan.
+```
+
+Regla de dependencias: `ui → game → data`. Nunca al revés. `data` no importa de `game`; `game` no importa de `ui`.
+
+| Fichero | Responsabilidad |
+|---|---|
+| `data/species.ts` | Especies (desde `pokemon.json`, reducidas a 4 stats), rarezas, sprites, iniciales |
+| `data/types.ts` | Tipos y tabla de eficacias |
+| `data/moves.ts` | Movimientos de daño y aprendizaje generado por tipo |
+| `data/maps.ts` | Mapas, rutas, nodos, encuentros y consultas de caminos (`pathFrom`, `isValidPath`) |
+| `game/state.ts` | Tipos de `GameState`, estado inicial, `SAVE_VERSION` y dónde está cada Pokémon (`monPlace`) |
+| `game/random.ts` | Tipo `Rng` y utilidades de azar |
+| `game/stats.ts` | Fórmulas de stats, EXP y velocidad de paso |
+| `game/rewards.ts` | EXP, dinero y tickets por victoria |
+| `game/battle.ts` | Simulación de combate automático |
+| `game/engine.ts` | Altas de Pokémon y `tick` (avance del tiempo) |
+| `game/run.ts` | Ruta del Pokémon activo: salida, avance por tiempo, pasos y toques |
+| `game/runBattle.ts` | Combates de la ruta: se resuelven al llegar y se aplican al acabar su tiempo; premio final |
+| `game/expedition.ts` | Expediciones por tiempo |
+| `game/ranch.ts` | Acciones del rancho y descanso |
+| `game/upgrades.ts` | Mejoras de la tienda del rancho (precios por nivel y compra) |
+| `game/gacha.ts` | Tiradas (piezas) y compra de tickets |
+| `game/shredder.ts` | Trituradora (piezas → trozos de MissingNo) y compra de piezas con trozos |
+| `game/pieces.ts` | Piezas por especie y combinación (desbloqueo, ★ o ₽) |
+| `game/dex.ts` | Vistos, capturados y favoritos |
+| `game/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
+
+## Store y acciones
+
+- `store.ts` guarda un único `GameState`. `useGame()` lo expone a React con `useSyncExternalStore`.
+- Toda modificación pasa por `act((draft) => ...)`. `act` clona el estado, aplica la receta, notifica a la
+  UI y programa un guardado (con debounce y también en `pagehide`/`visibilitychange`).
+- Las funciones de `game/` **mutan el borrador que reciben** (`s: GameState`) y nunca importan el store.
+  Así se pueden testear sin navegador:
+
+```ts
+const s = initialState()
+chooseStarter(s, 1)
+startRun(s, 'ruta-1')
+```
+
+## Aleatoriedad
+
+Toda función con azar acepta `rng: Rng = Math.random` como último parámetro (`Rng` está en `game/random.ts`).
+En los tests se pasa un rng determinista. Una función nueva con azar **debe** seguir este patrón.
+
+## Guardado y versiones
+
+- `SAVE_VERSION` (en `state.ts`) se compara al cargar; si no coincide, se empieza partida nueva.
+- Si coincide, `restoreState` rellena con su valor inicial los campos que falten en la partida guardada.
+- Cualquier cambio en la forma de `GameState`, `OwnedMon`, `Run` o `Expedition` obliga a subir la versión.
+- Si en el futuro se quiere conservar partidas, añade una función `migrate(old)` en `state.ts` en lugar de
+  descartarlas.
+
+## Bucle de tiempo
+
+`App.tsx` llama a `tick(s, Date.now())` cada 250 ms. `tick` calcula el tiempo transcurrido (máx. 12 h para el
+progreso offline), lo multiplica por `timeScale` y:
+
+1. avanza la run en curso (`advanceRun`) con el tiempo real: si hay combate lo gasta en él y si no lo convierte
+   en pasos (con `timeScale`). Puede cruzar varias paradas y combates de una vez;
+2. avanza las expediciones (`advanceExpeditions`);
+3. regenera PS de los Pokémon que están en el rancho (`restInRanch`).
+
+## Ciclo de una run
+
+```
+RoutePlanner elige el camino → startRun(routeId, path) → 'walking'
+  → (pasos) → llegada a parada → startWildBattle: combate simulado → lastBattle, battleMsLeft
+      → (pasa battleMsLeft; no hay pasos) → settleBattle aplica PS y premio
+          → derrota: 'fainted'
+          → última parada: completeRoute → 'complete'
+          → si no: sigue 'walking'
+  → endRun (al volver al rancho o abandonando)
+```
+
+El motor **nunca espera a la UI**: el combate se resuelve entero al llegar (`simulateBattle` devuelve la lista
+de eventos) y dura un tiempo fijo (`battleDuration`: `BATTLE_EVENT_MS` por evento + `BATTLE_END_MS`). Mientras
+`run.battleMsLeft > 0` no se dan pasos; al llegar a 0 se aplica el resultado, así el estado no se adelanta a lo
+que se ve. Tocar la escena (`tapRun`) adelanta el combate un evento. `RunView` solo calcula qué evento toca
+mostrar a partir de `battleMsLeft` (`ui/battleFrame.ts`) y `RouteBattle` lo pinta sobre la escena. Con la app
+cerrada el tiempo de los combates se consume igual y no se reproducen.
+
+## Expediciones
+
+`sendExpedition` guarda `{ uid, routeId, durationMin, elapsedMin }`. El tiempo avanza en `tick` y, al terminar,
+`collectExpedition` simula los combates de forma resumida (probabilidad de victoria, sin turnos) y entrega el
+premio. Un Pokémon en ruta o de expedición no se puede gestionar en el rancho (`monPlace`).

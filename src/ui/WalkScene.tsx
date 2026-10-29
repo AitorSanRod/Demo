@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 import type { Biome } from '../data/maps'
 import { Sprite } from './common'
 import { SCALE, SCENES, type SceneLayer } from './scenery'
@@ -23,20 +23,29 @@ function layerStyle(l: SceneLayer, speed: number): CSSProperties {
 
 /**
  * Escena de caminar: el Pokémon avanza hacia la derecha mientras el paisaje se desplaza en parallax.
- * `speed` multiplica la velocidad del scroll (Pokémon más rápidos = paisaje más rápido).
+ * `speed` multiplica la velocidad del scroll (Pokémon más rápidos = paisaje más rápido). `children` se pinta
+ * sobre el suelo (p. ej. el combate) y puede usar `--ground` para colocarse a la altura del Pokémon.
  */
 export function WalkScene({
   biome,
   speciesId,
   moving,
   speed,
+  walkerClass = '',
   onStep,
+  tapLabel = '+1',
+  children,
 }: {
   biome: Biome
   speciesId: number
   moving: boolean
   speed: number
+  /** Animación del Pokémon (p. ej. al atacar en un combate) */
+  walkerClass?: string
   onStep?: () => void
+  /** Texto que flota donde se toca */
+  tapLabel?: string
+  children?: ReactNode
 }) {
   const scene = SCENES[biome]
   const [floaters, setFloaters] = useState<Floater[]>([])
@@ -55,22 +64,23 @@ export function WalkScene({
   return (
     <div
       className={`scene ${moving ? '' : 'paused'} ${scene.surf ? 'surf' : ''}`}
-      style={{ background: scene.sky }}
+      style={{ background: scene.sky, ['--ground' as string]: `${scene.walkerBottom * SCALE}px` }}
       onPointerDown={onPointerDown}
     >
       {scene.back.map((l, i) => (
         <div key={i} className="scene-layer" style={layerStyle(l, speed)} />
       ))}
-      <div className="scene-walker" style={{ bottom: scene.walkerBottom * SCALE }}>
+      <div className={`scene-walker ${walkerClass}`}>
         <div className="scene-shadow" />
         <Sprite id={speciesId} size={128} />
       </div>
       {scene.front.map((l, i) => (
         <div key={i} className="scene-layer" style={layerStyle(l, speed)} />
       ))}
+      {children}
       {floaters.map((f) => (
         <span key={f.id} className="floater" style={{ left: f.x, top: f.y }}>
-          +1
+          {tapLabel}
         </span>
       ))}
     </div>

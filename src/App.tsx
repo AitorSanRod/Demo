@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
 import { tick } from './game/engine'
+import { isExpeditionDone } from './game/expedition'
+import { combinableCount } from './game/pieces'
 import { act, useGame } from './game/store'
 import { DexScreen } from './ui/DexScreen'
+import { ExpeditionScreen } from './ui/ExpeditionScreen'
 import { GachaScreen } from './ui/GachaScreen'
 import { RanchScreen } from './ui/RanchScreen'
 import { RouteScreen } from './ui/RouteScreen'
 import { StarterScreen } from './ui/StarterScreen'
 
-type Tab = 'route' | 'ranch' | 'gacha' | 'dex'
+type Tab = 'route' | 'ranch' | 'expeditions' | 'gacha' | 'dex'
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'route', icon: '🗺️', label: 'Ruta' },
   { id: 'ranch', icon: '🏡', label: 'Rancho' },
+  { id: 'expeditions', icon: '🧭', label: 'Expediciones' },
   { id: 'gacha', icon: '🎰', label: 'Gacha' },
   { id: 'dex', icon: '📕', label: 'Pokédex' },
 ]
@@ -34,10 +38,13 @@ export default function App() {
       s.timeScale = TIME_SCALES[(TIME_SCALES.indexOf(s.timeScale) + 1) % TIME_SCALES.length]
     })
 
-  // Las recompensas se aplican al llegar al nodo; no se muestran hasta ver el combate
-  const pending = game.run?.phase === 'battle' ? game.run.battle?.rewards : undefined
-  const money = game.money - (pending?.money ?? 0) + (pending?.moneyLost ?? 0)
-  const tickets = game.tickets - (pending?.tickets ?? 0)
+  const badges: Record<Tab, boolean> = {
+    route: !!game.run && game.run.phase !== 'walking',
+    ranch: false,
+    expeditions: game.expeditions.some(isExpeditionDone),
+    gacha: false,
+    dex: combinableCount(game) > 0,
+  }
 
   if (game.owned.length === 0) {
     return (
@@ -51,16 +58,17 @@ export default function App() {
     <div className="app">
       <header className="top-bar">
         <span className="logo">Pokérancho</span>
-        <span className="currency">₽ {money}</span>
-        <span className="currency">🎟 {tickets}</span>
+        <span className="currency">₽ {game.money}</span>
+        <span className="currency">🎟 {game.tickets}</span>
         <button className="time-chip" onClick={cycleTimeScale} title="Velocidad del tiempo (demo)">
           ⏱ x{game.timeScale}
         </button>
       </header>
 
       <main className="content">
-        {tab === 'route' && <RouteScreen game={game} onFainted={() => setTab('ranch')} />}
+        {tab === 'route' && <RouteScreen game={game} />}
         {tab === 'ranch' && <RanchScreen game={game} />}
+        {tab === 'expeditions' && <ExpeditionScreen game={game} />}
         {tab === 'gacha' && <GachaScreen game={game} />}
         {tab === 'dex' && <DexScreen game={game} />}
       </main>
@@ -70,7 +78,7 @@ export default function App() {
           <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
             <span className="nav-icon">
               {t.icon}
-              {t.id === 'route' && game.run && game.run.phase !== 'walking' && <span className="dot" />}
+              {badges[t.id] && <span className="dot" />}
             </span>
             <span className="nav-label">{t.label}</span>
           </button>

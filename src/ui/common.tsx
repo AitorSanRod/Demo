@@ -74,7 +74,7 @@ export function MoveChip({
     >
       <span className="move-name">{mv.name}</span>
       <span className="move-meta">
-        {TYPE_INFO[mv.type].name} · {mv.category === 'status' ? 'Estado' : `Pot. ${mv.power}`}
+        {TYPE_INFO[mv.type].name} · Pot. {mv.power}
       </span>
     </button>
   )

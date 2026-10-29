@@ -1,4 +1,4 @@
-import { knownMoves } from '../data/moves'
+import { knownMoves, move, strongestMove } from '../data/moves'
 import { species } from '../data/species'
 import type { OwnedMon } from './state'
 
@@ -6,8 +6,6 @@ export interface Stats {
   hp: number
   atk: number
   def: number
-  spa: number
-  spd: number
   spe: number
 }
 
@@ -24,8 +22,6 @@ export function calcStats(speciesId: number, level: number, stars = 0): Stats {
     hp: Math.floor(((2 * b.hp * level) / 100 + level + 10) * mult),
     atk: stat(b.atk),
     def: stat(b.def),
-    spa: stat(b.spa),
-    spd: stat(b.spd),
     spe: stat(b.spe),
   }
 }
@@ -45,16 +41,12 @@ export function expToNext(level: number): number {
   return (level + 1) ** 3 - level ** 3
 }
 
-export function expReward(enemySpeciesId: number, enemyLevel: number): number {
-  return Math.max(1, Math.floor((species(enemySpeciesId).baseExp * enemyLevel) / 6))
-}
-
 export interface LevelUpResult {
   levelsGained: number
   learned: string[]
 }
 
-/** Suma EXP, sube niveles y equipa movimientos nuevos si hay hueco. Muta `mon`. */
+/** Suma EXP y sube niveles. Si aprende un movimiento más potente que el suyo, lo equipa. Muta `mon`. */
 export function gainExp(mon: OwnedMon, amount: number): LevelUpResult {
   const before = knownMoves(mon.speciesId, mon.level)
   const startLevel = mon.level
@@ -70,6 +62,9 @@ export function gainExp(mon: OwnedMon, amount: number): LevelUpResult {
   mon.hp = Math.min(maxHp(mon), mon.hp + (maxHp(mon) - oldMax))
 
   const learned = knownMoves(mon.speciesId, mon.level).filter((id) => !before.includes(id))
-  for (const id of learned) if (mon.moves.length < 4) mon.moves.push(id)
+  if (learned.length > 0) {
+    const best = strongestMove(learned)
+    if (move(best).power > move(mon.moveId).power) mon.moveId = best
+  }
   return { levelsGained: mon.level - startLevel, learned }
 }

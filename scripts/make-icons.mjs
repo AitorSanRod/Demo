@@ -53,12 +53,12 @@ const pokeball = (scale) => (u, v) => {
   const x = (u - 0.5) / scale
   const y = (v - 0.5) / scale
   const d = Math.hypot(x, y)
-  const BG = [46, 125, 50]
+  const BG = [155, 32, 8]
   if (d > 0.42) return BG
   if (d > 0.39) return [20, 20, 20]
   if (d < 0.09) return d > 0.065 ? [20, 20, 20] : [250, 250, 250]
   if (Math.abs(y) < 0.03) return [20, 20, 20]
-  return y < 0 ? [229, 57, 53] : [250, 250, 250]
+  return y < 0 ? [227, 53, 13] : [250, 250, 250]
 }
 
 const out = (name) => new URL(`../public/icons/${name}`, import.meta.url)

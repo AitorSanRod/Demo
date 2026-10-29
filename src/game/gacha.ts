@@ -1,16 +1,14 @@
 import { RARITY_INFO, SPECIES, rarityOf, type Rarity } from '../data/species'
-import type { Rng } from './battle'
-import { createMon, markCaught } from './engine'
+import { addPieces } from './pieces'
+import type { Rng } from './random'
 import type { GameState } from './state'
-import { MAX_STARS } from './stats'
 
-export interface PullResult {
+/** Piezas que da cada tirada; cada una sortea su rareza y su especie por separado */
+export const PIECES_PER_PULL = 5
+
+export interface PieceDrop {
   speciesId: number
   rarity: Rarity
-  isNew: boolean
-  /** Para duplicados: estrellas tras la tirada y pokécuartos recibidos */
-  stars?: number
-  money?: number
 }
 
 const POOLS = Object.fromEntries(
@@ -26,29 +24,21 @@ function rollRarity(rng: Rng): Rarity {
   return 'common'
 }
 
-/** Los Pokémon nuevos llegan a un nivel cercano al de tu equipo */
-function arrivalLevel(s: GameState): number {
-  const top = Math.max(5, ...s.owned.map((m) => m.level))
-  return Math.max(5, Math.floor(top * 0.7))
-}
-
-export function pull(s: GameState, rng: Rng = Math.random): PullResult | null {
-  if (s.tickets < 1) return null
-  s.tickets--
+function rollPiece(rng: Rng): PieceDrop {
   const rarity = rollRarity(rng)
   const pool = POOLS[rarity]
-  const sp = pool[Math.floor(rng() * pool.length)]
-  const existing = s.owned.find((m) => m.speciesId === sp.id)
+  return { speciesId: pool[Math.floor(rng() * pool.length)].id, rarity }
+}
 
-  if (existing) {
-    const money = RARITY_INFO[rarity].dupeMoney
-    existing.stars = Math.min(MAX_STARS, existing.stars + 1)
-    s.money += money
-    return { speciesId: sp.id, rarity, isNew: false, stars: existing.stars, money }
+/** Gasta hasta `count` tickets (los que haya) y devuelve todas las piezas obtenidas */
+export function pull(s: GameState, count = 1, rng: Rng = Math.random): PieceDrop[] {
+  const drops: PieceDrop[] = []
+  for (; count > 0 && s.tickets > 0; count--) {
+    s.tickets--
+    for (let i = 0; i < PIECES_PER_PULL; i++) drops.push(rollPiece(rng))
   }
-  s.owned.push(createMon(sp.id, arrivalLevel(s)))
-  markCaught(s, sp.id)
-  return { speciesId: sp.id, rarity, isNew: true }
+  for (const d of drops) addPieces(s, d.speciesId, 1)
+  return drops
 }
 
 export const TICKET_PRICE = 250
