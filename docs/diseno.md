@@ -9,6 +9,10 @@ automático. Entre rutas gestiona su equipo en el rancho y manda al resto de Pok
 
 ## Bucle principal
 
+0. **Tutorial** (solo al empezar): tres Pokéball; cada una muestra la silueta de un inicial. Se elige uno a ciegas
+   y se reciben 5 piezas suyas. Bocadillos guían a la Pokédex para combinarlas (el Pokémon sale como activo) y
+   después a la primera ruta; al pulsar «¡En marcha!» el tutorial termina. Pasos en `state.tutorial`, ver
+   `tutorial.ts`.
 1. **Rancho**: pantalla completa, sin scroll, con todo el equipo paseando por el prado. Tocar un Pokémon sube su
    ficha desde abajo (elegir movimiento, curar, entrenar o hacerlo activo); se cierra con «Aceptar» o tocando fuera.
 2. **Planificar**: elegir ruta y, si tiene bifurcaciones, el camino completo. Después, «¡En marcha!».
@@ -19,6 +23,8 @@ automático. Entre rutas gestiona su equipo en el rancho y manda al resto de Pok
 5. **Expediciones** (pestaña Ruta › Expediciones): el resto del equipo hace rutas por tiempo y vuelve con EXP,
    dinero y tickets. Ahí se ve quién está fuera, se recoge a los que han vuelto y se envía a cualquiera del rancho.
    Se puede usar también con la ruta del activo en marcha.
+   Opcionalmente avisa con una notificación del sistema al volver (menú ⚙️ del rancho; solo con la app en
+   segundo plano, no cerrada).
 6. **Gacha**: cada ticket abre una Pokéball (animación de captura; tocarla la abre antes) con 5 piezas.
 7. **Trituradora y MissingNo** (pestañas del gacha): las piezas que sobran se trituran en trozos de MissingNo,
    que se cambian por piezas del Pokémon que se quiera.

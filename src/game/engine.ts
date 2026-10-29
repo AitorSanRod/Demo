@@ -24,10 +24,12 @@ export function createMon(speciesId: number, level: number): OwnedMon {
   }
 }
 
+/** Da el inicial directamente y salta el tutorial (atajo para tests y simulaciones) */
 export function chooseStarter(s: GameState, speciesId: number) {
   const mon = createMon(speciesId, 5)
   s.owned.push(mon)
   s.activeUid = mon.uid
+  s.tutorial = null
   markCaught(s, speciesId)
 }
 

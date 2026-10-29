@@ -6,6 +6,7 @@ import type { GameState } from '../game/state'
 import { act } from '../game/store'
 import { Bar, Sprite, TypeBadge } from './common'
 import { RewardOverlay, type RewardItem } from './RewardOverlay'
+import { TutorialHint } from './TutorialHint'
 
 const COMBINE_LABEL: Record<CombineKind, string> = {
   unlock: '🧩 Combinar y desbloquear',
@@ -23,6 +24,7 @@ export function DexPanel({ game, speciesId, onClose }: { game: GameState; specie
   const kind = combineKind(game, speciesId)
   // Las piezas de un favorito no se pueden triturar
   const favorite = isFavorite(game, speciesId)
+  const guided = game.tutorial === 'combine' && canCombine(game, speciesId)
 
   return (
     <div className="card dex-panel" style={{ ['--rarity' as string]: rarity.color }}>
@@ -64,8 +66,9 @@ export function DexPanel({ game, speciesId, onClose }: { game: GameState; specie
         </span>
       </div>
       <Bar value={pieces} max={PIECES_PER_COMBINE} kind="exp" />
+      {guided && <TutorialHint>Junta las {PIECES_PER_COMBINE} piezas para conseguir a {sp.name}.</TutorialHint>}
       <button
-        className="btn primary wide"
+        className={`btn primary wide ${guided ? 'tutorial-target' : ''}`}
         disabled={!canCombine(game, speciesId)}
         onClick={() => setResult(act((s) => combine(s, speciesId)))}
       >

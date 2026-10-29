@@ -5,9 +5,11 @@ import { combinableCount } from './game/pieces'
 import { act, useGame } from './game/store'
 import { DexScreen } from './ui/DexScreen'
 import { GachaScreen } from './ui/GachaScreen'
+import { useExpeditionNotifications } from './ui/notifications'
 import { RanchScreen } from './ui/RanchScreen'
 import { RouteScreen } from './ui/RouteScreen'
 import { StarterScreen } from './ui/StarterScreen'
+import { TutorialNavHint } from './ui/TutorialHint'
 import { UpgradeShop } from './ui/UpgradeShop'
 
 type Tab = 'route' | 'ranch' | 'shop' | 'gacha' | 'dex'
@@ -32,6 +34,7 @@ export default function App() {
     const id = setInterval(() => act((s) => tick(s, Date.now())), TICK_MS)
     return () => clearInterval(id)
   }, [])
+  useExpeditionNotifications(game)
 
   const cycleTimeScale = () =>
     act((s) => {
@@ -46,7 +49,7 @@ export default function App() {
     dex: combinableCount(game) > 0,
   }
 
-  if (game.owned.length === 0) {
+  if (game.tutorial === 'starter') {
     return (
       <div className="app">
         <StarterScreen />
@@ -71,6 +74,7 @@ export default function App() {
         {tab === 'shop' && <UpgradeShop game={game} />}
         {tab === 'gacha' && <GachaScreen game={game} />}
         {tab === 'dex' && <DexScreen game={game} />}
+        <TutorialNavHint game={game} currentTab={tab} tabIds={TABS.map((t) => t.id)} />
       </main>
 
       <nav className="bottom-nav">

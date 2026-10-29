@@ -17,6 +17,9 @@ export interface OwnedMon {
 
 export type RunPhase = 'walking' | 'complete' | 'fainted'
 
+/** Paso del tutorial inicial (ver tutorial.ts); null cuando ya se juega con libertad */
+export type TutorialStep = 'starter' | 'combine' | 'route'
+
 export interface Run {
   routeId: string
   /** Nodos elegidos antes de salir, del inicio al final */
@@ -67,6 +70,7 @@ export interface GameState {
   favorites: number[]
   /** Nivel comprado de cada mejora de la tienda */
   upgrades: Partial<Record<UpgradeId, number>>
+  tutorial: TutorialStep | null
   unlockedRoutes: string[]
   completedRoutes: string[]
   run: Run | null
@@ -76,7 +80,7 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 10
+export const SAVE_VERSION = 11
 
 export function initialState(): GameState {
   return {
@@ -91,6 +95,7 @@ export function initialState(): GameState {
     missingnoShards: 0,
     favorites: [],
     upgrades: {},
+    tutorial: 'starter',
     unlockedRoutes: ['pueblo-paleta'],
     completedRoutes: [],
     run: null,

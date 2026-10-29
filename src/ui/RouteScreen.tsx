@@ -9,6 +9,7 @@ import { act } from '../game/store'
 import { Sprite } from './common'
 import { ExpeditionScreen } from './ExpeditionScreen'
 import { RunView } from './RunView'
+import { TutorialHint } from './TutorialHint'
 
 type RouteTab = 'route' | 'expeditions'
 
@@ -62,6 +63,8 @@ function RouteSelect({ game }: { game: GameState }) {
           const unlocked = game.unlockedRoutes.includes(r.id)
           const done = game.completedRoutes.includes(r.id)
           const open = unlocked && openId === r.id
+          // En el tutorial se guía hasta la primera ruta, que es la única desbloqueada
+          const guided = game.tutorial === 'route' && unlocked
           return (
             <div key={r.id} className={`card route-card ${unlocked ? '' : 'locked'}`}>
               <div className="route-card-head">
@@ -70,10 +73,11 @@ function RouteSelect({ game }: { game: GameState }) {
                 {done && <span className="tag ok">Completada</span>}
               </div>
               <p className="muted small">{unlocked ? r.description : 'Completa la ruta anterior para desbloquearla.'}</p>
+              {guided && !open && <TutorialHint arrowX="85%">Toca «Ver ruta» para ver sus paradas.</TutorialHint>}
               {unlocked && !open && (
                 <div className="row between">
                   <RouteReward game={game} r={r} />
-                  <button className="btn" onClick={() => setOpenId(r.id)}>
+                  <button className={`btn ${guided ? 'tutorial-target' : ''}`} onClick={() => setOpenId(r.id)}>
                     Ver ruta
                   </button>
                 </div>
@@ -131,9 +135,18 @@ function RoutePlanner({ game, route: r, canStart }: { game: GameState; route: Ro
           )
         })}
       </ol>
+      {game.tutorial === 'route' && (
+        <TutorialHint arrowX="85%">
+          Tu Pokémon caminará solo y combatirá en cada parada. ¡Pulsa «¡En marcha!» y a partir de aquí juega a tu aire!
+        </TutorialHint>
+      )}
       <div className="row between">
         <RouteReward game={game} r={r} />
-        <button className="btn primary" disabled={!canStart} onClick={() => act((s) => startRun(s, r.id, path))}>
+        <button
+          className={`btn primary ${game.tutorial === 'route' ? 'tutorial-target' : ''}`}
+          disabled={!canStart}
+          onClick={() => act((s) => startRun(s, r.id, path))}
+        >
           ¡En marcha!
         </button>
       </div>

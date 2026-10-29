@@ -1,14 +1,17 @@
 import { useState } from 'react'
-import { RARITY_INFO, rarityOf, SPECIES } from '../data/species'
+import { RARITY_INFO, rarityOf, species, SPECIES } from '../data/species'
 import { isFavorite } from '../game/dex'
 import { canCombine, combinableCount, PIECES_PER_COMBINE, piecesOf } from '../game/pieces'
 import type { GameState } from '../game/state'
+import { tutorialStarter } from '../game/tutorial'
 import { Sprite } from './common'
 import { DexPanel } from './DexPanel'
+import { TutorialHint } from './TutorialHint'
 
 export function DexScreen({ game }: { game: GameState }) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const ready = combinableCount(game)
+  const starter = game.tutorial === 'combine' ? tutorialStarter(game) : undefined
 
   return (
     <div className="screen scroll">
@@ -23,6 +26,9 @@ export function DexScreen({ game }: { game: GameState }) {
           🧩 {ready} {ready === 1 ? 'Pokémon listo' : 'Pokémon listos'} para combinar. Tócalos para usar sus piezas.
         </p>
       )}
+      {starter && selectedId !== starter && (
+        <TutorialHint>Toca a {species(starter).name} (la casilla que parpadea) para ver sus piezas.</TutorialHint>
+      )}
       <div className="dex-grid">
         {SPECIES.map((sp) => {
           const caught = game.caught.includes(sp.id)
@@ -31,7 +37,7 @@ export function DexScreen({ game }: { game: GameState }) {
           return (
             <button
               key={sp.id}
-              className={`dex-cell ${caught ? 'caught' : ''} ${canCombine(game, sp.id) ? 'ready' : ''} ${selectedId === sp.id ? 'selected' : ''}`}
+              className={`dex-cell ${caught ? 'caught' : ''} ${canCombine(game, sp.id) ? 'ready' : ''} ${selectedId === sp.id ? 'selected' : ''} ${sp.id === starter && selectedId !== starter ? 'tutorial-target' : ''}`}
               style={{ ['--rarity' as string]: RARITY_INFO[rarityOf(sp)].color }}
               disabled={!seen}
               onClick={() => setSelectedId(sp.id)}

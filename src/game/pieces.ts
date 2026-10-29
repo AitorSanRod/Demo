@@ -38,8 +38,12 @@ export function combine(s: GameState, speciesId: number): CombineResult | null {
 
   if (kind === 'unlock') {
     const level = arrivalLevel(s)
-    s.owned.push(createMon(speciesId, level))
+    const mon = createMon(speciesId, level)
+    s.owned.push(mon)
     markCaught(s, speciesId)
+    // El primer Pokémon (el inicial del tutorial) sale directamente como activo
+    s.activeUid ??= mon.uid
+    if (s.tutorial === 'combine') s.tutorial = 'route'
     return { kind, speciesId, level }
   }
   if (kind === 'star') {

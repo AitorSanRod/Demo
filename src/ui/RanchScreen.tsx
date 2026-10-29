@@ -24,7 +24,9 @@ export function RanchScreen({ game }: { game: GameState }) {
             onClick={() => setSelectedUid(m.uid)}
           />
         ))}
-        {home.length === 0 && <p className="ranch-empty small">Todos tus Pokémon están fuera.</p>}
+        {home.length === 0 && (
+          <p className="ranch-empty small">{game.owned.length === 0 ? 'Aún no tienes Pokémon.' : 'Todos tus Pokémon están fuera.'}</p>
+        )}
         <SettingsMenu />
       </div>
 

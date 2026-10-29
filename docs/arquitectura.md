@@ -31,6 +31,7 @@ Regla de dependencias: `ui → game → data`. Nunca al revés. `data` no import
 | `game/gacha.ts` | Tiradas (piezas) y compra de tickets |
 | `game/shredder.ts` | Trituradora (piezas → trozos de MissingNo) y compra de piezas con trozos |
 | `game/pieces.ts` | Piezas por especie y combinación (desbloqueo, ★ o ₽) |
+| `game/tutorial.ts` | Elección del inicial (da sus piezas) y pasos del tutorial; `combine` y `startRun` lo avanzan |
 | `game/dex.ts` | Vistos, capturados, favoritos y contador de piezas (sin dependencias, para evitar imports circulares) |
 | `game/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
 
@@ -95,3 +96,18 @@ cerrada el tiempo de los combates se consume igual y no se reproducen.
 `sendExpedition` guarda `{ uid, routeId, durationMin, elapsedMin }`. El tiempo avanza en `tick` y, al terminar,
 `collectExpedition` simula los combates de forma resumida (probabilidad de victoria, sin turnos) y entrega el
 premio. Un Pokémon en ruta o de expedición no se puede gestionar en el rancho (`monPlace`).
+
+## Notificaciones
+
+`ui/notifications.ts` avisa con una notificación del sistema cuando termina una expedición, **solo si la app está
+en segundo plano** (`document.hidden`); con la app delante basta el aviso de la pestaña Ruta. No hay servidor: con
+la app cerrada del todo no se ejecuta nada y no llega el aviso.
+
+- Se activa en el menú ⚙️ del rancho, que pide permiso al navegador. La preferencia se guarda en `localStorage`
+  aparte de la partida (`pokerancho-notify`), porque el permiso es del dispositivo.
+- Se muestran con `registration.showNotification` (obligatorio en Android); sin service worker, como en
+  `npm run dev`, se usa `new Notification`.
+- `public/sw-notifications.js` se importa en el service worker de Workbox y abre o trae al frente la app al tocar
+  la notificación.
+- Requisitos del navegador: contexto seguro (HTTPS o `localhost`; no funciona por `http://192.168.x.x`) y, en iOS,
+  la PWA instalada en la pantalla de inicio (iOS 16.4+).

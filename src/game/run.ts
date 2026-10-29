@@ -18,6 +18,7 @@ export function runBlocker(s: GameState): string | null {
 /** Sale a la ruta con el camino ya elegido; a partir de aquí todo es automático */
 export function startRun(s: GameState, routeId: string, path = pathFrom(route(routeId))) {
   if (runBlocker(s) || !s.unlockedRoutes.includes(routeId) || !isValidPath(route(routeId), path)) return
+  if (s.tutorial === 'route') s.tutorial = null
   s.run = {
     routeId,
     path,

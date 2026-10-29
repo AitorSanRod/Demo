@@ -1409,29 +1409,61 @@ p {
 
 /* ---------------------------------------------------------------- Inicio */
 
+/* Elección del inicial: a oscuras, solo las tres Pokéball en triángulo (una arriba, dos abajo) */
 .starter {
-  text-align: center;
-  padding-top: calc(var(--safe-top) + 32px);
-}
-.starter h1 {
-  color: var(--accent);
-  font-size: 32px;
-}
-.starter p {
-  color: var(--muted);
-  line-height: 1.45;
-}
-.starter-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.starter-card {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 10px 4px;
+  justify-content: center;
+  gap: 32px;
+  padding: calc(var(--safe-top) + 24px) 16px calc(var(--safe-bottom) + 24px);
+  background: radial-gradient(circle at 50% 45%, #2b2622 0, #0d0b09 70%);
 }
-.starter-card:active {
-  transform: scale(0.96);
+.starter-triangle {
+  position: relative;
+  width: min(320px, 100%);
+  aspect-ratio: 1 / 0.9;
+}
+.starter-slot {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+}
+.starter-slot.slot-0 {
+  left: 50%;
+  top: 22%;
+}
+.starter-slot.slot-1 {
+  left: 20%;
+  top: 78%;
+}
+.starter-slot.slot-2 {
+  left: 80%;
+  top: 78%;
+}
+.starter-slot:active {
+  scale: 0.94;
+}
+/* Foco de luz bajo la silueta: sin él, la silueta negra no se vería sobre el fondo oscuro */
+.starter-slot.revealed {
+  background: radial-gradient(circle, #fff8e0 0 48%, #fff8e055 62%, transparent 72%);
+  animation: pop 0.35s ease-out;
+}
+/* Aquí la silueta es negra del todo (la general es semitransparente y dejaría pasar la luz del foco) */
+.starter-slot .sprite.silhouette,
+.confirm-dialog .sprite.silhouette {
+  filter: brightness(0);
+}
+.starter-hint {
+  color: #fff9;
+  text-align: center;
 }
 
 .pool.mini {
@@ -1618,4 +1650,74 @@ p {
   color: #fff;
   font-size: 11px;
   line-height: 18px;
+}
+.settings-item:disabled {
+  opacity: 0.6;
+}
+.settings-hint {
+  display: block;
+  font-weight: 400;
+}
+
+/* ---------------------------------------------------------------- Tutorial */
+
+.starter-ball {
+  width: 84px;
+  height: 84px;
+  box-shadow: 0 0 24px #fff3;
+  animation: idle 2.4s ease-in-out infinite;
+}
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+/* Bocadillo que señala hacia abajo (la flecha se coloca con --arrow-x) */
+.tutorial-hint {
+  position: relative;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: var(--yellow);
+  color: #2a2000;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  box-shadow: 0 4px 14px #0003;
+  pointer-events: none;
+  animation: hint-bob 1.6s ease-in-out infinite;
+}
+.tutorial-hint::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: var(--arrow-x);
+  translate: -50% 0;
+  border: 8px solid transparent;
+  border-top-color: var(--yellow);
+}
+@keyframes hint-bob {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+/* Bocadillo sobre el menú inferior, apuntando a la pestaña que toca */
+.tutorial-nav {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  z-index: 300;
+  pointer-events: none;
+}
+/* Lo que hay que tocar en este paso del tutorial (gana a otras animaciones, como la de .dex-cell.ready) */
+.tutorial-target,
+.dex-cell.tutorial-target {
+  animation: target-pulse 1.2s ease-in-out infinite;
+}
+@keyframes target-pulse {
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--yellow) 70%, transparent);
+  }
 }
