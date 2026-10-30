@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { RARITY_INFO, rarityOf, species, type Rarity } from '../../data/species'
-import { PIECES_PER_COMBINE } from '../../game/collection/pieces'
+import { isSeen, knownName } from '../../game/collection/dex'
+import { canCombine } from '../../game/collection/pieces'
 import {
   raritySelection,
   selectionShards,
@@ -55,6 +56,7 @@ export function Shredder({ game }: { game: GameState }) {
       {stock.length > 0 && <RarityButtons game={game} onSelect={selectRarity} />}
       {stock.map(({ speciesId, count }) => {
         const sp = species(speciesId)
+        const name = knownName(game, speciesId)
         const marked = selection[speciesId] ?? 0
         return (
           <div
@@ -62,12 +64,12 @@ export function Shredder({ game }: { game: GameState }) {
             className={`card shred-row ${marked > 0 ? 'marked' : ''}`}
             style={{ ['--rarity' as string]: RARITY_INFO[rarityOf(sp)].color }}
           >
-            <Sprite id={speciesId} size={48} animated={false} />
+            <Sprite id={speciesId} size={48} animated={false} silhouette={!isSeen(game, speciesId)} />
             <div className="grow small">
-              <strong>{sp.name}</strong>
+              <strong>{name}</strong>
               <span className="muted">
                 🧩 {count} · 👾 {shardsPerPiece(speciesId)} por pieza
-                {count >= PIECES_PER_COMBINE && ' · se pueden combinar'}
+                {canCombine(game, speciesId) && ' · se pueden combinar'}
               </span>
               {marked > 0 && <span className="shred-marked">Para triturar: {marked}</span>}
             </div>
@@ -78,7 +80,7 @@ export function Shredder({ game }: { game: GameState }) {
               Todas
             </button>
             {marked > 0 && (
-              <button className="hud-close" onClick={() => select(speciesId, 0)} aria-label={`Desmarcar ${sp.name}`}>
+              <button className="hud-close" onClick={() => select(speciesId, 0)} aria-label={`Desmarcar ${name}`}>
                 ✕
               </button>
             )}

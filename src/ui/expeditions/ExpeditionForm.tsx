@@ -6,6 +6,7 @@ import {
   EXPEDITION_DURATIONS,
   expeditionBattles,
   expeditionBlocker,
+  expeditionRewardMult,
   expeditionWinRate,
   sendExpedition,
 } from '../../game/team/expedition'
@@ -18,6 +19,7 @@ export function ExpeditionForm({ game, mon }: { game: GameState; mon: OwnedMon }
   const [duration, setDuration] = useState(EXPEDITION_DURATIONS[1])
   const blocker = expeditionBlocker(game, mon.uid)
   const winPct = Math.round(expeditionWinRate(mon, route(routeId)) * 100)
+  const mult = expeditionRewardMult(duration)
 
   return (
     <div className="expedition-form">
@@ -38,8 +40,9 @@ export function ExpeditionForm({ game, mon }: { game: GameState; mon: OwnedMon }
         ))}
       </div>
       <p className="small muted">
-        ~{expeditionBattles(duration)} combates · {winPct}% de victorias. Al volver gana {route(routeId).reward.exp} EXP
-        (los combates solo dan ₽ y tickets), sin riesgo.
+        ~{expeditionBattles(duration)} combates · {winPct}% de victorias · premios ×{mult}. Al volver gana{' '}
+        {route(routeId).reward.exp * mult} EXP (los combates solo dan ₽, tickets y piezas), sin riesgo. Puede descubrir
+        Pokémon nuevos.
       </p>
       {blocker && <p className="notice small">{blocker}</p>}
       <button

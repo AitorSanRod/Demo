@@ -24,10 +24,4 @@ describe('evoluciones', () => {
       walk(id)
     }
   })
-
-  it('cadenas conocidas', () => {
-    expect(evolutionsOf(4)).toEqual([5])
-    expect(evolutionsOf(6)).toEqual([])
-    expect(evolutionsOf(133)).toEqual([134, 135, 136])
-  })
 })

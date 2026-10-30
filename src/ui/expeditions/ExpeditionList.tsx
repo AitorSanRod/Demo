@@ -6,7 +6,7 @@ import { act } from '../../game/core/store'
 import { collectExpedition, isExpeditionDone } from '../../game/team/expedition'
 import { Bar, Sprite } from '../shared/common'
 import { formatMinutes } from '../shared/format'
-import { earningsRewards, levelUpReward } from '../shared/rewardItems'
+import { discoveryReward, earningsRewards, levelUpReward } from '../shared/rewardItems'
 import { RewardOverlay, type RewardItem } from '../shared/RewardOverlay'
 
 /** Pokémon de expedición: lo que les queda y, a los que han vuelto, el botón para recoger su premio */
@@ -17,10 +17,10 @@ export function ExpeditionList({ game }: { game: GameState }) {
     const collected = act((s) => {
       const result = collectExpedition(s, uid)
       const mon = findMon(s, uid)!
-      return result && { result, speciesId: mon.speciesId, level: mon.level }
+      return result && { result, speciesId: mon.speciesId, level: mon.level, seen: [...s.seen] }
     })
     if (!collected) return
-    const items = earningsRewards(collected.result)
+    const items = [...collected.result.discovered.map(discoveryReward), ...earningsRewards(collected.result, collected.seen)]
     if (collected.result.levelsGained > 0) items.push(levelUpReward(collected.speciesId, collected.level))
     setReport({ name, items })
   }

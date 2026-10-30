@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { route } from '../../data/maps'
 import { initialState, restoreState, SAVE_VERSION, type GameState } from './state'
+
+describe('initialState', () => {
+  it('empieza con rutas desbloqueadas que existen', () => {
+    for (const id of initialState().unlockedRoutes) expect(() => route(id)).not.toThrow()
+  })
+})
 
 describe('restoreState', () => {
   it('descarta partidas de otra versión', () => {

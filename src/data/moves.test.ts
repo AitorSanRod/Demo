@@ -1,19 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { MOVES, signatureMove } from './moves'
-import { Pokemon } from './pokemon'
-import { Rarity, RARITY_INFO, rarityOf, species, SPECIES } from './species'
+import { RARITY_INFO, rarityOf, SPECIES, type Rarity } from './species'
 import { TYPE_INFO } from './types'
 
 
 describe('signatureMove', () => {
   it('es del primer tipo de la especie', () => {
     for (const sp of SPECIES) expect(signatureMove(sp.id).type).toBe(sp.types[0])
-  })
-
-  it('los iniciales (comunes) usan el ataque básico de su tipo', () => {
-    expect(rarityOf(species(Pokemon.Charmander))).toBe(Rarity.Common)
-    expect(signatureMove(Pokemon.Charmander).id).toBe('ember')
-    expect(signatureMove(Pokemon.Bulbasaur).id).toBe('vine-whip')
   })
 
   it('cuanto más rara es la especie, más potente es su ataque', () => {

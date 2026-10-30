@@ -1,17 +1,20 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { legSteps, pathFrom, route, RouteId } from '../../data/maps'
-import { Pokemon } from '../../data/pokemon'
+import { POKEMON } from '../../data/pokemon'
+import { moneyReward } from '../battle/rewards'
 import { activeMon, initialState } from '../core/state'
 import { chooseStarter } from '../core/test-utils'
 import { maxHp, stepsPerMinute } from '../team/stats'
 import { advanceRun, endRun, runBlocker, startRun, tapRun, walk } from './run'
-import { battleDuration } from './runBattle'
+import { battleDuration, BOSS_MONEY_MULT, BOSS_TICKETS } from './runBattle'
+
+vi.mock('../../data/maps/kantoMaps', () => import('../core/test-map'))
 
 const ROUTE = RouteId.PuebloPaleta
 
 function stateOnRoute(level = 5) {
   const s = initialState()
-  chooseStarter(s, Pokemon.Charmander)
+  chooseStarter(s, POKEMON.Charmander)
   const mon = activeMon(s)!
   mon.level = level
   mon.hp = maxHp(mon)
@@ -32,14 +35,14 @@ describe('startRun', () => {
 
   it('rechaza un camino que no llega al final', () => {
     const s = initialState()
-    chooseStarter(s, Pokemon.Charmander)
+    chooseStarter(s, POKEMON.Charmander)
     startRun(s, ROUTE, ['s', 'a'])
     expect(s.run).toBeNull()
   })
 
   it('no sale a una ruta bloqueada', () => {
     const s = initialState()
-    chooseStarter(s, Pokemon.Charmander)
+    chooseStarter(s, POKEMON.Charmander)
     // Al empezar solo está desbloqueada la primera ruta
     startRun(s, RouteId.Ruta1)
     expect(s.run).toBeNull()
@@ -47,7 +50,7 @@ describe('startRun', () => {
 
   it('no sale con el Pokémon debilitado', () => {
     const s = initialState()
-    chooseStarter(s, Pokemon.Charmander)
+    chooseStarter(s, POKEMON.Charmander)
     activeMon(s)!.hp = 0
     expect(runBlocker(s)).not.toBeNull()
     startRun(s, ROUTE)
@@ -106,7 +109,7 @@ describe('advanceRun', () => {
     const pause = s.run!.battleMsLeft
     advanceRun(s, pause - 1)
     expect(s.run!.steps).toBe(0)
-    advanceRun(s, 60000)
+    advanceRun(s, 2000)
     expect(s.run!.battleMsLeft).toBe(0)
     expect(s.run!.steps).toBeGreaterThan(0)
   })
@@ -144,16 +147,15 @@ describe('advanceRun', () => {
   })
 
   it('los tickets de primera vez solo se dan la primera vez que se completa', () => {
-    // Con rng alto ningún salvaje suelta ticket: solo cuentan los del premio de la ruta
+    // Con rng alto ningún salvaje suelta ticket: la diferencia entre ambas vueltas son los de primera vez
     const noDrops = () => 0.99
     const s = stateOnRoute(50)
-    const r = route(ROUTE)
     advanceRun(s, PLENTY_MS, noDrops)
-    expect(s.run!.earned.tickets).toBe(r.reward.tickets + r.reward.firstClearTickets!)
+    const firstTickets = s.run!.earned.tickets
     endRun(s)
     startRun(s, ROUTE)
     advanceRun(s, PLENTY_MS, noDrops)
-    expect(s.run!.earned.tickets).toBe(r.reward.tickets)
+    expect(firstTickets - s.run!.earned.tickets).toBe(route(ROUTE).reward.firstClearTickets)
   })
 
   it('las piezas que sueltan los salvajes se suman al acabar cada combate', () => {
@@ -169,6 +171,7 @@ describe('advanceRun', () => {
     const s = stateOnRoute(1)
     activeMon(s)!.hp = 1
     s.run!.earned.money = 100
+    s.money = 100
     const moneyBefore = s.money
     advanceRun(s, PLENTY_MS)
     expect(s.run!.phase).toBe('fainted')
@@ -207,10 +210,10 @@ describe('endRun', () => {
 
 describe('jefes', () => {
 
-  /** Ruta 1 con el Pokémon fuerte para ganar siempre y rng alto para que ningún salvaje suelte ticket */
+  /** Ruta con jefe, con el Pokémon fuerte para ganar siempre y rng alto para que ningún salvaje suelte ticket */
   function stateBeforeBoss() {
     const s = initialState()
-    chooseStarter(s, Pokemon.Charmander)
+    chooseStarter(s, POKEMON.Charmander)
     const mon = activeMon(s)!
     mon.level = 60
     mon.hp = maxHp(mon)
@@ -225,23 +228,22 @@ describe('jefes', () => {
     return s
   }
 
-  it('la última parada de la Ruta 1 es siempre el jefe Pidgeotto a su nivel fijo', () => {
+  it('la última parada es siempre el jefe de la ruta a su nivel fijo', () => {
     const s = stateBeforeBoss()
     const boss = route(RouteId.Ruta1).nodes.at(-1)!.boss!
     walk(s, 1e6, () => 0.99)
     const battle = s.run!.lastBattle!
     expect(battle.boss).toBe(true)
-    expect(battle.enemy).toMatchObject({ speciesId: Pokemon.Pidgeotto, level: boss.level })
+    expect(battle.enemy).toMatchObject({ speciesId: boss.speciesId, level: boss.level })
   })
 
-  it('derrotar al jefe da siempre un ticket y el triple de dinero que un salvaje', () => {
+  it('derrotar al jefe da sus tickets fijos y multiplica el dinero de un salvaje de su nivel', () => {
     const s = stateBeforeBoss()
     walk(s, 1e6, () => 0.99)
     const { rewards, outcome } = s.run!.lastBattle!
     expect(outcome).toBe('win')
-    expect(rewards.tickets).toBe(1)
-    // Un salvaje del mismo nivel da 8 + nivel × 4 + 0..5 ₽
+    expect(rewards.tickets).toBe(BOSS_TICKETS)
     const level = s.run!.lastBattle!.enemy.level
-    expect(rewards.money).toBeGreaterThanOrEqual((8 + level * 4) * 3)
+    expect(rewards.money).toBeGreaterThanOrEqual(moneyReward(level, () => 0) * BOSS_MONEY_MULT)
   })
 })

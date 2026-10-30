@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { RARITY_INFO, rarityOf, species } from '../../data/species'
-import { isFavorite, toggleFavorite } from '../../game/collection/dex'
+import { isFavorite, isSeen, knownName, toggleFavorite } from '../../game/collection/dex'
 import { canCombine, combine, CombineKind, combineKind, PIECES_PER_COMBINE, piecesOf, type CombineResult } from '../../game/collection/pieces'
 import { TutorialStep, type GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
@@ -24,6 +24,7 @@ export function DexPanel({ game, speciesId, onClose }: { game: GameState; specie
   const kind = combineKind(game, speciesId)
   // Las piezas de un favorito no se pueden triturar
   const favorite = isFavorite(game, speciesId)
+  const seen = isSeen(game, speciesId)
   const guided = game.tutorial === TutorialStep.Combine && canCombine(game, speciesId)
 
   return (
@@ -32,24 +33,24 @@ export function DexPanel({ game, speciesId, onClose }: { game: GameState; specie
         <Sprite id={speciesId} size={64} animated={false} silhouette={!owned} />
         <div className="grow">
           <div className="row between">
-            <strong>{sp.name}</strong>
+            <strong>{knownName(game, speciesId)}</strong>
             <span className="row gap">
-              <button
-                className={`btn small favorite-toggle ${favorite ? 'on' : ''}`}
-                onClick={() => act((s) => toggleFavorite(s, speciesId))}
-                aria-pressed={favorite}
-              >
-                {favorite ? '❤️ Favorito' : '🤍 Favorito'}
-              </button>
+              {seen && (
+                <button
+                  className={`btn small favorite-toggle ${favorite ? 'on' : ''}`}
+                  onClick={() => act((s) => toggleFavorite(s, speciesId))}
+                  aria-pressed={favorite}
+                >
+                  {favorite ? '❤️ Favorito' : '🤍 Favorito'}
+                </button>
+              )}
               <button className="hud-close" onClick={onClose} aria-label="Cerrar">
                 ✕
               </button>
             </span>
           </div>
           <div className="row gap">
-            {sp.types.map((t) => (
-              <TypeBadge key={t} type={t} />
-            ))}
+            {seen && sp.types.map((t) => <TypeBadge key={t} type={t} />)}
             <span className="tag" style={{ background: rarity.color }}>
               {rarity.name}
             </span>
@@ -66,6 +67,7 @@ export function DexPanel({ game, speciesId, onClose }: { game: GameState; specie
         </span>
       </div>
       <Bar value={pieces} max={PIECES_PER_COMBINE} kind="exp" />
+      {!seen && <p className="notice small">Vélo en una ruta o expedición para combinarlo.</p>}
       {guided && <TutorialHint>Junta las {PIECES_PER_COMBINE} piezas para conseguir a {sp.name}.</TutorialHint>}
       <button
         className={`btn primary wide ${guided ? 'tutorial-target' : ''}`}

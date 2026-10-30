@@ -1,3 +1,4 @@
+import { rarityOf, SPECIES, type Rarity } from '../../data/species'
 import { markCaught } from '../collection/dex'
 import { createMon } from '../team/mons'
 import type { Rng } from './random'
@@ -7,6 +8,11 @@ import type { GameState } from './state'
 export function seqRng(...values: number[]): Rng {
   let i = 0
   return () => values[i++ % values.length]
+}
+
+/** Una especie de esa rareza (la `index`-ésima), sin depender de cuál sea hoy */
+export function speciesOfRarity(rarity: Rarity, index = 0): number {
+  return SPECIES.filter((sp) => rarityOf(sp) === rarity)[index].id
 }
 
 /** Da el inicial directamente (Nv. 5, activo) y salta el tutorial */

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { RARITY_INFO, rarityOf, SPECIES, species, type Rarity } from '../../data/species'
+import { RARITY_INFO, rarityOf, SPECIES, type Rarity } from '../../data/species'
+import { isSeen, knownName } from '../../game/collection/dex'
 import { PIECES_PER_COMBINE, piecesOf } from '../../game/collection/pieces'
 import { buyPiece, PIECE_SHARD_PRICE, pieceShardPrice } from '../../game/collection/shredder'
 import type { GameState } from '../../game/core/state'
@@ -14,11 +15,14 @@ export function MissingnoShop({ game }: { game: GameState }) {
   const [message, setMessage] = useState('')
   const [pendingId, setPendingId] = useState<number | null>(null)
   const term = query.trim().toLowerCase()
-  const matches = SPECIES.filter((sp) => sp.name.toLowerCase().includes(term) || String(sp.id) === term)
+  // Por nombre solo se encuentran las especies vistas: el buscador no debe revelar las demás
+  const matches = SPECIES.filter(
+    (sp) => (isSeen(game, sp.id) && sp.name.toLowerCase().includes(term)) || !term || String(sp.id) === term,
+  )
 
   const confirmBuy = () => {
-    const sp = species(pendingId!)
-    if (act((s) => buyPiece(s, sp.id))) setMessage(`+1 pieza de ${sp.name}`)
+    const id = pendingId!
+    if (act((s) => buyPiece(s, id))) setMessage(`+1 pieza de ${knownName(game, id)}`)
     setPendingId(null)
   }
 
@@ -54,8 +58,8 @@ export function MissingnoShop({ game }: { game: GameState }) {
               disabled={game.missingnoShards < price}
               onClick={() => setPendingId(sp.id)}
             >
-              <Sprite id={sp.id} size={56} animated={false} />
-              <span className="tiny">{sp.name}</span>
+              <Sprite id={sp.id} size={56} animated={false} silhouette={!isSeen(game, sp.id)} />
+              <span className="tiny">{knownName(game, sp.id)}</span>
               <span className="tiny muted">
                 🧩 {piecesOf(game, sp.id)}/{PIECES_PER_COMBINE}
               </span>
@@ -67,10 +71,10 @@ export function MissingnoShop({ game }: { game: GameState }) {
       {pendingId !== null && (
         <ConfirmDialog title="¿Canjear trozos?" confirmLabel="Canjear" onConfirm={confirmBuy} onCancel={() => setPendingId(null)}>
           <div className="row gap">
-            <Sprite id={pendingId} size={64} animated={false} />
+            <Sprite id={pendingId} size={64} animated={false} silhouette={!isSeen(game, pendingId)} />
             <p className="small confirm-text">
               Vas a gastar <strong>👾 {pieceShardPrice(pendingId)}</strong> trozos de MissingNo en 1 pieza de{' '}
-              <strong>{species(pendingId).name}</strong>. Te quedarán {game.missingnoShards - pieceShardPrice(pendingId)}.
+              <strong>{knownName(game, pendingId)}</strong>. Te quedarán {game.missingnoShards - pieceShardPrice(pendingId)}.
             </p>
           </div>
         </ConfirmDialog>

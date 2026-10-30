@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Rarity, RARITY_INFO, species } from '../../data/species'
+import { Rarity, RARITY_INFO } from '../../data/species'
+import { isSeen, knownName } from '../../game/collection/dex'
 import { buyTicket, PIECES_PER_PULL, pull, TICKET_PRICE, type PieceDrop } from '../../game/collection/gacha'
 import { PIECES_PER_COMBINE } from '../../game/collection/pieces'
 import type { GameState } from '../../game/core/state'
@@ -68,16 +69,16 @@ export function GachaMachine({ game }: { game: GameState }) {
         ))}
         <p className="tiny muted">
           Cada tirada da {PIECES_PER_PULL} piezas. Junta {PIECES_PER_COMBINE} iguales y combínalas en la Pokédex
-          para desbloquear el Pokémon; si ya lo tienes, sube una ★ (+4% a todas las stats, máx. 5).
+          para desbloquear el Pokémon (antes tienes que verlo en una ruta o expedición); si ya lo tienes, sube una ★
+          (+4% a todas las stats, máx. 5).
         </p>
       </div>
 
       {phase === 'rewards' && (
         <RewardOverlay
           title="¡Piezas conseguidas!"
-          items={pieceRewards(drops)}
+          items={pieceRewards(game, drops)}
           fadeIn={false}
-          bare
           onClose={() => setPhase('idle')}
         />
       )}
@@ -89,16 +90,16 @@ function bestRarity(drops: PieceDrop[]): Rarity {
   return drops.reduce<Rarity>((best, d) => (RARITY_INFO[d.rarity].rate < RARITY_INFO[best].rate ? d.rarity : best), Rarity.Common)
 }
 
-/** Agrupa las piezas por especie («Pidgey ×2»); las más raras salen al final */
-function pieceRewards(drops: PieceDrop[]): RewardItem[] {
+/** Agrupa las piezas por especie («Pidgey ×2»); las más raras salen al final y las no vistas, en silueta */
+function pieceRewards(game: GameState, drops: PieceDrop[]): RewardItem[] {
   const counts = new Map<number, PieceDrop & { count: number }>()
   for (const d of drops) counts.set(d.speciesId, { ...d, count: (counts.get(d.speciesId)?.count ?? 0) + 1 })
   return [...counts.values()]
     .sort((a, b) => RARITY_INFO[b.rarity].rate - RARITY_INFO[a.rarity].rate)
     .map((d) => ({
       key: String(d.speciesId),
-      icon: <Sprite id={d.speciesId} size={160} />,
-      title: `${species(d.speciesId).name} ×${d.count}`,
+      icon: <Sprite id={d.speciesId} size={160} silhouette={!isSeen(game, d.speciesId)} />,
+      title: `${knownName(game, d.speciesId)} ×${d.count}`,
       color: RARITY_INFO[d.rarity].color,
     }))
 }

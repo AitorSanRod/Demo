@@ -1,9 +1,9 @@
 /**
  * Número de la Pokédex de cada especie, para nombrarlas en el código sin escribir números ni textos:
- * `Pokemon.Pidgey` en vez de `16` o `'Pidgey'`. Las claves son el nombre de pokemon.json sin espacios ni signos
+ * `POKEMON.Pidgey` en vez de `16` o `'Pidgey'`. Las claves son el nombre de pokemon.json sin espacios ni signos
  * (♀ → F, ♂ → M): `NidoranF`, `Farfetchd`, `MrMime`.
  */
-export const Pokemon = {
+export const POKEMON = {
   Bulbasaur: 1,
   Ivysaur: 2,
   Venusaur: 3,

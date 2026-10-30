@@ -1,4 +1,5 @@
 import { STARTERS } from '../../data/species'
+import { markSeen } from '../collection/dex'
 import { addPieces, PIECES_PER_COMBINE, piecesOf } from '../collection/pieces'
 import { TutorialStep, type GameState } from '../core/state'
 
@@ -11,6 +12,8 @@ export const STARTER_PIECES = PIECES_PER_COMBINE
  */
 export function pickStarter(s: GameState, speciesId: number) {
   if (s.tutorial !== TutorialStep.Starter || !STARTERS.includes(speciesId)) return
+  // El inicial es la excepción a verlo en ruta: hay que poder combinarlo para empezar a jugar
+  markSeen(s, speciesId)
   addPieces(s, speciesId, STARTER_PIECES)
   s.tutorial = TutorialStep.Combine
 }

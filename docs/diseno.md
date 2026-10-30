@@ -21,19 +21,22 @@ automático. Entre rutas gestiona su equipo en el rancho y manda al resto de Pok
    pantalla suma pasos o, en combate, lo acelera.
 4. **Fin**: completar la ruta (premio y desbloqueo de la siguiente) o caer derrotado (se pierde dinero).
 5. **Expediciones** (pestaña Ruta › Expediciones): el resto del equipo hace rutas por tiempo y vuelve con EXP,
-   dinero y tickets. Ahí se ve quién está fuera, se recoge a los que han vuelto y se envía a cualquiera del rancho.
+   dinero, tickets, piezas y, a veces, Pokémon descubiertos; cuanto más larga, más rinde. Ahí se ve quién está fuera, se recoge a los que han vuelto y se envía a cualquiera del rancho.
    Se puede usar también con la ruta del activo en marcha.
    Opcionalmente avisa con una notificación del sistema al volver (menú ⚙️ del rancho; solo con la app en
    segundo plano, no cerrada).
 6. **Gacha**: cada ticket abre una Pokéball (animación de captura; tocarla la abre antes) con 5 piezas.
 7. **Trituradora y MissingNo** (pestañas del gacha): las piezas que sobran se trituran en trozos de MissingNo,
    que se cambian por piezas del Pokémon que se quiera.
-8. **Pokédex**: combinar 5 piezas iguales para desbloquear el Pokémon o, si ya lo tienes, darle una ★.
+8. **Pokédex**: combinar 5 piezas iguales para desbloquear el Pokémon o, si ya lo tienes, darle una ★. Solo se
+   puede combinar una especie vista: en un combate de ruta, descubierta en una expedición o elegida como inicial.
+   Las piezas de una especie no vista se guardan y se muestran en silueta, como ???, también en gacha, trituradora
+   y MissingNo.
 9. **Evolución** (ficha del rancho): un Pokémon con 5 ★ que tenga evolución puede evolucionar. Se pierde y llega
    su evolución a Nv. 5 y sin ★; si ya la tenías, esa gana una ★ y conserva todo lo demás. Eevee elige entre sus tres.
 
 Los premios del gacha, de las expediciones, del final de ruta y de cada combinación se muestran en una pantalla
-a oscuras, de uno en uno (`RewardOverlay`).
+a oscuras, de uno en uno, sin tarjetas: la imagen sobre un halo y el título debajo (`RewardOverlay`).
 
 ## Stats
 
@@ -48,15 +51,15 @@ At. Esp. La defensa es la media de ambas defensas.
 | Pasos | `12 + vel. base × 0.15 + nivel × 0.25 + estrellas` pasos/min; cada toque suma 1 | `stats.ts › stepsPerMinute` |
 | Offline | El progreso sigue con la app cerrada, máx. 12 h | `core/tick.ts › MAX_OFFLINE_MS` |
 | Stats | Fórmula estilo Gen III sin IV/EV; +4% por estrella (máx. 5) | `stats.ts › STAR_BONUS, MAX_STARS` |
-| EXP | Curva cúbica `(n+1)³ − n³`. Solo se gana al completar una ruta (`reward.exp`), al recoger una expedición (la misma EXP de su ruta) o entrenando con ₽. Los combates no dan EXP | `stats.ts`, `maps.ts › reward.exp` |
+| EXP | Curva cúbica `(n+1)³ − n³`. Solo se gana al completar una ruta (`reward.exp`), al recoger una expedición (la EXP de su ruta × el multiplicador de duración) o entrenando con ₽. Los combates no dan EXP | `stats.ts`, `kantoMaps.ts › reward.exp` |
 | Ataque | Cada Pokémon (también los salvajes) tiene uno solo, fijo: el de su primer tipo y el escalón de su rareza (común ≈40, raro ≈85, épico ≈105, legendario 120 de potencia). No se elige ni cambia con el nivel | `moves.ts › signatureMove` |
 | Combate | Automático por turnos; actúa primero el más rápido. Daño con Ataque contra Defensa, STAB ×1.5 y tabla de tipos. Máx. 25 turnos (luego el salvaje huye) | `battle.ts › MAX_TURNS, STAB` |
 | Salvajes | Stats ×0.8 | `runBattle.ts › WILD_STAT_MULT` |
-| Recompensas por combate | `8 + nivel × 4 + 0..5` ₽, ticket según la rareza del salvaje (10 / 20 / 35 / 60%) y 1 pieza de su especie (5 / 4 / 3 / 2,5%); cura 25% al ganar. Igual en expediciones | `rewards.ts › TICKET_DROP_CHANCE, PIECE_DROP_CHANCE`, `runBattle.ts › POST_WIN_HEAL` |
+| Recompensas por combate | `8 + nivel × 4 + 0..5` ₽, ticket según la rareza del salvaje (10 / 20 / 35 / 60%) y 1 pieza de su especie (5 / 4 / 3 / 2,5%); cura 25% al ganar. En expediciones se multiplican según la duración | `rewards.ts › TICKET_DROP_CHANCE, PIECE_DROP_CHANCE`, `runBattle.ts › POST_WIN_HEAL` |
 | Combate en ruta | 0,7 s por evento + 1,2 s final, en tiempo real (no le afecta `timeScale`); sin pasos mientras dura | `runBattle.ts › BATTLE_EVENT_MS, BATTLE_END_MS` |
-| Jefes | Parada `boss`: siempre el mismo Pokémon a nivel fijo, con stats completas (sin el ×0.8). Da ₽ ×3 y 1 ticket seguro; se ve más grande, con «JEFE» y un aviso al aparecer | `maps.ts › boss()`, `runBattle.ts › BOSS_MONEY_MULT, BOSS_TICKETS` |
+| Jefes | Parada `boss`: siempre el mismo Pokémon a nivel fijo, con stats completas (sin el ×0.8). Da ₽ ×3 y 1 ticket seguro; se ve más grande, con «JEFE» y un aviso al aparecer | `mapCommon.ts › boss()`, `runBattle.ts › BOSS_MONEY_MULT, BOSS_TICKETS` |
 | Derrota | Fin de la ruta y pérdida del 50% del dinero ganado en ella | `runBattle.ts › DEFEAT_MONEY_LOSS` |
-| Expediciones | 15 min, 1 h o 4 h; 8 combates/h; victoria con probabilidad `nivel / nivel medio de la ruta` (mín. 20%). Sin derrota. 1 Pokémon a la vez (+1 por mejora) | `expedition.ts › BASE_EXPEDITION_SLOTS` |
+| Expediciones | 15 min, 1 h o 4 h; 8 combates/h; victoria con probabilidad `nivel / nivel medio de la ruta` (mín. 20%). Sin derrota. EXP, ₽, tickets y piezas ×1 / ×2 / ×4 según la duración. Cada combate puede descubrir una especie no vista: 15 / 10 / 7,5 / 5% (común / raro / épico / legendario). 1 Pokémon a la vez (+1 por mejora) | `expedition.ts › DURATION_REWARD_MULT, DISCOVERY_CHANCE, BASE_EXPEDITION_SLOTS` |
 | Rancho | Regenera 10% PS/min (no en ruta ni de expedición); curar `5 + nivel × 3` ₽; entrenar `20 + nivel × 8` ₽ (40% de un nivel) | `ranch.ts` |
 | Tienda | Pestaña Tienda del menú inferior. Espacio de expedición: +1 hueco, 1 nivel, 500 ₽ | `upgrades.ts › UPGRADES` |
 | Trituradora | En el gacha: cada pieza triturada da 1 / 1 / 2 / 3 trozos de MissingNo (común / raro / épico / legendario). Se marcan una a una o «Todos los …» por rareza y se confirma. Los favoritos de la Pokédex no aparecen ni se pueden triturar | `shredder.ts › SHARDS_PER_PIECE`, `dex.ts › toggleFavorite` |
@@ -79,16 +82,16 @@ El jefe de la Ruta 1 (Pidgeotto) está a Nv. 7 con stats completas: a Nv. 10 ya 
 Bulbasaur ni a Nv. 12 (Pidgeotto es más rápido y resiste planta). A Nv. 7 es donde más se pierde la ruta con un
 inicial a Nv. 8–10.
 
-Pueblo Paleta da 3 tickets solo la primera vez (`reward.firstClearTickets` en `maps.ts`).
+Pueblo Paleta da 3 tickets solo la primera vez (`reward.firstClearTickets` en `kantoMaps.ts`).
 
 ## Contenido actual
 
-- Mapa de Kanto con 2 rutas activas, de camino único: Pueblo Paleta (tutorial, 3 combates) y Ruta 1 (6 combates
+- Mapa de Kanto con 2 rutas activas, de camino único: Pueblo Paleta (tutorial, 4 combates, el último contra un jefe) y Ruta 1 (6 combates
   y el jefe Pidgeotto Nv. 7 al final, exige entrenar). Bosque Verde, Monte Moon y Ruta Marina están comentadas en
-  `src/data/maps.ts`; al reactivarlas hay que devolver `unlocks` a la ruta anterior.
+  `src/data/maps/kantoMaps.ts`; al reactivarlas hay que devolver `unlocks` a la ruta anterior.
 - Los 151 Pokémon de 1ª generación, de PokeAPI, en `src/data/pokemon.json` (se regenera con
   `scripts/fetch-pokemon.mjs`).
-- Existen nodos `start`, `wild` y `boss` (solo el final de la Ruta 1).
+- Existen nodos `start`, `wild` y `boss` (el final de Pueblo Paleta y el de la Ruta 1).
 
 ## Ideas previstas (no implementadas)
 

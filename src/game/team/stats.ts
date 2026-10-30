@@ -11,7 +11,7 @@ export interface Stats {
 export const MAX_LEVEL = 100
 export const MAX_STARS = 5
 /** Cada estrella (duplicado del gacha) da +4% a todas las stats */
-const STAR_BONUS = 0.04
+export const STAR_BONUS = 0.04
 
 export function calcStats(speciesId: number, level: number, stars = 0): Stats {
   const b = species(speciesId).base

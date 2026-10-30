@@ -14,6 +14,7 @@
   background: rgb(10 8 6 / 0.78);
   color: #fff;
   animation: fade-in 0.25s ease-out;
+  cursor: pointer;
 }
 .reward-overlay.no-fade {
   animation: none;
@@ -36,41 +37,38 @@
   justify-content: center;
   gap: 6px;
   width: min(260px, 100%);
-  min-height: 220px;
-  padding: 20px 16px;
-  border-radius: 20px;
   text-align: center;
   color: #fff;
-  border: 3px solid color-mix(in srgb, var(--reward) 70%, #fff);
-  background:
-    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--reward) 60%, #fff) 0 18%, transparent 60%),
-    var(--reward);
-  box-shadow: 0 0 40px color-mix(in srgb, var(--reward) 60%, transparent);
   animation: reward-in 0.4s cubic-bezier(0.2, 1.4, 0.5, 1);
 }
 .reward-card strong {
-  font-size: 18px;
+  font-size: 22px;
   text-shadow: 0 1px 0 #0006;
 }
+/* Sin tarjeta: la imagen sobre un halo de su color y el título debajo */
 .reward-icon {
+  display: grid;
+  place-items: center;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--reward) 75%, #fff) 0 30%, transparent 70%);
   font-size: 56px;
   line-height: 1;
 }
 .reward-card.small {
   width: 104px;
-  min-height: 0;
-  padding: 8px 6px;
   gap: 2px;
-  border-width: 2px;
-  border-radius: 12px;
-  box-shadow: none;
   animation: none;
 }
 .reward-card.small strong {
   font-size: 12px;
+  text-shadow: 0 1px 0 #000;
 }
-/* En el resumen el icono (emoji o sprite) se ve a la mitad */
+/* En el resumen el icono (emoji o sprite) se ve a la mitad: el halo debe medir lo mismo que el sprite */
 .reward-card.small .reward-icon {
+  width: 170px;
+  height: 170px;
   zoom: 0.5;
 }
 .reward-grid {
@@ -125,41 +123,9 @@
   font-size: 24px;
   text-shadow: 0 2px 0 #0008;
 }
-/* Premios sin tarjeta (piezas del gacha): la imagen sobre un halo de su rareza y el título debajo */
-.reward-overlay.bare .reward-card {
-  min-height: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-}
-.reward-overlay.bare .reward-icon {
-  display: grid;
-  place-items: center;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--reward) 75%, #fff) 0 30%, transparent 70%);
-}
-.reward-overlay.bare .reward-card strong {
-  font-size: 22px;
-}
-/* En el resumen el icono va a la mitad (zoom 0.5 de .reward-card.small): el halo debe medir lo mismo que el sprite */
-.reward-overlay.bare .reward-card.small .reward-icon {
-  width: 170px;
-  height: 170px;
-}
-.reward-overlay.bare .reward-card.small strong {
-  font-size: 12px;
-  text-shadow: 0 1px 0 #000;
-}
-.reward-overlay.bare {
-  cursor: pointer;
-}
 /* En los halos el Pokémon va centrado; en la ruta sigue apoyado en el suelo (alineación por defecto de .sprite) */
 .reveal-mon .sprite,
-.reward-overlay.bare .reward-icon .sprite {
+.reward-icon .sprite {
   align-items: center;
 }
 @keyframes reward-in {

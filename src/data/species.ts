@@ -1,4 +1,4 @@
-import { Pokemon } from './pokemon'
+import { POKEMON } from './pokemon'
 import raw from './pokemon.json'
 import type { PokeType } from './types'
 
@@ -76,4 +76,4 @@ export const sprite = {
   animatedBack: (id: number) => `${SPRITES}/versions/generation-v/black-white/animated/back/${id}.gif`,
 }
 
-export const STARTERS: number[] = [Pokemon.Bulbasaur, Pokemon.Charmander, Pokemon.Squirtle]
+export const STARTERS: number[] = [POKEMON.Bulbasaur, POKEMON.Charmander, POKEMON.Squirtle]

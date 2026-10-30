@@ -127,7 +127,6 @@ function RunSummary({ run, mon }: { run: Run; mon: OwnedMon }) {
     <RewardOverlay
       title={complete ? '¡Ruta completada! 🎉' : 'Tu Pokémon se debilitó…'}
       items={items}
-      actionLabel="Volver al Pokérancho"
       onClose={() => act(endRun)}
     />
   )

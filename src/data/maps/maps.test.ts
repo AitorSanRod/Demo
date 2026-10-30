@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isValidPath, KANTO, NodeKind, pathFrom, type Route } from './maps'
+import { isValidPath, KANTO, NodeKind, pathFrom, type Route } from './index'
 
 function reachableIds(r: Route): Set<string> {
   const byId = new Map(r.nodes.map((n) => [n.id, n]))

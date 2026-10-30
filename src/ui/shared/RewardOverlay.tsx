@@ -7,7 +7,7 @@ export interface RewardItem {
   icon: ReactNode
   title: string
   detail?: string
-  /** Color del fondo de la tarjeta (p. ej. el de la rareza) */
+  /** Color del halo (p. ej. el de la rareza) */
   color?: string
 }
 
@@ -15,33 +15,26 @@ export interface RewardItem {
 const STEP_MS = 1400
 
 /**
- * Fondo oscuro con los premios de uno en uno; tocar pasa al siguiente y al final se ven todos juntos.
- * Se pinta en <body> para que nada de la pantalla quede por encima.
+ * Fondo oscuro con los premios de uno en uno, cada uno sobre un halo y con su título debajo; tocar pasa al
+ * siguiente, al final se ven todos juntos y otro toque cierra. Se pinta en <body> para que nada de la pantalla
+ * quede por encima.
  */
 export function RewardOverlay({
   title,
   items,
-  actionLabel = 'Continuar',
   fadeIn = true,
-  bare = false,
   onClose,
 }: {
   title: string
   items: RewardItem[]
-  actionLabel?: string
   /** false si el fondo ya se oscureció antes (p. ej. en la apertura del gacha), para que no destelle */
   fadeIn?: boolean
-  /**
-   * Sin tarjetas, como la aparición de un Pokémon: solo la imagen sobre un halo y su título debajo; el resumen se
-   * cierra tocando en cualquier parte (sin botón). Para premios que son Pokémon, como las piezas del gacha.
-   */
-  bare?: boolean
   onClose: () => void
 }) {
   const [index, setIndex] = useState(0)
   const showingAll = index >= items.length
   const next = () => setIndex((i) => Math.min(items.length, i + 1))
-  const onOverlayClick = showingAll ? (bare ? onClose : undefined) : next
+  const onOverlayClick = showingAll ? onClose : next
 
   useEffect(() => {
     if (showingAll) return
@@ -50,7 +43,7 @@ export function RewardOverlay({
   }, [index, showingAll])
 
   return createPortal(
-    <div className={`reward-overlay ${fadeIn ? '' : 'no-fade'} ${bare ? 'bare' : ''}`} onClick={onOverlayClick}>
+    <div className={`reward-overlay ${fadeIn ? '' : 'no-fade'}`} onClick={onOverlayClick}>
       <h2 className="reward-title">{title}</h2>
       {showingAll ? (
         <>
@@ -59,13 +52,7 @@ export function RewardOverlay({
               <RewardCard key={item.key} item={item} small />
             ))}
           </div>
-          {bare ? (
-            <span className="reward-hint small">Toca para continuar</span>
-          ) : (
-            <button className="btn primary wide" onClick={onClose}>
-              {actionLabel}
-            </button>
-          )}
+          <span className="reward-hint small">Toca para continuar</span>
         </>
       ) : (
         <>

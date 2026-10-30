@@ -17,20 +17,21 @@ describe('pull', () => {
     expect(s.pieces).toEqual({})
   })
 
-  it('cada tirada gasta un ticket y da 5 piezas', () => {
+  it('cada tirada gasta un ticket y da sus piezas', () => {
     const s = initialState()
-    const before = s.tickets
+    s.tickets = 1
     const drops = pull(s, 1, COMMON)
     expect(drops).toHaveLength(PIECES_PER_PULL)
-    expect(s.tickets).toBe(before - 1)
+    expect(s.tickets).toBe(0)
   })
 
-  it('las piezas se suman por especie y la marcan como vista, no como capturada', () => {
+  it('las piezas se suman por especie sin marcarla como vista ni como capturada', () => {
     const s = initialState()
+    s.tickets = 1
     const [drop] = pull(s, 1, LEGENDARY)
     expect(drop.rarity).toBe(Rarity.Legendary)
     expect(piecesOf(s, drop.speciesId)).toBe(PIECES_PER_PULL)
-    expect(s.seen).toContain(drop.speciesId)
+    expect(s.seen).not.toContain(drop.speciesId)
     expect(s.caught).not.toContain(drop.speciesId)
     expect(s.owned).toHaveLength(0)
   })

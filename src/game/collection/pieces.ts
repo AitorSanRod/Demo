@@ -2,7 +2,7 @@ import { RARITY_INFO, rarityOf, species } from '../../data/species'
 import { TutorialStep, type GameState } from '../core/state'
 import { createMon } from '../team/mons'
 import { MAX_STARS } from '../team/stats'
-import { markCaught, markSeen } from './dex'
+import { isSeen, markCaught } from './dex'
 
 /** Piezas iguales que se gastan en cada combinación: desbloquean el Pokémon o le dan una ★ */
 export const PIECES_PER_COMBINE = 5
@@ -21,13 +21,14 @@ export interface CombineResult {
 
 export const piecesOf = (s: GameState, speciesId: number): number => s.pieces[speciesId] ?? 0
 
-/** Suma piezas de una especie; tener piezas la marca como vista */
+/** Suma piezas de una especie; se guardan aunque aún no se haya visto */
 export function addPieces(s: GameState, speciesId: number, count: number) {
   s.pieces[speciesId] = piecesOf(s, speciesId) + count
-  markSeen(s, speciesId)
 }
 
-export const canCombine = (s: GameState, speciesId: number): boolean => piecesOf(s, speciesId) >= PIECES_PER_COMBINE
+/** Hacen falta las piezas y haber visto la especie en una ruta o expedición */
+export const canCombine = (s: GameState, speciesId: number): boolean =>
+  isSeen(s, speciesId) && piecesOf(s, speciesId) >= PIECES_PER_COMBINE
 
 export const combinableCount = (s: GameState): number =>
   Object.keys(s.pieces).filter((id) => canCombine(s, Number(id))).length

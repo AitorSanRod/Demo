@@ -19,10 +19,11 @@ src/
   App.tsx             Bucle de tiempo, menú inferior y pantalla de cada pestaña
   index.css           Entrada de los estilos base (src/styles/: variables, estructura y piezas comunes)
   assets/             Imágenes propias (fondo del rancho)
-  data/               species, pokemon (ids por nombre), types, moves, maps, evolutions + pokemon.json
+  data/               species, pokemon (ids por nombre), types, moves, evolutions + pokemon.json
+    maps/             kantoMaps (una por región), mapCommon, index (regiones y route)
   game/
     core/             state (GameState, SAVE_VERSION), store (useGame, act, guardado), teamBackup, random, tick,
-                      test-utils
+                      test-utils, test-map
     battle/           battle (simulación por turnos), rewards (₽, tickets y piezas por victoria)
     run/              run (salida, avance por tiempo, toques), runBattle (combates de la ruta y premio final)
     team/             mons (alta), stats, ranch, evolution, expedition, upgrades, tutorial
@@ -46,10 +47,12 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | Módulo | Responsabilidad |
 |---|---|
 | `data/species.ts` | Especies (desde `pokemon.json`, reducidas a 4 stats), rarezas, sprites, iniciales |
-| `data/pokemon.ts` | `Pokemon`: número de cada especie por su nombre (`Pokemon.Pidgey`), para no escribir ids sueltos |
+| `data/pokemon.ts` | `POKEMON`: número de cada especie por su nombre (`POKEMON.Pidgey`), para no escribir ids sueltos |
 | `data/types.ts` | Tipos y tabla de eficacias |
 | `data/moves.ts` | Un movimiento de daño por tipo y rareza; `signatureMove` da el de cada especie |
-| `data/maps.ts` | Mapas, rutas, nodos, encuentros y consultas de caminos (`pathFrom`, `isValidPath`) |
+| `data/maps/kantoMaps.ts` | Rutas de Kanto; solo datos. Cada región tendrá su `xxxMaps.ts` |
+| `data/maps/mapCommon.ts` | Tipos y diccionarios de los mapas, atajos para escribirlos (`enc`, `boss`, `chain`) y consultas de caminos (`pathFrom`, `isValidPath`) |
+| `data/maps/index.ts` | Entrada de la carpeta (se importa como `data/maps`): lista de regiones y `route(id)` |
 | `data/evolutions.ts` | Evoluciones de la 1ª gen. (`evolutionsOf`) |
 | `game/core/state.ts` | Tipos de `GameState`, estado inicial, `SAVE_VERSION`, `restoreState` y dónde está cada Pokémon (`monPlace`) |
 | `game/core/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
@@ -82,8 +85,8 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 
 ```ts
 const s = initialState()
-chooseStarter(s, 1) // atajo de core/test-utils.ts: da el inicial y salta el tutorial
-startRun(s, 'pueblo-paleta')
+chooseStarter(s, POKEMON.Bulbasaur) // atajo de core/test-utils.ts: da el inicial y salta el tutorial
+startRun(s, RouteId.PuebloPaleta)
 ```
 
 ## Aleatoriedad
@@ -120,7 +123,7 @@ progreso offline), lo multiplica por `timeScale` (x1 en producción; el botón �
 
 ```
 RoutePlanner elige el camino → startRun(routeId, path) → 'walking'
-  → (pasos) → llegada a parada → startWildBattle: combate simulado → lastBattle, battleMsLeft
+  → (pasos) → llegada a parada → startStopBattle: combate simulado → lastBattle, battleMsLeft
       → (pasa battleMsLeft; no hay pasos) → settleBattle aplica PS y premio
           → derrota: 'fainted'
           → última parada: completeRoute → 'complete'

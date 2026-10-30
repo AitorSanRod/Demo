@@ -16,16 +16,18 @@ se comporte distinto), primero implementa la regla con la skill `nueva-mecanica`
 
 ## Por tipo de contenido
 
-### Ruta (`data/maps.ts`)
+### Ruta (`data/maps/kantoMaps.ts`)
+- Cada región tiene su fichero `xxxMaps.ts`, solo con sus datos. Una región nueva se añade a `REGIONS` en
+  `data/maps/index.ts`; lo común a todas está en `mapCommon.ts`.
 - Añade su id a `RouteId` (valor en kebab-case y en español: `Ruta2: 'ruta-2'`) y úsalo como `id: RouteId.Ruta2`.
 - Encadénala: la ruta anterior debe tener `unlocks: RouteId.<la nueva>`.
 - Camino único: usa `chain(...)` con las paradas en orden; `steps` son los pasos para llegar a cada una.
 - Con bifurcaciones: escribe los nodos a mano con varios `next`. El jugador elige rama antes de salir.
 - Exactamente un nodo `kind: NodeKind.Start`. El nodo final tiene `next: []`.
-- Jefe: `kind: NodeKind.Boss` con `boss: boss(P.Pidgeotto, nivel)`. Lucha con stats
+- Jefe: `kind: NodeKind.Boss` con `boss: boss(POKEMON.Pidgeotto, nivel)`. Lucha con stats
   completas, así que su nivel debe quedar por debajo del de los salvajes de alrededor: ajústalo simulando.
 - Todo `next[].to` apunta a un nodo existente y todo nodo es alcanzable desde el inicio.
-- Encuentros con `enc([P.Pidgey, 30], [P.Rattata, 70])`: especie de `Pokemon` (importado como `P`) y probabilidad en %.
+- Encuentros con `enc([POKEMON.Pidgey, 30], [POKEMON.Rattata, 70])`: especie de `POKEMON` y probabilidad en %.
   Cada lista (la de la ruta y la de cada parada que la sustituya) debe sumar 100.
 - `levels` y `reward` en progresión con la ruta anterior (ver tabla en `docs/diseno.md`).
   `reward.firstClearTickets` (opcional) son tickets extra que solo se dan la primera vez que se completa.

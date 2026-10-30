@@ -15,9 +15,9 @@ const POST_WIN_HEAL = 0.25
  */
 const WILD_STAT_MULT = 0.8
 /** Multiplicador de los pokécuartos por derrotar a un jefe (respecto a un salvaje de su nivel) */
-const BOSS_MONEY_MULT = 3
+export const BOSS_MONEY_MULT = 3
 /** Tickets que da siempre derrotar a un jefe (en lugar de la probabilidad de un salvaje) */
-const BOSS_TICKETS = 1
+export const BOSS_TICKETS = 1
 /** Fracción del dinero ganado en la ruta que se pierde al ser derrotado */
 const DEFEAT_MONEY_LOSS = 0.5
 /** Milisegundos reales que dura cada evento del combate en la ruta; mientras, no se avanza */

@@ -40,12 +40,12 @@ export function DexScreen({ game }: { game: GameState }) {
               key={sp.id}
               className={`dex-cell ${caught ? 'caught' : ''} ${canCombine(game, sp.id) ? 'ready' : ''} ${selectedId === sp.id ? 'selected' : ''} ${sp.id === starter && selectedId !== starter ? 'tutorial-target' : ''}`}
               style={{ ['--rarity' as string]: RARITY_INFO[rarityOf(sp)].color }}
-              disabled={!seen}
+              disabled={!seen && pieces === 0}
               onClick={() => setSelectedId(sp.id)}
             >
               <span className="tiny muted">#{String(sp.id).padStart(3, '0')}</span>
               {isFavorite(game, sp.id) && <span className="dex-favorite">❤️</span>}
-              {seen ? (
+              {seen || pieces > 0 ? (
                 <Sprite id={sp.id} size={72} animated={false} silhouette={!caught} />
               ) : (
                 <span className="dex-unknown">?</span>

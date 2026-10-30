@@ -22,7 +22,7 @@
   ```
   Se usa `NodeKind.Boss`, nunca `'boss'`; en un `Record` las claves van entre corchetes (`[Rarity.Common]: …`). El
   valor es el que se guarda en la partida: cambiarlo obliga a subir `SAVE_VERSION`.
-- Las especies se nombran con `Pokemon` (`data/pokemon.ts`): `Pokemon.Pidgey`, no `16` ni `'Pidgey'`; también en
+- Las especies se nombran con `POKEMON` (`data/pokemon.ts`): `POKEMON.Pidgey`, no `16` ni `'Pidgey'`; también en
   los tests. Quedan fuera las clases CSS y los ids que solo usa una pantalla (p. ej. las pestañas de `App.tsx`).
 - Prohibido `any`. Usa `!` solo cuando una invariante lo garantice y sea evidente en el contexto.
 - `import type` para importar solo tipos (lo exige `verbatimModuleSyntax`).
@@ -74,6 +74,11 @@
 - Solo lógica de `src/game` (y consultas de `src/data`). No se testea la UI.
 - Azar con un rng determinista (`seqRng` en `src/game/core/test-utils.ts`); `chooseStarter` da el inicial y
   salta el tutorial para empezar los tests desde una partida jugable.
+- **Los tests no fijan contenido ni balance**: nada de nombres, tiempos o números del juego, para que editar datos
+  a mano nunca rompa un test. Los del motor usan el mapa de `game/core/test-map.ts`
+  (`vi.mock('../../data/maps/kantoMaps', () => import('../core/test-map'))`); los valores se leen de las constantes
+  exportadas o se derivan de los datos (`speciesOfRarity`). Sobre los datos reales solo se comprueba la estructura
+  (rutas conectadas, encuentros que suman 100…).
 - Un test por comportamiento, con un nombre en español que lo describa: `it('no permite tirar sin tickets')`.
 
 ## Definición de terminado
