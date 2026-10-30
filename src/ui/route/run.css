@@ -37,6 +37,8 @@
 .floater {
   position: absolute;
   transform: translate(-50%, -50%);
+  font-size: 56px;
+  line-height: 1;
   font-weight: 900;
   color: var(--yellow);
   text-shadow: 0 2px 2px #0008;
