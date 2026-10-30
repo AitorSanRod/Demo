@@ -1,0 +1,10 @@
+/* Tienda de mejoras */
+
+.upgrade-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.upgrade-icon {
+  font-size: 32px;
+}

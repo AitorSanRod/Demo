@@ -33,18 +33,22 @@
 
 ## Capas
 
-- `src/game` no importa React ni el DOM. Solo `store.ts` toca `window`/`localStorage`.
+- `src/game` no importa React ni el DOM. Solo `core/store.ts` toca `window`/`localStorage`.
 - Las funciones de `game` reciben `s: GameState`, lo mutan y devuelven, como mucho, un resultado para la UI.
 - Las acciones validan sus precondiciones y salen sin hacer nada (`return`, `null` o `false`) si no se cumplen.
 - La UI no calcula reglas: si un componente necesita un número del juego, va en `game/` como función.
 
 ## React
 
-- Componentes de función, un componente principal por fichero de pantalla; subcomponentes privados en el mismo
-  fichero mientras sea corto.
-- Reutiliza `ui/common.tsx` (`Sprite`, `Bar`, `TypeBadge`, `MoveChip`) antes de crear piezas nuevas.
-- Estilos en `src/index.css` con las variables de `:root`. Nada de colores sueltos si hay variable; para
-  transparencias usa `color-mix(in srgb, var(--x) N%, transparent)`.
+- Componentes de función, un componente principal por fichero; subcomponentes privados en el mismo fichero
+  mientras sea corto. Cada pantalla en su carpeta de `src/ui` (ver `docs/arquitectura.md`).
+- Reutiliza `ui/shared/` (`Sprite`, `Bar`, `TypeBadge`, `MoveChip`, `RewardOverlay`, `RevealOverlay`,
+  `ConfirmDialog`) antes de crear piezas nuevas.
+- Estilos de cada pantalla en un CSS en su carpeta, importado por su componente; lo común en `src/styles/`. Usa
+  las variables de `:root` (`styles/tokens.css`): nada de colores sueltos si hay variable; para transparencias
+  `color-mix(in srgb, var(--x) N%, transparent)`.
+- Las pantallas superpuestas (premios, confirmaciones) se pintan en `<body>` con `createPortal`, para no heredar
+  `pointer-events`, `z-index` ni filtros del sitio donde se usan.
 - Paleta de los juegos de GBA: fondo crema (`--bg`), tarjetas blancas (`--card`), texto casi negro y rojo
   Pokédex (`--red`, que también es `--accent`) para la cabecera, el botón principal y la selección. El
   amarillo (`--yellow`) se reserva para el logo y los textos flotantes.
@@ -55,9 +59,10 @@
 
 ## Tests
 
-- Vitest, ficheros `*.test.ts` junto al módulo (`stats.ts` → `stats.test.ts`).
+- Vitest, ficheros `*.test.ts` junto al módulo (`team/stats.ts` → `team/stats.test.ts`).
 - Solo lógica de `src/game` (y consultas de `src/data`). No se testea la UI.
-- Azar con un rng determinista (`seqRng` en `src/game/test-utils.ts`).
+- Azar con un rng determinista (`seqRng` en `src/game/core/test-utils.ts`); `chooseStarter` da el inicial y
+  salta el tutorial para empezar los tests desde una partida jugable.
 - Un test por comportamiento, con un nombre en español que lo describa: `it('no permite tirar sin tickets')`.
 
 ## Definición de terminado

@@ -1,0 +1,55 @@
+/* Menú de ajustes */
+
+/* Engranaje de ajustes en la esquina del rancho y su menú desplegable */
+.settings-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: #0005;
+  font-size: 22px;
+  line-height: 1;
+}
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 150;
+}
+.settings-menu {
+  position: absolute;
+  top: 58px;
+  right: 8px;
+  min-width: 200px;
+  gap: 4px;
+  padding: 10px;
+  box-shadow: 0 6px 20px #0004;
+  animation: fade-in 0.15s ease-out;
+}
+.settings-item {
+  min-height: 44px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+}
+.settings-item:active {
+  background: var(--card-2);
+}
+.settings-item.danger {
+  color: var(--red);
+}
+.settings-item:disabled {
+  opacity: 0.6;
+}
+.settings-hint {
+  display: block;
+  font-weight: 400;
+}

@@ -34,8 +34,6 @@ async function fetchOne(id) {
       spd: stat('special-defense'),
       spe: stat('speed'),
     },
-    baseExp: mon.base_experience ?? 60,
-    captureRate: species.capture_rate,
   }
 }
 

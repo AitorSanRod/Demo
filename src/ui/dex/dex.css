@@ -1,0 +1,76 @@
+/* Pokédex */
+
+.dex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 6px;
+}
+.dex-cell {
+  position: relative;
+  color: inherit;
+  font: inherit;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 110px;
+  text-align: center;
+}
+.dex-cell.caught {
+  border: 2px solid var(--rarity);
+}
+.dex-cell:disabled {
+  opacity: 1;
+}
+.dex-cell.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+/* Con piezas para combinar, la casilla late para llamar la atención */
+.dex-cell.ready {
+  border: 2px solid var(--rarity);
+  animation: ready-pulse 1.4s ease-in-out infinite;
+}
+.dex-pieces {
+  font-weight: 700;
+}
+.dex-cell.ready .dex-pieces {
+  color: var(--accent);
+}
+/* Ficha de la especie elegida: se queda pegada abajo mientras se recorre la lista */
+.dex-panel {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  border: 2px solid var(--rarity);
+  box-shadow: 0 -6px 20px #0002;
+  animation: fade-in 0.2s ease-out;
+}
+.dex-unknown {
+  height: 72px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--line);
+}
+.favorite-toggle.on {
+  border-color: var(--red);
+}
+.dex-favorite {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 12px;
+}
+.dex-cell.tutorial-target {
+  animation: target-pulse 1.2s ease-in-out infinite;
+}
+@keyframes ready-pulse {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--rarity) 35%, transparent);
+  }
+}

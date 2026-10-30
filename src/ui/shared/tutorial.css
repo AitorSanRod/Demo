@@ -1,0 +1,45 @@
+/* Bocadillos del tutorial */
+
+/* Bocadillo que señala hacia abajo (la flecha se coloca con --arrow-x) */
+.tutorial-hint {
+  position: relative;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: var(--yellow);
+  color: #2a2000;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  box-shadow: 0 4px 14px #0003;
+  pointer-events: none;
+  animation: hint-bob 1.6s ease-in-out infinite;
+}
+.tutorial-hint::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: var(--arrow-x);
+  translate: -50% 0;
+  border: 8px solid transparent;
+  border-top-color: var(--yellow);
+}
+/* Bocadillo sobre el menú inferior, apuntando a la pestaña que toca */
+/* Por encima del contenido, pero por debajo de las pantallas de premios (z-index 50) y confirmaciones (60) */
+.tutorial-nav {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+/* Lo que hay que tocar en este paso del tutorial (gana a otras animaciones, como la de .dex-cell.ready) */
+.tutorial-target {
+  animation: target-pulse 1.2s ease-in-out infinite;
+}
+@keyframes hint-bob {
+  50% {
+    transform: translateY(-4px);
+  }
+}

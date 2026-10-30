@@ -1,4 +1,4 @@
-import { species } from './species'
+import { rarityOf, species, type Rarity } from './species'
 import type { PokeType } from './types'
 
 /** Todos los movimientos son de daño: usan el ataque del Pokémon contra la defensa del rival */
@@ -18,65 +18,124 @@ const m = (id: string, name: string, type: PokeType, power: number, accuracy = 1
   accuracy,
 })
 
-const LIST: Move[] = [
-  m('tackle', 'Placaje', 'normal', 40),
-  m('scratch', 'Arañazo', 'normal', 40),
-  m('quick-attack', 'Ataque Rápido', 'normal', 40),
-  m('body-slam', 'Golpe Cuerpo', 'normal', 85),
-  m('take-down', 'Derribo', 'normal', 90, 85),
+/**
+ * Cada Pokémon tiene un único ataque: el de su primer tipo y el escalón de su rareza. La potencia crece con la rareza
+ * (≈40 común, ≈85 raro, ≈105 épico, 120 legendario), así que los raros pegan bastante más que los comunes.
+ */
+const BY_TYPE: Record<PokeType, Record<Rarity, Move>> = {
+  normal: {
+    common: m('tackle', 'Placaje', 'normal', 40),
+    rare: m('body-slam', 'Golpe Cuerpo', 'normal', 85),
+    epic: m('double-edge', 'Doble Filo', 'normal', 110),
+    legendary: m('hyper-beam', 'Hiperrayo', 'normal', 120, 90),
+  },
+  fire: {
+    common: m('ember', 'Ascuas', 'fire', 40),
+    rare: m('flamethrower', 'Lanzallamas', 'fire', 90),
+    epic: m('fire-blast', 'Llamarada', 'fire', 110, 85),
+    legendary: m('overheat', 'Sofoco', 'fire', 120, 90),
+  },
+  water: {
+    common: m('water-gun', 'Pistola Agua', 'water', 40),
+    rare: m('surf', 'Surf', 'water', 90),
+    epic: m('hydro-pump', 'Hidrobomba', 'water', 110, 80),
+    legendary: m('hydro-cannon', 'Hidrocañón', 'water', 120, 90),
+  },
+  electric: {
+    common: m('thunder-shock', 'Impactrueno', 'electric', 40),
+    rare: m('thunderbolt', 'Rayo', 'electric', 90),
+    epic: m('thunder', 'Trueno', 'electric', 110, 70),
+    legendary: m('volt-tackle', 'Placaje Eléctrico', 'electric', 120),
+  },
+  grass: {
+    common: m('vine-whip', 'Látigo Cepa', 'grass', 45),
+    rare: m('energy-ball', 'Energibola', 'grass', 90),
+    epic: m('solar-beam', 'Rayo Solar', 'grass', 110),
+    legendary: m('frenzy-plant', 'Planta Feroz', 'grass', 120, 90),
+  },
+  ice: {
+    common: m('powder-snow', 'Nieve Polvo', 'ice', 40),
+    rare: m('ice-beam', 'Rayo Hielo', 'ice', 90),
+    epic: m('blizzard', 'Ventisca', 'ice', 110, 70),
+    legendary: m('freeze-shock', 'Rayo Gélido', 'ice', 120, 90),
+  },
+  fighting: {
+    common: m('karate-chop', 'Golpe Kárate', 'fighting', 50),
+    rare: m('aura-sphere', 'Esfera Aural', 'fighting', 80),
+    epic: m('focus-blast', 'Onda Certera', 'fighting', 110, 70),
+    legendary: m('close-combat', 'A Bocajarro', 'fighting', 120),
+  },
+  poison: {
+    common: m('acid', 'Ácido', 'poison', 40),
+    rare: m('sludge-bomb', 'Bomba Lodo', 'poison', 90),
+    epic: m('sludge-wave', 'Onda Tóxica', 'poison', 95),
+    legendary: m('gunk-shot', 'Lanzamugre', 'poison', 120, 80),
+  },
+  ground: {
+    common: m('mud-slap', 'Bofetón Lodo', 'ground', 40),
+    rare: m('earth-power', 'Tierra Viva', 'ground', 90),
+    epic: m('earthquake', 'Terremoto', 'ground', 100),
+    legendary: m('precipice-blades', 'Filo del Abismo', 'ground', 120, 85),
+  },
+  flying: {
+    common: m('gust', 'Tornado', 'flying', 40),
+    rare: m('fly', 'Vuelo', 'flying', 90, 95),
+    epic: m('hurricane', 'Vendaval', 'flying', 110, 70),
+    legendary: m('sky-attack', 'Ataque Aéreo', 'flying', 120, 90),
+  },
+  psychic: {
+    common: m('confusion', 'Confusión', 'psychic', 50),
+    rare: m('psychic', 'Psíquico', 'psychic', 90),
+    epic: m('psystrike', 'Onda Mental', 'psychic', 100),
+    legendary: m('psycho-boost', 'Psicoataque', 'psychic', 120, 90),
+  },
+  bug: {
+    common: m('fury-cutter', 'Corte Furia', 'bug', 40, 95),
+    rare: m('x-scissor', 'Tijera X', 'bug', 80),
+    epic: m('bug-buzz', 'Zumbido', 'bug', 90),
+    legendary: m('megahorn', 'Megacuerno', 'bug', 120, 85),
+  },
+  rock: {
+    common: m('rock-throw', 'Lanzarrocas', 'rock', 50, 90),
+    rare: m('rock-slide', 'Avalancha', 'rock', 75, 90),
+    epic: m('stone-edge', 'Roca Afilada', 'rock', 100, 80),
+    legendary: m('head-smash', 'Testarazo', 'rock', 120, 80),
+  },
+  ghost: {
+    common: m('shadow-sneak', 'Sombra Vil', 'ghost', 40),
+    rare: m('shadow-ball', 'Bola Sombra', 'ghost', 80),
+    epic: m('phantom-force', 'Golpe Fantasma', 'ghost', 90),
+    legendary: m('shadow-force', 'Golpe Umbrío', 'ghost', 120),
+  },
+  dragon: {
+    common: m('twister', 'Ciclón', 'dragon', 40),
+    rare: m('dragon-claw', 'Garra Dragón', 'dragon', 80),
+    epic: m('dragon-pulse', 'Pulso Dragón', 'dragon', 85),
+    legendary: m('outrage', 'Enfado', 'dragon', 120),
+  },
+  dark: {
+    common: m('bite', 'Mordisco', 'dark', 60),
+    rare: m('crunch', 'Triturar', 'dark', 80),
+    epic: m('night-daze', 'Pulso Noche', 'dark', 85, 95),
+    legendary: m('foul-play', 'Juego Sucio', 'dark', 95),
+  },
+  steel: {
+    common: m('metal-claw', 'Garra Metal', 'steel', 50, 95),
+    rare: m('iron-head', 'Cabeza de Hierro', 'steel', 80),
+    epic: m('flash-cannon', 'Foco Resplandor', 'steel', 90),
+    legendary: m('iron-tail', 'Cola Férrea', 'steel', 100, 75),
+  },
+  fairy: {
+    common: m('fairy-wind', 'Viento Feérico', 'fairy', 40),
+    rare: m('dazzling-gleam', 'Brillo Mágico', 'fairy', 80),
+    epic: m('moonblast', 'Fuerza Lunar', 'fairy', 95),
+    legendary: m('light-of-ruin', 'Luz Aniquiladora', 'fairy', 120, 90),
+  },
+}
 
-  m('ember', 'Ascuas', 'fire', 40),
-  m('flame-wheel', 'Rueda Fuego', 'fire', 60),
-  m('flamethrower', 'Lanzallamas', 'fire', 90),
-  m('water-gun', 'Pistola Agua', 'water', 40),
-  m('water-pulse', 'Hidropulso', 'water', 60),
-  m('surf', 'Surf', 'water', 90),
-  m('thunder-shock', 'Impactrueno', 'electric', 40),
-  m('spark', 'Chispa', 'electric', 65),
-  m('thunderbolt', 'Rayo', 'electric', 90),
-  m('vine-whip', 'Látigo Cepa', 'grass', 45),
-  m('razor-leaf', 'Hoja Afilada', 'grass', 55, 95),
-  m('energy-ball', 'Energibola', 'grass', 90),
-  m('powder-snow', 'Nieve Polvo', 'ice', 40),
-  m('icy-wind', 'Viento Hielo', 'ice', 55, 95),
-  m('ice-beam', 'Rayo Hielo', 'ice', 90),
-  m('karate-chop', 'Golpe Kárate', 'fighting', 50),
-  m('low-sweep', 'Puntapié', 'fighting', 65),
-  m('brick-break', 'Demolición', 'fighting', 75),
-  m('acid', 'Ácido', 'poison', 40),
-  m('sludge', 'Residuos', 'poison', 65),
-  m('sludge-bomb', 'Bomba Lodo', 'poison', 90),
-  m('mud-slap', 'Bofetón Lodo', 'ground', 35),
-  m('mud-shot', 'Disparo Lodo', 'ground', 55, 95),
-  m('earthquake', 'Terremoto', 'ground', 100),
-  m('gust', 'Tornado', 'flying', 40),
-  m('wing-attack', 'Ataque Ala', 'flying', 60),
-  m('drill-peck', 'Pico Taladro', 'flying', 80),
-  m('confusion', 'Confusión', 'psychic', 50),
-  m('psybeam', 'Psicorrayo', 'psychic', 65),
-  m('psychic', 'Psíquico', 'psychic', 90),
-  m('fury-cutter', 'Corte Furia', 'bug', 40, 95),
-  m('bug-bite', 'Picadura', 'bug', 60),
-  m('x-scissor', 'Tijera X', 'bug', 80),
-  m('rock-throw', 'Lanzarrocas', 'rock', 50, 90),
-  m('rock-slide', 'Avalancha', 'rock', 75, 90),
-  m('stone-edge', 'Roca Afilada', 'rock', 100, 80),
-  m('lick', 'Lengüetazo', 'ghost', 30),
-  m('hex', 'Infortunio', 'ghost', 65),
-  m('shadow-ball', 'Bola Sombra', 'ghost', 80),
-  m('twister', 'Ciclón', 'dragon', 40),
-  m('dragon-breath', 'Dragoaliento', 'dragon', 60),
-  m('dragon-claw', 'Garra Dragón', 'dragon', 80),
-  m('bite', 'Mordisco', 'dark', 60),
-  m('crunch', 'Triturar', 'dark', 80),
-  m('metal-claw', 'Garra Metal', 'steel', 50, 95),
-  m('iron-head', 'Cabeza de Hierro', 'steel', 80),
-  m('fairy-wind', 'Viento Feérico', 'fairy', 40),
-  m('draining-kiss', 'Beso Drenaje', 'fairy', 50),
-  m('dazzling-gleam', 'Brillo Mágico', 'fairy', 80),
-]
-
-export const MOVES: Record<string, Move> = Object.fromEntries(LIST.map((mv) => [mv.id, mv]))
+export const MOVES: Record<string, Move> = Object.fromEntries(
+  Object.values(BY_TYPE).flatMap((tiers) => Object.values(tiers).map((mv) => [mv.id, mv])),
+)
 
 export function move(id: string): Move {
   const mv = MOVES[id]
@@ -84,61 +143,8 @@ export function move(id: string): Move {
   return mv
 }
 
-// Movimientos por tipo en tres niveles de potencia (bajo, medio, alto)
-const TIERS: Record<PokeType, [string, string, string]> = {
-  normal: ['quick-attack', 'body-slam', 'take-down'],
-  fire: ['ember', 'flame-wheel', 'flamethrower'],
-  water: ['water-gun', 'water-pulse', 'surf'],
-  electric: ['thunder-shock', 'spark', 'thunderbolt'],
-  grass: ['vine-whip', 'razor-leaf', 'energy-ball'],
-  ice: ['powder-snow', 'icy-wind', 'ice-beam'],
-  fighting: ['karate-chop', 'low-sweep', 'brick-break'],
-  poison: ['acid', 'sludge', 'sludge-bomb'],
-  ground: ['mud-slap', 'mud-shot', 'earthquake'],
-  flying: ['gust', 'wing-attack', 'drill-peck'],
-  psychic: ['confusion', 'psybeam', 'psychic'],
-  bug: ['fury-cutter', 'bug-bite', 'x-scissor'],
-  rock: ['rock-throw', 'rock-slide', 'stone-edge'],
-  ghost: ['lick', 'hex', 'shadow-ball'],
-  dragon: ['twister', 'dragon-breath', 'dragon-claw'],
-  dark: ['bite', 'bite', 'crunch'],
-  steel: ['metal-claw', 'metal-claw', 'iron-head'],
-  fairy: ['fairy-wind', 'draining-kiss', 'dazzling-gleam'],
-}
-
-export interface LearnEntry {
-  level: number
-  moveId: string
-}
-
-/** Aprendizaje generado a partir de los tipos de la especie (determinista). */
-export function learnset(speciesId: number): LearnEntry[] {
-  const [primary, secondary] = species(speciesId).types
-  const entries: LearnEntry[] = [
-    { level: 1, moveId: speciesId % 2 === 0 ? 'scratch' : 'tackle' },
-    { level: 4, moveId: TIERS[primary][0] },
-    { level: 9, moveId: secondary ? TIERS[secondary][0] : 'quick-attack' },
-    { level: 14, moveId: TIERS[primary][1] },
-    { level: 20, moveId: secondary ? TIERS[secondary][1] : 'body-slam' },
-    { level: 28, moveId: TIERS[primary][2] },
-    { level: 36, moveId: secondary ? TIERS[secondary][2] : 'take-down' },
-  ]
-  const seen = new Set<string>()
-  return entries.filter((e) => !seen.has(e.moveId) && seen.add(e.moveId))
-}
-
-export function knownMoves(speciesId: number, level: number): string[] {
-  return learnset(speciesId)
-    .filter((e) => e.level <= level)
-    .map((e) => e.moveId)
-}
-
-/** Los 4 últimos movimientos aprendidos: el repertorio de un Pokémon salvaje. */
-export function wildMoves(speciesId: number, level: number): string[] {
-  return knownMoves(speciesId, level).slice(-4)
-}
-
-/** El de más potencia; en empate, el último de la lista (el aprendido más tarde, que suele ser de su tipo) */
-export function strongestMove(ids: string[]): string {
-  return ids.reduce((best, id) => (move(id).power >= move(best).power ? id : best))
+/** El único ataque de una especie: el de su primer tipo y su rareza. No se elige ni cambia con el nivel. */
+export function signatureMove(speciesId: number): Move {
+  const sp = species(speciesId)
+  return BY_TYPE[sp.types[0]][rarityOf(sp)]
 }

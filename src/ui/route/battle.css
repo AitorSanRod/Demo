@@ -1,0 +1,146 @@
+/* Combate en la ruta: rival, barras de vida, animaciones de ambos y efectos de golpe */
+
+/* En combate se aparta a la izquierda para dejar sitio al rival; al acabar vuelve a su sitio */
+.scene .scene-walker.battling {
+  left: 26%;
+}
+/* Capa del combate sobre la escena; los Pokémon se colocan a la altura del suelo (--ground) */
+.route-battle {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.route-fighter {
+  position: absolute;
+  bottom: var(--ground);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* Mismo `left` que .scene-walker.battling para que la barra quede sobre el Pokémon del jugador */
+.route-fighter.player {
+  left: 26%;
+  height: 200px;
+}
+/* La entrada va en el contenedor; los ataques, en .route-enemy, así no se pisan las animaciones */
+.route-fighter.enemy {
+  left: 74%;
+  animation: enemy-enter 0.5s ease-out;
+}
+.route-hp {
+  width: 110px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fbfbf2ee;
+  color: #222;
+  box-shadow: 0 2px 0 #0003;
+  white-space: nowrap;
+  animation: fade-in 0.3s ease-out;
+}
+.route-enemy .sprite {
+  display: flex;
+}
+/* Animaciones de los dos Pokémon (el del jugador es .scene-walker) */
+.scene .scene-walker.attacking.player .sprite {
+  animation: lunge-player 0.35s ease;
+}
+.route-enemy.attacking.enemy {
+  animation: lunge-enemy 0.35s ease;
+}
+.scene .scene-walker.hit .sprite,
+.route-enemy.hit {
+  animation: shake 0.4s ease;
+}
+.route-enemy.fainted {
+  animation: faint 0.6s ease forwards;
+}
+/* Nuestro Pokémon no desaparece al caer: se queda tumbado y en silueta (ver .run.defeated) */
+.scene .scene-walker.fainted .sprite {
+  animation: player-faint 0.6s ease forwards;
+}
+.route-enemy.fleeing {
+  animation: flee 0.6s ease-in forwards;
+}
+/* Daño, fallos y premio flotando sobre el Pokémon */
+.battle-pop {
+  position: absolute;
+  top: 70px;
+  z-index: 1;
+  left: 50%;
+  translate: -50% 0;
+  font-weight: 900;
+  font-size: 18px;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #000a,
+    0 0 4px #000a;
+  animation: pop-up 0.7s ease-out forwards;
+}
+.battle-pop.reward {
+  color: var(--yellow);
+  animation-duration: 1.2s;
+}
+/* El rival entra desde la derecha; usa `translate` para no pisar el `transform` que lo centra */
+@keyframes enemy-enter {
+  from {
+    translate: 160px 0;
+    opacity: 0;
+  }
+}
+@keyframes lunge-player {
+  50% {
+    transform: scaleX(-1) translateX(-24px);
+  }
+}
+@keyframes lunge-enemy {
+  50% {
+    transform: translateX(-24px);
+  }
+}
+@keyframes shake {
+  20%,
+  60% {
+    translate: -6px 0;
+    opacity: 0.4;
+  }
+  40%,
+  80% {
+    translate: 6px 0;
+    opacity: 1;
+  }
+}
+@keyframes player-faint {
+  to {
+    translate: 0 10px;
+    rotate: 12deg;
+  }
+}
+@keyframes faint {
+  to {
+    translate: 0 40px;
+    opacity: 0;
+  }
+}
+@keyframes flee {
+  to {
+    translate: 200px 0;
+    opacity: 0;
+  }
+}
+@keyframes pop-up {
+  from {
+    transform: translateY(10px) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(0) scale(1.1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-36px);
+    opacity: 0;
+  }
+}

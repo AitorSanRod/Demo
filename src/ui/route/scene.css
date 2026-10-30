@@ -1,0 +1,81 @@
+/* Escena de caminar (parallax) y el Pokémon que camina */
+
+/* Escena de caminar (parallax estilo intro GBA) */
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: pointer;
+}
+.scene-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-repeat: repeat-x;
+  animation: scene-scroll linear infinite;
+  pointer-events: none;
+}
+.scene.paused .scene-layer {
+  animation-play-state: paused;
+}
+.scene-walker {
+  position: absolute;
+  left: 40%;
+  bottom: var(--ground);
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+  transition: left 0.5s ease;
+}
+.scene-walker .sprite {
+  display: flex;
+  transform: scaleX(-1);
+  animation: walk-hop 0.42s ease-in-out infinite;
+  filter: drop-shadow(0 2px 0 #0003);
+}
+.scene.surf .scene-walker .sprite {
+  animation: surf-bob 1.6s ease-in-out infinite;
+}
+.scene.paused .scene-walker .sprite {
+  animation: none;
+}
+.scene-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 64px;
+  height: 10px;
+  transform: translateX(-50%);
+  background: #0000002e;
+  border-radius: 50%;
+}
+.scene.surf .scene-shadow {
+  background: #ffffff55;
+}
+@keyframes scene-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: calc(-1 * var(--tile));
+  }
+}
+@keyframes walk-hop {
+  0%,
+  100% {
+    transform: scaleX(-1) translateY(0);
+  }
+  50% {
+    transform: scaleX(-1) translateY(-6px);
+  }
+}
+@keyframes surf-bob {
+  0%,
+  100% {
+    transform: scaleX(-1) translateY(0) rotate(0);
+  }
+  50% {
+    transform: scaleX(-1) translateY(-5px) rotate(-3deg);
+  }
+}

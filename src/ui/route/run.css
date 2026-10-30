@@ -1,0 +1,80 @@
+/* Ruta en curso: panel, avisos y derrota */
+
+.run {
+  position: relative;
+  overflow: hidden;
+}
+.run-hud {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+  background: #f8f8f8e6;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+/* El panel de la ruta deja pasar los toques a la escena; el botón de abandonar sí los recibe */
+.hud-abandon {
+  pointer-events: auto;
+  min-height: 32px;
+  padding: 2px 10px;
+  color: var(--red);
+}
+.hud-close {
+  pointer-events: auto;
+  background: none;
+  border: none;
+  font-size: 16px;
+  padding: 0 2px 0 8px;
+  color: var(--muted);
+}
+.floater {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: 900;
+  color: var(--yellow);
+  text-shadow: 0 2px 2px #0008;
+  pointer-events: none;
+  animation: float-up 0.7s ease-out forwards;
+  z-index: 3;
+}
+.tap-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: #000a;
+  padding: 4px 12px;
+  border-radius: 99px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+/* Derrota: la ruta se queda en gris y nuestro Pokémon en negro; solo el resumen de recompensas conserva el color.
+   El filtro va en la escena y el panel, no en .run, para no afectar al resumen (que es position: fixed). */
+.run .scene,
+.run .run-hud {
+  transition: filter 0.6s ease;
+}
+.run.defeated .scene,
+.run.defeated .run-hud {
+  filter: grayscale(1);
+}
+.run.defeated .scene-walker .sprite {
+  filter: brightness(0);
+}
+@keyframes float-up {
+  to {
+    transform: translate(-50%, -260%);
+    opacity: 0;
+  }
+}

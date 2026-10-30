@@ -1,0 +1,159 @@
+/* Rancho y ficha del Pokémon */
+
+/* El rancho es solo la imagen a pantalla completa, sin scroll; la ficha sube encima en .ranch-sheet */
+.ranch {
+  position: relative;
+  overflow: hidden;
+}
+.ranch-field {
+  position: absolute;
+  inset: 0;
+  background: url('../../assets/ranch.jpg') center / cover;
+  image-rendering: pixelated;
+}
+.ranch-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  background: #0006;
+  animation: fade-in 0.2s ease-out;
+}
+.ranch-sheet {
+  width: 100%;
+  max-height: 85%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 12px calc(12px + var(--safe-bottom));
+  border-radius: 18px 18px 0 0;
+  background: var(--bg);
+  box-shadow: 0 -6px 20px #0004;
+  animation: sheet-up 0.25s ease-out;
+}
+.ranch-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+.ranch-mon {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: none;
+  background: none;
+  animation: wander var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+/* Solo el activo lleva sombra en el suelo; no salta con el sprite */
+.ranch-mon.active {
+  background: radial-gradient(ellipse 40% 12% at 50% 88%, #0003 99%, transparent);
+}
+.ranch-mon.selected .ranch-hop {
+  filter: drop-shadow(0 0 3px var(--accent)) drop-shadow(0 0 1px var(--accent));
+}
+.ranch-mon.fainted,
+.ranch-mon.fainted * {
+  animation-play-state: paused;
+}
+.ranch-mon.fainted {
+  filter: grayscale(1) opacity(0.7);
+}
+/* Los sprites miran a la izquierda: se voltean mientras caminan hacia la derecha */
+.ranch-face {
+  display: block;
+  animation: face calc(var(--dur) * 2) steps(1) var(--delay) infinite;
+}
+/* Mismo ritmo que `wander`: salta solo en los tramos en que avanza */
+.ranch-hop {
+  position: relative;
+  display: block;
+  animation: hop var(--dur) var(--delay) infinite alternate;
+}
+.ranch-badge {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
+.idle-bounce {
+  animation: idle 2.4s ease-in-out infinite;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 12px;
+  color: var(--muted);
+}
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.action-grid .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+/* Avanza a trompicones: tres tramos con pausas entre ellos */
+@keyframes wander {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+  35%,
+  50% {
+    transform: translateX(calc(var(--dx) * 0.4));
+  }
+  70%,
+  80% {
+    transform: translateX(calc(var(--dx) * 0.75));
+  }
+  100% {
+    transform: translateX(var(--dx));
+  }
+}
+@keyframes hop {
+  0%,
+  15%,
+  25%,
+  35%,
+  50%,
+  60%,
+  70%,
+  80%,
+  90%,
+  100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  20%,
+  30%,
+  55%,
+  65%,
+  85%,
+  95% {
+    transform: translateY(-7px);
+    animation-timing-function: ease-in;
+  }
+}
+@keyframes face {
+  0% {
+    transform: scaleX(-1);
+  }
+  50%,
+  100% {
+    transform: scaleX(1);
+  }
+}

@@ -1,0 +1,96 @@
+import { describe, expect, it } from 'vitest'
+import { route } from '../../data/maps'
+import { activeMon, initialState } from '../core/state'
+import { chooseStarter } from '../core/test-utils'
+import { seqRng } from '../core/test-utils'
+import { runBlocker } from '../run/run'
+import {
+  advanceExpeditions,
+  collectExpedition,
+  expeditionBattles,
+  expeditionBlocker,
+  expeditionWinRate,
+  isExpeditionDone,
+  sendExpedition,
+} from './expedition'
+import { createMon } from './mons'
+import { buyUpgrade } from './upgrades'
+
+function stateOnExpedition(durationMin = 60) {
+  const s = initialState()
+  chooseStarter(s, 1)
+  const mon = activeMon(s)!
+  sendExpedition(s, mon.uid, 'pueblo-paleta', durationMin)
+  return { s, mon }
+}
+
+describe('expediciones', () => {
+  it('no se puede salir de ruta con el Pokémon que está de expedición', () => {
+    const { s } = stateOnExpedition()
+    expect(runBlocker(s)).toMatch(/expedición/)
+  })
+
+  it('solo acepta las duraciones previstas', () => {
+    const { s } = stateOnExpedition(7)
+    expect(s.expeditions).toHaveLength(0)
+  })
+
+  it('no se puede recoger antes de tiempo', () => {
+    const { s, mon } = stateOnExpedition(60)
+    advanceExpeditions(s, 30)
+    expect(isExpeditionDone(s.expeditions[0])).toBe(false)
+    expect(collectExpedition(s, mon.uid)).toBeNull()
+  })
+
+  it('al recogerla entrega el premio de los combates ganados y el Pokémon vuelve', () => {
+    const { s, mon } = stateOnExpedition(60)
+    mon.level = 50
+    advanceExpeditions(s, 60)
+    const money = s.money
+    const result = collectExpedition(s, mon.uid, seqRng(0.5))!
+    expect(result.battles).toBe(expeditionBattles(60))
+    expect(result.wins).toBe(result.battles)
+    expect(s.money).toBe(money + result.money)
+    expect(result.exp).toBe(route('pueblo-paleta').reward.exp)
+    expect(s.expeditions).toHaveLength(0)
+  })
+
+  it('los salvajes derrotados pueden soltar piezas, que se suman a la colección', () => {
+    const { s, mon } = stateOnExpedition(60)
+    advanceExpeditions(s, 60)
+    // Con rng muy bajo se gana cada combate y cada salvaje suelta pieza
+    const result = collectExpedition(s, mon.uid, () => 0.001)!
+    expect(result.pieces).toHaveLength(result.battles)
+    const id = result.pieces[0]
+    expect(s.pieces[id]).toBe(result.pieces.filter((p) => p === id).length)
+  })
+
+  it('un Pokémon débil para la ruta tiene menos probabilidad de ganar', () => {
+    const { mon } = stateOnExpedition()
+    const r = route('ruta-marina')
+    mon.level = 5
+    const weak = expeditionWinRate(mon, r)
+    mon.level = 20
+    expect(weak).toBeLessThan(expeditionWinRate(mon, r))
+  })
+
+
+  it('sin mejoras solo cabe un Pokémon de expedición', () => {
+    const { s } = stateOnExpedition()
+    const second = createMon(16, 5)
+    s.owned.push(second)
+    expect(expeditionBlocker(s, second.uid)).toMatch(/huecos/)
+    sendExpedition(s, second.uid, 'pueblo-paleta', 60)
+    expect(s.expeditions).toHaveLength(1)
+  })
+
+  it('la mejora de espacio permite uno más', () => {
+    const { s } = stateOnExpedition()
+    const second = createMon(16, 5)
+    s.owned.push(second)
+    s.money = 500
+    buyUpgrade(s, 'expeditionSlots')
+    sendExpedition(s, second.uid, 'pueblo-paleta', 60)
+    expect(s.expeditions).toHaveLength(2)
+  })
+})

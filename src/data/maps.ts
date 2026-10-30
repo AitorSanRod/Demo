@@ -7,9 +7,9 @@ export interface Encounter {
 }
 
 // De momento solo hay combates salvajes. Tipos previstos: 'trainer' | 'chest' | 'rest' | 'boss' | 'special'
-export type NodeKind = 'start' | 'wild'
+type NodeKind = 'start' | 'wild'
 
-export interface RouteEdge {
+interface RouteEdge {
   to: string
   steps: number
 }
@@ -28,7 +28,7 @@ export interface RouteNode {
   encounters?: Encounter[]
 }
 
-/** Fondo de la escena de caminar (ver src/ui/scenery.ts) */
+/** Fondo de la escena de caminar (ver src/ui/route/scenery/) */
 export type Biome = 'meadow' | 'forest' | 'cave' | 'sea'
 
 export interface Route {
@@ -48,7 +48,7 @@ export interface Route {
   unlocks?: string
 }
 
-export interface GameMap {
+interface GameMap {
   id: string
   name: string
   routes: Route[]

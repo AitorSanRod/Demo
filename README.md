@@ -1,52 +1,69 @@
-# Pokérancho (demo de concepto)
+# Pokérancho
 
-Juego idle tipo digivice: tu Pokémon recorre rutas solo, tú eliges camino y movimiento en cada nodo y puedes
-acelerarlo tocando la pantalla. Si se debilita vuelve al Pokérancho (curar, entrenar, gacha, cambiar de Pokémon).
+Juego idle para móvil: tu Pokémon recorre las rutas y combate solo; tú eliges el camino antes de salir y, entre
+ruta y ruta, cuidas de tu equipo en el rancho, mandas al resto de expedición y consigues Pokémon nuevos juntando
+piezas del gacha.
 
-PWA hecha con Vite + React + TypeScript, pensada para móvil en vertical.
+PWA con Vite + React + TypeScript, pensada para móvil en vertical. No tiene servidor: la partida se guarda en el
+navegador (`localStorage`).
 
 ## Arrancar
 
+Requiere Node `^20.19 || >=22.12` (ver `.nvmrc`).
+
 ```bash
 npm install
-npm run dev        # http://localhost:5173 (también expuesto en la red local para probar en el móvil)
+npm run dev        # http://localhost:5173 (también en la red local para probar en el móvil)
+npm run check      # typecheck + lint + tests
 npm run build      # build de producción con service worker en dist/
 npm run preview    # sirve dist/ en http://localhost:4173
 ```
 
-Para **instalarla como app** hace falta HTTPS (o `localhost`): despliega `dist/` en cualquier hosting estático
-(Netlify, Vercel, GitHub Pages…) y en el móvil usa "Añadir a pantalla de inicio" / "Instalar app".
+En desarrollo aparece en la barra superior un botón **⏱ x1 / x10 / x60** para acelerar el tiempo.
+
+Para **instalarla como app** (y para las notificaciones) hace falta HTTPS o `localhost`: publícala (ver abajo) y en
+el móvil usa «Añadir a pantalla de inicio».
+
+## Publicar en GitHub Pages
+
+El workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) publica la app en cada push a `main`:
+pasa `npm run check`, compila con `BASE_PATH=/<repositorio>/` (la web vive en
+`https://<usuario>.github.io/<repositorio>/`) y sube `dist/` a Pages. Si el check falla, no se publica.
+
+Solo hay que activarlo una vez: **Settings → Pages → Build and deployment → Source: GitHub Actions**. También se
+puede lanzar a mano desde la pestaña **Actions** (*Run workflow*).
+
+Para probar en local el build tal y como queda en Pages:
+
+```bash
+BASE_PATH=/Demo/ npm run build && BASE_PATH=/Demo/ npm run preview   # http://localhost:4173/Demo/
+```
+
+En Git Bash (Windows) antepón `MSYS_NO_PATHCONV=1`, o convertirá `/Demo/` en una ruta de Windows.
 
 ## Cómo se juega
 
-- **Pasos**: cada tramo entre nodos tiene N pasos. El Pokémon anda solo a `12 + velocidad base × 0.15 + nivel × 0.25`
-  pasos/min; cada toque en el mapa suma 1 paso. El progreso continúa con la app cerrada (máx. 12 h).
-- **Nodos**: al llegar hay un combate salvaje automático. Después eliges el siguiente camino (si hay bifurcación)
-  y el movimiento que usarás en el próximo combate.
-- **Combate**: el jugador usa siempre el movimiento elegido; el enemigo elige entre sus (hasta) 4 con una IA que
-  puntúa daño esperado, eficacia de tipos y si puede rematar, con algo de azar.
-- **Recompensas**: EXP, pokécuartos (₽) y 15% de probabilidad de ticket por victoria; bonus al completar la ruta,
-  que además desbloquea la siguiente.
-- **Derrota**: la ruta termina y se pierde la mitad del dinero ganado en ella. Los PS no se recuperan durante la
-  ruta salvo un 10% tras cada victoria, así que hay que entrenar antes de las rutas difíciles.
-- **Escena**: mientras camina, el Pokémon avanza sobre un fondo pixel-art con parallax (`src/ui/scenery.ts`),
-  distinto según el bioma de la ruta (prado, bosque, cueva, mar).
-- **Rancho**: los Pokémon que no están en ruta recuperan un 10% de PS/min. Curar al instante, entrenar (EXP),
-  editar movimientos (máx. 4) y elegir Pokémon activo.
-- **Gacha**: 1 ticket = 1 tirada, rareza según stats base (68/24/7/1%). Duplicados dan ★ (+4% stats) y ₽.
-- **⏱ x1 / x10 / x60** en la barra superior acelera el tiempo para probar la demo.
+1. **Tutorial**: eliges a ciegas uno de los tres iniciales, combinas sus piezas en la Pokédex y sales a la
+   primera ruta.
+2. **Rutas**: el Pokémon activo camina solo de parada en parada y combate en cada una con su único ataque (el de su
+   tipo y su rareza). Al completarla gana EXP, ₽ y tickets; si cae, vuelve al rancho.
+3. **Rancho**: curar, entrenar con ₽ y elegir compañero de viaje.
+4. **Expediciones**: el resto del equipo hace rutas por tiempo y vuelve con premio, sin riesgo.
+5. **Gacha y Pokédex**: cada tirada da 5 piezas; con 5 iguales se desbloquea el Pokémon o gana una ★. Las piezas
+   que sobran se trituran en trozos de MissingNo para comprar las del Pokémon que quieras.
 
-## Estructura
+Las reglas y todos los números de balance están en [docs/diseno.md](docs/diseno.md).
 
-```
-src/data/      datos estáticos: especies (PokeAPI), tipos, movimientos, mapas y rutas
-src/game/      lógica pura: estado, stats, combate + IA, motor (tiempo, runs, rancho), gacha, store
-src/ui/        pantallas React
-scripts/       fetch-pokemon.mjs (regenera src/data/pokemon.json) y make-icons.mjs (iconos PWA)
-```
+## Documentación
 
-Los nodos ya tienen `kind` para añadir entrenadores, cofres, descansos, jefes y combates especiales
-(`src/data/maps.ts`); de momento solo hay `wild`.
+- [docs/diseno.md](docs/diseno.md): reglas del juego y dónde está cada número de balance.
+- [docs/arquitectura.md](docs/arquitectura.md): capas, estructura de carpetas, store, guardado y flujo de una ruta.
+- [docs/convenciones.md](docs/convenciones.md): estilo de código, tests y definición de terminado.
 
-> Los datos y sprites de Pokémon son propiedad de Nintendo / Game Freak / The Pokémon Company. Esta demo es solo
-> para uso personal y no debe publicarse ni monetizarse con ellos.
+## Scripts
+
+- `scripts/fetch-pokemon.mjs`: regenera `src/data/pokemon.json` desde PokeAPI.
+- `scripts/make-icons.mjs`: genera los iconos de la PWA.
+
+> Los datos y sprites de Pokémon son propiedad de Nintendo / Game Freak / The Pokémon Company. Proyecto solo para
+> uso personal: no publicar ni monetizar.

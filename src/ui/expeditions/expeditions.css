@@ -1,0 +1,40 @@
+/* Expediciones */
+
+.expedition-list {
+  gap: 10px;
+}
+.expedition-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.expedition-row .grow > * {
+  display: block;
+}
+.expedition-picker {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.expedition-pick {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+}
+.expedition-pick.selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+}
+.expedition-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

@@ -4,6 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // En GitHub Pages la web vive en /<repositorio>/: el workflow de despliegue pasa BASE_PATH. En local, la raíz.
+  base: process.env.BASE_PATH ?? '/',
   server: { host: true },
   plugins: [
     react(),
@@ -13,7 +15,7 @@ export default defineConfig({
       manifest: {
         name: 'Pokérancho',
         short_name: 'Pokérancho',
-        description: 'Demo de concepto: tu Pokémon explora rutas por su cuenta.',
+        description: 'Juego idle: tu Pokémon recorre rutas y combate solo mientras cuidas de tu rancho.',
         lang: 'es',
         display: 'standalone',
         orientation: 'portrait',

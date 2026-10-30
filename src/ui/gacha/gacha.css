@@ -1,0 +1,90 @@
+/* Gacha, trituradora y tienda de MissingNo */
+
+.gacha-machine {
+  align-items: center;
+  text-align: center;
+}
+.gacha-stage {
+  width: 100%;
+  min-height: 220px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--card-2);
+  padding: 10px;
+}
+/* La Pokéball en reposo es el botón de «Tirar x1» */
+.pokeball-button {
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+.pokeball-button .pokeball {
+  display: block;
+}
+.pokeball-button:not(:disabled):hover {
+  transform: scale(1.05);
+}
+.pokeball-button:not(:disabled):active {
+  transform: scale(0.94);
+}
+.pokeball-button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+.shard-balance {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.shard-icon {
+  font-size: 28px;
+}
+.shred-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  border-left: 4px solid var(--rarity);
+}
+.shred-row .grow > * {
+  display: block;
+}
+.search {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+}
+.shop-cell {
+  min-height: 0;
+}
+.shop-cell:disabled {
+  opacity: 0.5;
+}
+.shred-row.marked {
+  outline: 2px solid var(--accent);
+}
+.shred-marked {
+  color: var(--accent);
+  font-weight: 700;
+}
+/* Barra de confirmación de la trituradora: se queda pegada abajo mientras haya piezas marcadas */
+.shred-confirm {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 -6px 20px #0002;
+}
+.rarity-all {
+  border-left: 4px solid var(--rarity);
+}

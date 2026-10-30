@@ -29,14 +29,15 @@ se comporte distinto), primero implementa la regla con la skill `nueva-mecanica`
   `reward.firstClearTickets` (opcional) son tickets extra que solo se dan la primera vez que se completa.
 - Para fijar duración y dificultad, simula con el motor real (`advanceRun` en tiempo real a x1) con los tres
   iniciales y anota los resultados en `docs/diseno.md`.
-- `biome` debe existir en `Biome` y en `SCENES` de `src/ui/scenery.ts`. Un bioma nuevo obliga a añadir su
+- `biome` debe existir en `Biome` y en `SCENES` de `src/ui/route/scenery/index.ts` (cada bioma en su fichero). Un bioma nuevo obliga a añadir su
   escena allí.
 
 ### Movimiento (`data/moves.ts`)
-- Añádelo a `LIST` con el helper `m(id, nombre, tipo, potencia, precisión?)`. Solo hay movimientos de daño:
-  no hay categoría física/especial ni efectos de estado.
+- Hay exactamente uno por tipo y rareza en `BY_TYPE` (`m(id, nombre, tipo, potencia, precisión?)`); cada
+  especie usa el de su primer tipo y su rareza (`signatureMove`). Cambiar uno cambia el ataque de todas esas especies.
+- Solo hay movimientos de daño: no hay categoría física/especial ni efectos de estado.
+- La potencia debe crecer con la rareza dentro de cada tipo (lo comprueba `moves.test.ts`).
 - `id` en inglés kebab-case (como PokeAPI) y nombre oficial en español.
-- Si debe aprenderse, colócalo en `TIERS`. Si no, no lo aprenderá nadie.
 
 ### Especie
 - No edites `pokemon.json` a mano: cambia `TOTAL` en `scripts/fetch-pokemon.mjs` y regenera con

@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
-import { tick } from './game/engine'
-import { isExpeditionDone } from './game/expedition'
-import { combinableCount } from './game/pieces'
-import { act, useGame } from './game/store'
-import { DexScreen } from './ui/DexScreen'
-import { GachaScreen } from './ui/GachaScreen'
-import { useExpeditionNotifications } from './ui/notifications'
-import { RanchScreen } from './ui/RanchScreen'
-import { RouteScreen } from './ui/RouteScreen'
-import { StarterScreen } from './ui/StarterScreen'
-import { TutorialNavHint } from './ui/TutorialHint'
-import { UpgradeShop } from './ui/UpgradeShop'
+import { combinableCount } from './game/collection/pieces'
+import { act, useGame } from './game/core/store'
+import { tick } from './game/core/tick'
+import { isExpeditionDone } from './game/team/expedition'
+import { DexScreen } from './ui/dex/DexScreen'
+import { GachaScreen } from './ui/gacha/GachaScreen'
+import { RanchScreen } from './ui/ranch/RanchScreen'
+import { RouteScreen } from './ui/route/RouteScreen'
+import { useExpeditionNotifications } from './ui/settings/notifications'
+import { TopBar } from './ui/shared/TopBar'
+import { TutorialNavHint } from './ui/shared/TutorialHint'
+import { UpgradeShop } from './ui/shop/UpgradeShop'
+import { StarterScreen } from './ui/starter/StarterScreen'
 
 type Tab = 'route' | 'ranch' | 'shop' | 'gacha' | 'dex'
 
@@ -21,7 +22,6 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'gacha', icon: '🎰', label: 'Gacha' },
   { id: 'dex', icon: '📕', label: 'Pokédex' },
 ]
-const TIME_SCALES = [1, 10, 60]
 const TICK_MS = 250
 
 export default function App() {
@@ -35,11 +35,6 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
   useExpeditionNotifications(game)
-
-  const cycleTimeScale = () =>
-    act((s) => {
-      s.timeScale = TIME_SCALES[(TIME_SCALES.indexOf(s.timeScale) + 1) % TIME_SCALES.length]
-    })
 
   const badges: Record<Tab, boolean> = {
     route: (!!game.run && game.run.phase !== 'walking') || game.expeditions.some(isExpeditionDone),
@@ -59,14 +54,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="top-bar">
-        <span className="logo">Pokérancho</span>
-        <span className="currency">₽ {game.money}</span>
-        <span className="currency">🎟 {game.tickets}</span>
-        <button className="time-chip" onClick={cycleTimeScale} title="Velocidad del tiempo (demo)">
-          ⏱ x{game.timeScale}
-        </button>
-      </header>
+      <TopBar game={game} />
 
       <main className="content">
         {tab === 'route' && <RouteScreen game={game} />}

@@ -14,7 +14,7 @@ automático. Entre rutas gestiona su equipo en el rancho y manda al resto de Pok
    después a la primera ruta; al pulsar «¡En marcha!» el tutorial termina. Pasos en `state.tutorial`, ver
    `tutorial.ts`.
 1. **Rancho**: pantalla completa, sin scroll, con todo el equipo paseando por el prado. Tocar un Pokémon sube su
-   ficha desde abajo (elegir movimiento, curar, entrenar o hacerlo activo); se cierra con «Aceptar» o tocando fuera.
+   ficha desde abajo (ver su ataque, curar, entrenar o hacerlo activo); se cierra con «Aceptar» o tocando fuera.
 2. **Planificar**: elegir ruta y, si tiene bifurcaciones, el camino completo. Después, «¡En marcha!».
 3. **Ruta automática**: el Pokémon activo camina de parada en parada. En cada una el rival aparece en la misma
    escena, el paisaje y los pasos se paran y combaten ahí, con sus barras de vida y el daño flotando. Tocar la
@@ -44,12 +44,12 @@ At. Esp. La defensa es la media de ambas defensas.
 | Sistema | Regla | Constantes |
 |---|---|---|
 | Pasos | `12 + vel. base × 0.15 + nivel × 0.25 + estrellas` pasos/min; cada toque suma 1 | `stats.ts › stepsPerMinute` |
-| Offline | El progreso sigue con la app cerrada, máx. 12 h | `engine.ts › MAX_OFFLINE_MS` |
+| Offline | El progreso sigue con la app cerrada, máx. 12 h | `core/tick.ts › MAX_OFFLINE_MS` |
 | Stats | Fórmula estilo Gen III sin IV/EV; +4% por estrella (máx. 5) | `stats.ts › STAR_BONUS, MAX_STARS` |
 | EXP | Curva cúbica `(n+1)³ − n³`. Solo se gana al completar una ruta (`reward.exp`), al recoger una expedición (la misma EXP de su ruta) o entrenando con ₽. Los combates no dan EXP | `stats.ts`, `maps.ts › reward.exp` |
-| Movimiento | El jugador lleva uno, elegido en el rancho. Si aprende otro más potente, lo equipa solo | `ranch.ts › setMove`, `stats.ts › gainExp` |
+| Ataque | Cada Pokémon (también los salvajes) tiene uno solo, fijo: el de su primer tipo y el escalón de su rareza (común ≈40, raro ≈85, épico ≈105, legendario 120 de potencia). No se elige ni cambia con el nivel | `moves.ts › signatureMove` |
 | Combate | Automático por turnos; actúa primero el más rápido. Daño con Ataque contra Defensa, STAB ×1.5 y tabla de tipos. Máx. 25 turnos (luego el salvaje huye) | `battle.ts › MAX_TURNS, STAB` |
-| Salvajes | Stats ×0.8; usan al azar uno de sus 4 últimos movimientos | `runBattle.ts › WILD_STAT_MULT`, `moves.ts › wildMoves` |
+| Salvajes | Stats ×0.8 | `runBattle.ts › WILD_STAT_MULT` |
 | Recompensas por combate | `8 + nivel × 4 + 0..5` ₽, ticket según la rareza del salvaje (10 / 20 / 35 / 60%) y 1 pieza de su especie (5 / 4 / 3 / 2,5%); cura 25% al ganar. Igual en expediciones | `rewards.ts › TICKET_DROP_CHANCE, PIECE_DROP_CHANCE`, `runBattle.ts › POST_WIN_HEAL` |
 | Combate en ruta | 0,7 s por evento + 1,2 s final, en tiempo real (no le afecta `timeScale`); sin pasos mientras dura | `runBattle.ts › BATTLE_EVENT_MS, BATTLE_END_MS` |
 | Derrota | Fin de la ruta y pérdida del 50% del dinero ganado en ella | `runBattle.ts › DEFEAT_MONEY_LOSS` |
@@ -59,8 +59,7 @@ At. Esp. La defensa es la media de ambas defensas.
 | Trituradora | En el gacha: cada pieza triturada da 1 / 1 / 2 / 3 trozos de MissingNo (común / raro / épico / legendario). Se marcan una a una o «Todos los …» por rareza y se confirma. Los favoritos de la Pokédex no aparecen ni se pueden triturar | `shredder.ts › SHARDS_PER_PIECE`, `dex.ts › toggleFavorite` |
 | MissingNo | En el gacha: 1 pieza del Pokémon que elijas por 10 / 15 / 20 / 25 trozos (común / raro / épico / legendario) | `shredder.ts › PIECE_SHARD_PRICE` |
 | Gacha | 250 ₽/ticket; 5 piezas por tirada, cada una con rareza 68/24/7/1% (según el total de las 4 stats base) | `gacha.ts › PIECES_PER_PULL`, `species.ts › rarityOf` |
-| Piezas | 5 iguales desbloquean el Pokémon (llega al 70% del nivel máximo del equipo, mín. 5) o dan +1 ★; con 5 ★, se cambian por ₽ según rareza | `pieces.ts › PIECES_PER_COMBINE`, `RARITY_INFO.dupeMoney` |
-| Aprendizaje | Generado por tipo (3 niveles de potencia) | `moves.ts › learnset` |
+| Piezas | 5 iguales desbloquean el Pokémon (llega al 70% del nivel máximo del equipo, mín. 5) o dan +1 ★; con 5 ★, se cambian por ₽ según rareza | `pieces.ts › PIECES_PER_COMBINE`, `RARITY_INFO.surplusMoney` |
 
 Dificultad medida con 300 simulaciones por caso (Bulbasaur / Charmander / Squirtle), en tiempo real a x1:
 
@@ -92,5 +91,5 @@ Cuando una idea se implemente, muévela a la sección de sistemas.
 
 ## Aviso legal
 
-Los datos y sprites de Pokémon son propiedad de Nintendo / Game Freak / The Pokémon Company. Demo solo para uso
+Los datos y sprites de Pokémon son propiedad de Nintendo / Game Freak / The Pokémon Company. Proyecto solo para uso
 personal: no publicar ni monetizar.

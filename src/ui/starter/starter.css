@@ -1,0 +1,69 @@
+/* Elección del inicial */
+
+/* Elección del inicial: a oscuras, solo las tres Pokéball en triángulo (una arriba, dos abajo) */
+.starter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: calc(var(--safe-top) + 24px) 16px calc(var(--safe-bottom) + 24px);
+  background: radial-gradient(circle at 50% 45%, #2b2622 0, #0d0b09 70%);
+}
+.starter-triangle {
+  position: relative;
+  width: min(320px, 100%);
+  aspect-ratio: 1 / 0.9;
+}
+.starter-slot {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+}
+.starter-slot.slot-0 {
+  left: 50%;
+  top: 22%;
+}
+.starter-slot.slot-1 {
+  left: 20%;
+  top: 78%;
+}
+.starter-slot.slot-2 {
+  left: 80%;
+  top: 78%;
+}
+.starter-slot:active {
+  scale: 0.94;
+}
+/* Foco de luz bajo la silueta: sin él, la silueta negra no se vería sobre el fondo oscuro */
+.starter-slot.revealed {
+  background: radial-gradient(circle, #fff8e0 0 48%, #fff8e055 62%, transparent 72%);
+  animation: pop 0.35s ease-out;
+}
+/* Aquí la silueta es negra del todo (la general es semitransparente y dejaría pasar la luz del foco) */
+.starter-slot .sprite.silhouette {
+  filter: brightness(0);
+}
+.starter-hint {
+  color: #fff9;
+  text-align: center;
+}
+.starter-ball {
+  width: 84px;
+  height: 84px;
+  box-shadow: 0 0 24px #fff3;
+  animation: idle 2.4s ease-in-out infinite;
+}
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
