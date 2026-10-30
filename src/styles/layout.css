@@ -1,7 +1,10 @@
 /* Estructura de la app: barra superior, contenido, menú inferior y pantallas con scroll */
 
+/* Fijada a los cuatro bordes en lugar de height: 100dvh: en la PWA instalada en iOS (pantalla completa) 100dvh
+   se queda corto y asomaba una franja bajo el menú. Así llega hasta el borde inferior real en cualquier modo. */
 .app {
-  height: 100dvh;
+  position: fixed;
+  inset: 0;
   max-width: 480px;
   margin: 0 auto;
   display: flex;
