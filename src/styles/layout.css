@@ -48,19 +48,19 @@
   min-height: 0;
   position: relative;
 }
-/* El hueco de la barra del sistema (--safe-bottom) ya deja aire debajo: los botones aprovechan parte de él en lugar
-   de sumarle su propio relleno, para que no parezca que el menú tiene una franja vacía debajo */
+/* Bajo las etiquetas quedan 10 px sin barra del sistema y ~20 px con ella (iPhone: --safe-bottom = 34 px): los
+   botones se meten en parte del hueco de la barra de inicio sin llegar a tocarla, para que no quede una franja vacía */
 .bottom-nav {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   background: var(--bg-2);
   border-top: 1px solid var(--line);
-  padding-bottom: max(calc(var(--safe-bottom) - 14px), 0px);
+  padding-bottom: max(calc(var(--safe-bottom) - 20px), 4px);
 }
 .bottom-nav button {
   background: none;
   border: none;
-  padding: 8px 0 10px;
+  padding: 8px 0 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
