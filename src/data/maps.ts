@@ -107,7 +107,7 @@ export const KANTO: GameMap = {
       biome: 'meadow',
       levels: [5, 8],
       encounters: enc({ Pidgey: 30, Rattata: 30, Caterpie: 13, Weedle: 13, 'Nidoran♀': 7, 'Nidoran♂': 7 }),
-      reward: { tickets: 3, money: 100, exp: 150 },
+      reward: { tickets: 2, money: 200, exp: 250 },
       // unlocks: 'bosque-verde', (reactivar junto con Bosque Verde)
       nodes: chain(
         { id: 's', name: 'Salida del pueblo', kind: 'start', steps: 0 },

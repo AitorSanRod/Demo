@@ -9,6 +9,11 @@
   background: var(--bg);
   box-shadow: 0 0 40px #0006;
 }
+@media (max-width: 480px) {
+  .app {
+    box-shadow: none;
+  }
+}
 .top-bar {
   display: flex;
   align-items: center;
@@ -43,12 +48,14 @@
   min-height: 0;
   position: relative;
 }
+/* El hueco de la barra del sistema (--safe-bottom) ya deja aire debajo: los botones aprovechan parte de él en lugar
+   de sumarle su propio relleno, para que no parezca que el menú tiene una franja vacía debajo */
 .bottom-nav {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   background: var(--bg-2);
   border-top: 1px solid var(--line);
-  padding-bottom: var(--safe-bottom);
+  padding-bottom: max(calc(var(--safe-bottom) - 14px), 0px);
 }
 .bottom-nav button {
   background: none;

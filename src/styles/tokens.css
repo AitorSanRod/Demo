@@ -41,6 +41,15 @@ body,
   background: var(--page);
   overscroll-behavior: none;
 }
+/* En el móvil la app ocupa todo el ancho: lo que asome por debajo (barra de gestos, diferencias entre el alto de la
+   ventana y 100dvh) debe ser del color del menú inferior, no el gris que enmarca la app en el ordenador */
+@media (max-width: 480px) {
+  html,
+  body,
+  #root {
+    background: var(--bg-2);
+  }
+}
 body {
   user-select: none;
   -webkit-user-select: none;
