@@ -1,6 +1,6 @@
 import { rarityOf, species, type Rarity } from '../../data/species'
 import type { GameState } from '../core/state'
-import { isFavorite } from './dex'
+import { isFavorite, isSeen, markSeen } from './dex'
 import { addPieces, piecesOf } from './pieces'
 
 /** Trozos de MissingNo que da cada pieza triturada, según la rareza del Pokémon */
@@ -8,6 +8,11 @@ export const SHARDS_PER_PIECE: Record<Rarity, number> = { common: 1, rare: 1, ep
 
 /** Trozos de MissingNo que cuesta comprar 1 pieza del Pokémon elegido, según su rareza */
 export const PIECE_SHARD_PRICE: Record<Rarity, number> = { common: 10, rare: 15, epic: 20, legendary: 25 }
+
+/** Trozos de MissingNo que cuesta descubrir (marcar como vista) una especie, según su rareza */
+export const DISCOVER_SHARD_PRICE: Record<Rarity, number> = { common: 10, rare: 20, epic: 30, legendary: 50 }
+
+export const discoverPrice = (speciesId: number): number => DISCOVER_SHARD_PRICE[rarityOf(species(speciesId))]
 
 export const pieceShardPrice = (speciesId: number): number => PIECE_SHARD_PRICE[rarityOf(species(speciesId))]
 
@@ -48,6 +53,21 @@ export const selectionShards = (selection: ShredSelection): number =>
 /** Tritura todas las piezas de la selección de una vez y devuelve los trozos obtenidos */
 export function shredSelection(s: GameState, selection: ShredSelection): number {
   return Object.entries(selection).reduce((sum, [id, count]) => sum + shred(s, Number(id), count), 0)
+}
+
+/** Especies que se pueden descubrir con trozos: las no vistas de las que se tienen piezas, ordenadas por número */
+export const discoverableSpecies = (s: GameState): number[] =>
+  Object.keys(s.pieces)
+    .map(Number)
+    .filter((id) => piecesOf(s, id) > 0 && !isSeen(s, id))
+    .sort((a, b) => a - b)
+
+export function discoverSpecies(s: GameState, speciesId: number): boolean {
+  const price = discoverPrice(speciesId)
+  if (!discoverableSpecies(s).includes(speciesId) || s.missingnoShards < price) return false
+  s.missingnoShards -= price
+  markSeen(s, speciesId)
+  return true
 }
 
 export function buyPiece(s: GameState, speciesId: number): boolean {

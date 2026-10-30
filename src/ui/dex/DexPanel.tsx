@@ -67,7 +67,7 @@ export function DexPanel({ game, speciesId, onClose }: { game: GameState; specie
         </span>
       </div>
       <Bar value={pieces} max={PIECES_PER_COMBINE} kind="exp" />
-      {!seen && <p className="notice small">Descúbrelo en una ruta o expedición para combinarlo.</p>}
+      {!seen && <p className="notice small">Descúbrelo en una ruta, en una expedición o con trozos de MissingNo para combinarlo.</p>}
       {guided && <TutorialHint>Junta las {PIECES_PER_COMBINE} piezas para conseguir a {sp.name}.</TutorialHint>}
       <button
         className={`btn primary wide ${guided ? 'tutorial-target' : ''}`}

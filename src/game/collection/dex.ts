@@ -6,7 +6,7 @@ const UNKNOWN_NAME = '???'
 
 export const isSeen = (s: GameState, speciesId: number): boolean => s.seen.includes(speciesId)
 
-/** Solo se llama al ver la especie en una ruta o descubrirla en una expedición; las piezas no cuentan */
+/** Solo se llama al ver la especie en una ruta o descubrirla (en una expedición o con trozos); tener piezas no cuenta */
 export function markSeen(s: GameState, speciesId: number) {
   if (!isSeen(s, speciesId)) s.seen.push(speciesId)
 }

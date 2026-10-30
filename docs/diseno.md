@@ -26,10 +26,11 @@ automático. Entre rutas gestiona su equipo en el rancho y manda al resto de Pok
    Opcionalmente avisa con una notificación del sistema al volver (menú ⚙️ del rancho; solo con la app en
    segundo plano, no cerrada).
 6. **Gacha**: cada ticket abre una Pokéball (animación de captura; tocarla la abre antes) con 5 piezas.
-7. **Trituradora y MissingNo** (pestañas del gacha): las piezas que sobran se trituran en trozos de MissingNo,
-   que se cambian por piezas del Pokémon que se quiera.
+7. **Trituradora, MissingNo y Descubrir** (pestañas del gacha): las piezas que sobran se trituran en trozos de
+   MissingNo, que se cambian por piezas del Pokémon que se quiera o por descubrir una especie no vista de la que se
+   tengan piezas.
 8. **Pokédex**: combinar 5 piezas iguales para desbloquear el Pokémon o, si ya lo tienes, darle una ★. Solo se
-   puede combinar una especie vista: en un combate de ruta, descubierta en una expedición o elegida como inicial.
+   puede combinar una especie vista: en un combate de ruta, descubierta en una expedición o con trozos, o elegida como inicial.
    Las piezas de una especie no vista se guardan y se muestran en silueta, como ???, también en gacha, trituradora
    y MissingNo.
 9. **Evolución** (ficha del rancho): un Pokémon con 5 ★ que tenga evolución puede evolucionar. Se pierde y llega
@@ -62,8 +63,9 @@ At. Esp. La defensa es la media de ambas defensas.
 | Expediciones | 15 min, 1 h o 4 h; 8 combates/h; victoria con probabilidad `nivel / nivel medio de la ruta` (mín. 20%). Sin derrota. EXP, ₽, tickets y piezas ×1 / ×2 / ×4 según la duración. Cada combate puede descubrir una especie no vista: 15 / 10 / 7,5 / 5% (común / raro / épico / legendario). 1 Pokémon a la vez (+1 por mejora) | `expedition.ts › DURATION_REWARD_MULT, DISCOVERY_CHANCE, BASE_EXPEDITION_SLOTS` |
 | Rancho | Regenera 10% PS/min (no en ruta ni de expedición); curar `5 + nivel × 3` ₽; entrenar `20 + nivel × 8` ₽ (40% de un nivel) | `ranch.ts` |
 | Tienda | Pestaña Tienda del menú inferior. Espacio de expedición: +1 hueco, 1 nivel, 500 ₽ | `upgrades.ts › UPGRADES` |
-| Trituradora | En el gacha: cada pieza triturada da 1 / 1 / 2 / 3 trozos de MissingNo (común / raro / épico / legendario). Se marcan una a una o «Todos los …» por rareza y se confirma. Los favoritos de la Pokédex no aparecen ni se pueden triturar | `shredder.ts › SHARDS_PER_PIECE`, `dex.ts › toggleFavorite` |
+| Trituradora | En el gacha: cada pieza triturada da 1 / 1 / 2 / 3 trozos de MissingNo (común / raro / épico / legendario). Se marcan una a una o todas las de una rareza (botones de su color con el número de piezas) y se confirma. Los favoritos de la Pokédex no aparecen ni se pueden triturar | `shredder.ts › SHARDS_PER_PIECE`, `dex.ts › toggleFavorite` |
 | MissingNo | En el gacha: 1 pieza del Pokémon que elijas por 10 / 15 / 20 / 25 trozos (común / raro / épico / legendario) | `shredder.ts › PIECE_SHARD_PRICE` |
+| Descubrir | En el gacha: marca como vista una especie no vista de la que se tengan piezas, elegida por el jugador, por 10 / 20 / 30 / 50 trozos (común / raro / épico / legendario). Conserva las piezas | `shredder.ts › DISCOVER_SHARD_PRICE` |
 | Gacha | 250 ₽/ticket; 5 piezas por tirada, cada una con rareza 68/24/7/1% (según el total de las 4 stats base) | `gacha.ts › PIECES_PER_PULL`, `species.ts › rarityOf` |
 | Piezas | 5 iguales desbloquean el Pokémon (llega al 70% del nivel máximo del equipo, mín. 5) o dan +1 ★; con 5 ★, se cambian por ₽ según rareza | `pieces.ts › PIECES_PER_COMBINE`, `RARITY_INFO.surplusMoney` |
 | Evolución | Con 5 ★ (y en el rancho): el Pokémon se va y llega su evolución a Nv. 5 sin ★, o la que ya tenías gana +1 ★ (no se puede si ya tiene 5). Si era el activo, la evolución pasa a serlo. Solo evoluciones dentro de la 1ª gen. | `evolution.ts › EVOLUTION_STARS, EVOLVED_LEVEL`, `data/evolutions.ts` |

@@ -6,6 +6,9 @@ import { markSeen, toggleFavorite } from './dex'
 import { addPieces, piecesOf } from './pieces'
 import {
   buyPiece,
+  DISCOVER_SHARD_PRICE,
+  discoverableSpecies,
+  discoverSpecies,
   PIECE_SHARD_PRICE,
   pieceShardPrice,
   raritySelection,
@@ -83,6 +86,49 @@ describe('shredSelection', () => {
     expect(piecesOf(s, COMMON)).toBe(2)
     expect(piecesOf(s, LEGENDARY)).toBe(0)
     expect(s.missingnoShards).toBe(expected)
+  })
+})
+
+describe('discoverSpecies', () => {
+  it('solo ofrece especies no vistas con piezas', () => {
+    const s = initialState()
+    addPieces(s, LEGENDARY, 1)
+    addPieces(s, COMMON, 1)
+    addPieces(s, OTHER_COMMON, 1)
+    markSeen(s, OTHER_COMMON)
+    expect(discoverableSpecies(s)).toEqual([COMMON, LEGENDARY].sort((a, b) => a - b))
+    shred(s, COMMON, 1)
+    expect(discoverableSpecies(s)).toEqual([LEGENDARY])
+  })
+
+  it('cobra según la rareza, marca la especie como vista y conserva sus piezas', () => {
+    const s = initialState()
+    addPieces(s, LEGENDARY, 2)
+    s.missingnoShards = DISCOVER_SHARD_PRICE[Rarity.Legendary]
+    expect(discoverSpecies(s, LEGENDARY)).toBe(true)
+    expect(s.missingnoShards).toBe(0)
+    expect(s.seen).toContain(LEGENDARY)
+    expect(s.caught).not.toContain(LEGENDARY)
+    expect(piecesOf(s, LEGENDARY)).toBe(2)
+  })
+
+  it('no descubre sin trozos suficientes', () => {
+    const s = initialState()
+    addPieces(s, COMMON, 1)
+    s.missingnoShards = DISCOVER_SHARD_PRICE[Rarity.Common] - 1
+    expect(discoverSpecies(s, COMMON)).toBe(false)
+    expect(s.missingnoShards).toBe(DISCOVER_SHARD_PRICE[Rarity.Common] - 1)
+    expect(s.seen).not.toContain(COMMON)
+  })
+
+  it('no descubre sin piezas ni cobra dos veces la misma especie', () => {
+    const s = initialState()
+    s.missingnoShards = DISCOVER_SHARD_PRICE[Rarity.Common] * 2
+    expect(discoverSpecies(s, COMMON)).toBe(false)
+    addPieces(s, COMMON, 1)
+    expect(discoverSpecies(s, COMMON)).toBe(true)
+    expect(discoverSpecies(s, COMMON)).toBe(false)
+    expect(s.missingnoShards).toBe(DISCOVER_SHARD_PRICE[Rarity.Common])
   })
 })
 

@@ -109,7 +109,7 @@ const RARITY_PLURAL: Record<Rarity, string> = { common: 'comunes', rare: 'raros'
 /** Marca de una vez todas las piezas (no favoritas) de una rareza; sigue haciendo falta confirmar */
 function RarityButtons({ game, onSelect }: { game: GameState; onSelect: (rarity: Rarity) => void }) {
   return (
-    <div className="row gap">
+    <div className="rarity-buttons">
       {(Object.keys(RARITY_INFO) as Rarity[]).map((r) => {
         const pieces = Object.values(raritySelection(game, r)).reduce((a, b) => a + b, 0)
         return (
@@ -119,8 +119,9 @@ function RarityButtons({ game, onSelect }: { game: GameState; onSelect: (rarity:
             style={{ ['--rarity' as string]: RARITY_INFO[r].color }}
             disabled={pieces === 0}
             onClick={() => onSelect(r)}
+            aria-label={`Marcar todos los ${RARITY_PLURAL[r]} (${pieces})`}
           >
-            Todos los {RARITY_PLURAL[r]} ({pieces})
+            {pieces}
           </button>
         )
       })}

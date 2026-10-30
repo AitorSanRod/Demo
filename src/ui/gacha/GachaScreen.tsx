@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import type { GameState } from '../../game/core/state'
+import { DiscoverPanel } from './DiscoverPanel'
 import { GachaMachine } from './GachaMachine'
 import { MissingnoShop } from './MissingnoShop'
 import { Shredder } from './Shredder'
 import './gacha.css'
 
-type GachaTab = 'pull' | 'shredder' | 'shop'
+type GachaTab = 'pull' | 'shredder' | 'shop' | 'discover'
 
 const TABS: { id: GachaTab; label: string }[] = [
   { id: 'pull', label: '🎰 Tirar' },
   { id: 'shredder', label: '⚙️ Trituradora' },
   { id: 'shop', label: '👾 MissingNo' },
+  { id: 'discover', label: '🔍 Descubrir' },
 ]
 
 export function GachaScreen({ game }: { game: GameState }) {
@@ -28,6 +30,7 @@ export function GachaScreen({ game }: { game: GameState }) {
       {tab === 'pull' && <GachaMachine game={game} />}
       {tab === 'shredder' && <Shredder game={game} />}
       {tab === 'shop' && <MissingnoShop game={game} />}
+      {tab === 'discover' && <DiscoverPanel game={game} />}
     </div>
   )
 }

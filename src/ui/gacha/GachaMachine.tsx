@@ -69,7 +69,7 @@ export function GachaMachine({ game }: { game: GameState }) {
         ))}
         <p className="tiny muted">
           Cada tirada da {PIECES_PER_PULL} piezas. Junta {PIECES_PER_COMBINE} iguales y combínalas en la Pokédex
-          para desbloquear el Pokémon (antes tienes que verlo en una ruta o expedición); si ya lo tienes, sube una ★
+          para desbloquear el Pokémon (antes tienes que descubrirlo); si ya lo tienes, sube una ★
           (+4% a todas las stats, máx. 5).
         </p>
       </div>

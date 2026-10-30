@@ -49,7 +49,7 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
 | Piezas y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` |
-| Gacha, trituradora, MissingNo | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
+| Gacha, trituradora, MissingNo, descubrir con trozos | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
 | Rancho | `ui/ranch/RanchScreen.tsx` |
 | Pantalla de ruta: mapa / planificador / en curso / combate | `ui/route/RouteMap`, `RoutePlanner`, `RunView`, `RouteBattle` |
 | Escena de paseo y biomas / efectos de golpe | `ui/route/WalkScene.tsx`, `scenery/` / `HitEffect.tsx` |

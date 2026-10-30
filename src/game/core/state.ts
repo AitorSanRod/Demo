@@ -59,7 +59,7 @@ export interface GameState {
   tickets: number
   owned: OwnedMon[]
   activeUid: string | null
-  /** Especies vistas en una ruta o descubiertas en una expedición (más el inicial y las capturadas) */
+  /** Especies vistas en una ruta o descubiertas en una expedición o con trozos (más el inicial y las capturadas) */
   seen: number[]
   caught: number[]
   /** Piezas de gacha por especie (speciesId → cantidad) */
