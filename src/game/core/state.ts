@@ -77,13 +77,13 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 13
+export const SAVE_VERSION = 14
 
 export function initialState(): GameState {
   return {
     version: SAVE_VERSION,
-    money: 1000,
-    tickets: 10,
+    money: 240,
+    tickets: 1,
     owned: [],
     activeUid: null,
     seen: [],

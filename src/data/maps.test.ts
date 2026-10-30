@@ -43,6 +43,13 @@ describe.each(KANTO.routes)('ruta $id', (r) => {
     }
   })
 
+  it('las paradas de jefe tienen su Pokémon y nivel, y las demás no', () => {
+    for (const n of r.nodes) {
+      if (n.kind === 'boss') expect(n.boss?.level).toBeGreaterThan(0)
+      else expect(n.boss).toBeUndefined()
+    }
+  })
+
   it('desbloquea una ruta existente', () => {
     if (r.unlocks) expect(KANTO.routes.map((x) => x.id)).toContain(r.unlocks)
   })

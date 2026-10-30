@@ -35,6 +35,8 @@ export interface BattleRecord {
   enemy: { speciesId: number; name: string; level: number; maxHp: number }
   events: BattleEvent[]
   outcome: BattleOutcome
+  /** Combate contra el jefe de la parada (se ve distinto y da más premio) */
+  boss: boolean
   /** `piece`: si el salvaje soltó 1 pieza de su especie */
   rewards: { money: number; tickets: number; piece: boolean; moneyLost: number }
 }

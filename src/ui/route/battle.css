@@ -144,3 +144,48 @@
     opacity: 0;
   }
 }
+
+/* Jefe: aviso al aparecer y «JEFE» en rojo en su barra de vida */
+.boss-warning {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  z-index: 3;
+  translate: -50% 0;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px #0005;
+  animation: boss-warning 1.4s ease-out forwards;
+}
+.boss-label {
+  color: var(--red);
+}
+@keyframes boss-warning {
+  0% {
+    scale: 0.4;
+    opacity: 0;
+  }
+  15% {
+    scale: 1.1;
+    opacity: 1;
+  }
+  25%,
+  80% {
+    scale: 1;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+/* La barra del jefe lleva «JEFE» delante: algo más ancha y un poco más hacia el centro para que no se corte */
+.route-fighter.enemy.boss {
+  left: 70%;
+}
+.route-fighter.enemy.boss .route-hp {
+  width: 140px;
+}

@@ -19,11 +19,21 @@ export function RoutePlanner({ game, route: r, canStart }: { game: GameState; ro
           const n = node(r, id)
           const pool = [...new Set((n.encounters ?? r.encounters).map((e) => e.speciesId))]
           return (
-            <li key={id} className="stop">
+            <li key={id} className={`stop ${n.boss ? 'boss' : ''}`}>
               <div className="row between">
                 <strong className="small">{n.name}</strong>
-                <span className="tiny muted">{n.levelBonus ? `Nv. +${n.levelBonus}` : ''}</span>
+                {n.boss ? (
+                  <span className="tag boss-tag">Jefe · Nv. {n.boss.level}</span>
+                ) : (
+                  <span className="tiny muted">{n.levelBonus ? `Nv. +${n.levelBonus}` : ''}</span>
+                )}
               </div>
+              {n.boss && (
+                <span className="row gap">
+                  <Sprite id={n.boss.speciesId} size={48} animated={false} silhouette={!game.seen.includes(n.boss.speciesId)} />
+                  <span className="tiny muted">Te espera al final. Pega más fuerte que un salvaje, pero da más premio.</span>
+                </span>
+              )}
               {n.kind === 'wild' && (
                 <span className="pool mini">
                   {pool.slice(0, 6).map((sid) => (

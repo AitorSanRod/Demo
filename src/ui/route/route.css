@@ -39,6 +39,14 @@
   flex-direction: column;
   gap: 4px;
 }
+/* Parada del jefe: punto y etiqueta en rojo */
+.stop.boss::before {
+  border-color: var(--red);
+  background: var(--red);
+}
+.boss-tag {
+  background: var(--red);
+}
 .stop::before {
   content: '';
   position: absolute;

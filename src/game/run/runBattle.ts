@@ -1,4 +1,4 @@
-import { type Route, type RouteNode } from '../../data/maps'
+import type { Boss, Route, RouteNode } from '../../data/maps'
 import { makeFighter, simulateBattle, type BattleRecord } from '../battle/battle'
 import { moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
@@ -14,6 +14,10 @@ const POST_WIN_HEAL = 0.25
  * el 0.8 (junto con la cura de 0.25) se ajustó para la Ruta 1 a niveles 2–4 (ver docs/diseno.md).
  */
 const WILD_STAT_MULT = 0.8
+/** Multiplicador de los pokécuartos por derrotar a un jefe (respecto a un salvaje de su nivel) */
+const BOSS_MONEY_MULT = 3
+/** Tickets que da siempre derrotar a un jefe (en lugar de la probabilidad de un salvaje) */
+const BOSS_TICKETS = 1
 /** Fracción del dinero ganado en la ruta que se pierde al ser derrotado */
 const DEFEAT_MONEY_LOSS = 0.5
 /** Milisegundos reales que dura cada evento del combate en la ruta; mientras, no se avanza */
@@ -23,16 +27,24 @@ const BATTLE_END_MS = 1200
 
 export const battleDuration = (b: BattleRecord): number => b.events.length * BATTLE_EVENT_MS + BATTLE_END_MS
 
+/** Rival de la parada: el jefe si lo tiene; si no, un salvaje de sus encuentros al nivel de la ruta */
+function rivalOf(r: Route, n: RouteNode, rng: Rng): Boss {
+  if (n.boss) return n.boss
+  const speciesId = pickEncounter(n.encounters ?? r.encounters, rng)
+  return { speciesId, level: randInt(r.levels[0], r.levels[1], rng) + (n.levelBonus ?? 0) }
+}
+
 /**
  * Resuelve el combate de la parada pero no lo aplica: PS, premio y derrota se aplican en `settleBattle` cuando
- * termina su tiempo, para que el estado no se adelante a lo que ve el jugador.
+ * termina su tiempo, para que el estado no se adelante a lo que ve el jugador. Los jefes luchan con sus stats
+ * completas (sin WILD_STAT_MULT) y dan más premio.
  */
-export function startWildBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) {
+export function startStopBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) {
   const run = s.run!
   const mon = activeMon(s)!
-  const enemyId = pickEncounter(n.encounters ?? r.encounters, rng)
-  const level = randInt(r.levels[0], r.levels[1], rng) + (n.levelBonus ?? 0)
-  const enemy = makeFighter('enemy', enemyId, level, { statMult: WILD_STAT_MULT })
+  const isBoss = n.kind === 'boss'
+  const { speciesId: enemyId, level } = rivalOf(r, n, rng)
+  const enemy = makeFighter('enemy', enemyId, level, { statMult: isBoss ? 1 : WILD_STAT_MULT })
   const player = makeFighter('player', mon.speciesId, mon.level, {
     hp: Math.floor(mon.hp),
     stars: mon.stars,
@@ -46,9 +58,10 @@ export function startWildBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) 
     enemy: { speciesId: enemyId, name: enemy.name, level, maxHp: enemy.maxHp },
     events: result.events,
     outcome: result.outcome,
+    boss: isBoss,
     rewards: {
-      money: win ? moneyReward(level, rng) : 0,
-      tickets: win ? ticketReward(enemyId, rng) : 0,
+      money: win ? moneyReward(level, rng) * (isBoss ? BOSS_MONEY_MULT : 1) : 0,
+      tickets: win ? (isBoss ? BOSS_TICKETS : ticketReward(enemyId, rng)) : 0,
       piece: win && pieceReward(enemyId, rng),
       moneyLost: 0,
     },

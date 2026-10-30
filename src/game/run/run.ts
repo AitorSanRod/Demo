@@ -3,7 +3,7 @@ import { species } from '../../data/species'
 import type { Rng } from '../core/random'
 import { activeMon, monPlace, type GameState } from '../core/state'
 import { stepsPerMinute } from '../team/stats'
-import { BATTLE_EVENT_MS, completeRoute, spendBattleTime, startWildBattle } from './runBattle'
+import { BATTLE_EVENT_MS, completeRoute, spendBattleTime, startStopBattle } from './runBattle'
 
 export function runBlocker(s: GameState): string | null {
   const mon = activeMon(s)
@@ -81,7 +81,7 @@ function arrive(s: GameState, r: Route, rng: Rng) {
   run.steps = 0
   const n = node(r, run.path[run.stop])
   // Con combate, el final de la ruta se decide al acabar el combate (ver runBattle.ts)
-  if (n.kind === 'wild') startWildBattle(s, r, n, rng)
+  if (n.kind === 'wild' || n.kind === 'boss') startStopBattle(s, r, n, rng)
   else if (run.stop === run.path.length - 1) completeRoute(s, r)
 }
 

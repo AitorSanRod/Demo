@@ -6,6 +6,12 @@ import { fighterClass } from './battleFrame'
 import { HitEffect } from './HitEffect'
 import './battle.css'
 
+const ENEMY_SPRITE_SIZE = 112
+/** El jefe se ve un 30% más grande que un salvaje */
+const BOSS_SPRITE_SIZE = Math.round(ENEMY_SPRITE_SIZE * 1.3)
+/** Eventos del combate (≈0,7 s cada uno) durante los que se ve el aviso del jefe */
+const BOSS_WARNING_EVENTS = 2
+
 /**
  * Combate dentro de la escena de la ruta: el rival aparece delante del Pokémon, ambos con su barra de vida,
  * los golpes se ven como números flotantes y con el efecto del tipo del ataque. El sprite del jugador lo pinta
@@ -21,12 +27,19 @@ export function RouteBattle({ record, frame }: { record: BattleRecord; frame: Ba
         <Pop record={record} frame={frame} side="player" />
         <Hit record={record} frame={frame} side="player" />
       </div>
-      <div className="route-fighter enemy">
-        <FighterBar name={record.enemy.name} level={record.enemy.level} hp={event.enemyHp} maxHp={record.enemy.maxHp} />
+      {record.boss && frame.index < BOSS_WARNING_EVENTS && <div className="boss-warning">¡Un jefe te corta el paso!</div>}
+      <div className={`route-fighter enemy ${record.boss ? 'boss' : ''}`}>
+        <FighterBar
+          name={record.enemy.name}
+          level={record.enemy.level}
+          hp={event.enemyHp}
+          maxHp={record.enemy.maxHp}
+          boss={record.boss}
+        />
         <Pop record={record} frame={frame} side="enemy" />
         <Hit record={record} frame={frame} side="enemy" />
         <div className={`route-enemy ${fighterClass(record, frame, 'enemy')}`}>
-          <Sprite id={record.enemy.speciesId} size={112} />
+          <Sprite id={record.enemy.speciesId} size={record.boss ? BOSS_SPRITE_SIZE : ENEMY_SPRITE_SIZE} />
         </div>
       </div>
     </div>
@@ -41,10 +54,11 @@ function Hit({ record, frame, side }: { record: BattleRecord; frame: BattleFrame
   return <HitEffect key={index} type={signatureMove(attacker.speciesId).type} />
 }
 
-function FighterBar({ name, level, hp, maxHp }: { name: string; level: number; hp: number; maxHp: number }) {
+function FighterBar({ name, level, hp, maxHp, boss = false }: { name: string; level: number; hp: number; maxHp: number; boss?: boolean }) {
   return (
     <div className="route-hp">
       <span className="tiny">
+        {boss && <strong className="boss-label">JEFE </strong>}
         <strong>{name}</strong> Nv. {level}
       </span>
       <Bar value={hp} max={maxHp} kind="hp" />

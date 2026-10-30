@@ -52,6 +52,7 @@ At. Esp. La defensa es la media de ambas defensas.
 | Salvajes | Stats ×0.8 | `runBattle.ts › WILD_STAT_MULT` |
 | Recompensas por combate | `8 + nivel × 4 + 0..5` ₽, ticket según la rareza del salvaje (10 / 20 / 35 / 60%) y 1 pieza de su especie (5 / 4 / 3 / 2,5%); cura 25% al ganar. Igual en expediciones | `rewards.ts › TICKET_DROP_CHANCE, PIECE_DROP_CHANCE`, `runBattle.ts › POST_WIN_HEAL` |
 | Combate en ruta | 0,7 s por evento + 1,2 s final, en tiempo real (no le afecta `timeScale`); sin pasos mientras dura | `runBattle.ts › BATTLE_EVENT_MS, BATTLE_END_MS` |
+| Jefes | Parada `boss`: siempre el mismo Pokémon a nivel fijo, con stats completas (sin el ×0.8). Da ₽ ×3 y 1 ticket seguro; se ve más grande, con «JEFE» y un aviso al aparecer | `maps.ts › boss()`, `runBattle.ts › BOSS_MONEY_MULT, BOSS_TICKETS` |
 | Derrota | Fin de la ruta y pérdida del 50% del dinero ganado en ella | `runBattle.ts › DEFEAT_MONEY_LOSS` |
 | Expediciones | 15 min, 1 h o 4 h; 8 combates/h; victoria con probabilidad `nivel / nivel medio de la ruta` (mín. 20%). Sin derrota. 1 Pokémon a la vez (+1 por mejora) | `expedition.ts › BASE_EXPEDITION_SLOTS` |
 | Rancho | Regenera 10% PS/min (no en ruta ni de expedición); curar `5 + nivel × 3` ₽; entrenar `20 + nivel × 8` ₽ (40% de un nivel) | `ranch.ts` |
@@ -66,25 +67,31 @@ Dificultad medida con 300 simulaciones por caso (Bulbasaur / Charmander / Squirt
 | Ruta | Nivel del inicial | La completa | Duración |
 |---|---|---|---|
 | Pueblo Paleta (tutorial) | 5 | 100% | 2,7–3,1 min |
-| Ruta 1 | 6 (tras el tutorial, sin entrenar) | 0 / 11 / 3% | — |
-| Ruta 1 | 8 | 8 / 82 / 63% | 5,4–6,4 min |
-| Ruta 1 | 10 | 80 / 100 / 100% | 5,3–6,2 min |
+| Ruta 1 | 6 (tras el tutorial, sin entrenar) | 0 / 0 / 0% | — |
+| Ruta 1 | 8 | 0 / 82 / 27% | ≈6 min |
+| Ruta 1 | 10 | 56 / 100 / 99% | ≈6 min |
+| Ruta 1 | 12 | 100 / 100 / 100% | ≈6 min |
+
+El jefe de la Ruta 1 (Pidgeotto) está a Nv. 7 con stats completas: a Nv. 10 ya no lo ganaba ningún inicial a Nv. 10, y
+Bulbasaur ni a Nv. 12 (Pidgeotto es más rápido y resiste planta). A Nv. 7 es donde más se pierde la ruta con un
+inicial a Nv. 8–10.
 
 Pueblo Paleta da 3 tickets solo la primera vez (`reward.firstClearTickets` en `maps.ts`).
 
 ## Contenido actual
 
-- Mapa de Kanto con 5 rutas encadenadas: Pueblo Paleta (tutorial, 3 combates), Ruta 1 (7 combates, exige entrenar),
+- Mapa de Kanto con 5 rutas encadenadas: Pueblo Paleta (tutorial, 3 combates), Ruta 1 (6 combates y el jefe
+  Pidgeotto Nv. 7 al final, exige entrenar),
   Bosque Verde, Monte Moon y Ruta Marina; todas de camino único. Ver
   `src/data/maps.ts`.
 - Los 151 Pokémon de 1ª generación, de PokeAPI, en `src/data/pokemon.json` (se regenera con
   `scripts/fetch-pokemon.mjs`).
-- Solo existen nodos `start` y `wild`.
+- Existen nodos `start`, `wild` y `boss` (solo el final de la Ruta 1).
 
 ## Ideas previstas (no implementadas)
 
 - Rutas con bifurcaciones: el modelo y el planificador ya las admiten; falta contenido.
-- Tipos de nodo: `trainer`, `chest`, `rest`, `boss`, `special`.
+- Tipos de nodo: `trainer`, `chest`, `rest`, `special`.
 - Migración de partidas guardadas entre versiones.
 
 Cuando una idea se implemente, muévela a la sección de sistemas.

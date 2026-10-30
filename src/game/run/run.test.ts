@@ -203,3 +203,45 @@ describe('endRun', () => {
     expect(s.money).toBe(money)
   })
 })
+
+describe('jefes', () => {
+  const PIDGEOTTO = 17
+
+  /** Ruta 1 con el Pokémon fuerte para ganar siempre y rng alto para que ningún salvaje suelte ticket */
+  function stateBeforeBoss() {
+    const s = initialState()
+    chooseStarter(s, CHARMANDER)
+    const mon = activeMon(s)!
+    mon.level = 60
+    mon.hp = maxHp(mon)
+    s.unlockedRoutes.push('ruta-1')
+    startRun(s, 'ruta-1')
+    const run = s.run!
+    while (run.stop < run.path.length - 2) {
+      advanceRun(s, run.battleMsLeft, () => 0.99)
+      walk(s, 1e6, () => 0.99)
+    }
+    advanceRun(s, run.battleMsLeft, () => 0.99)
+    return s
+  }
+
+  it('la última parada de la Ruta 1 es siempre el jefe Pidgeotto a su nivel fijo', () => {
+    const s = stateBeforeBoss()
+    const boss = route('ruta-1').nodes.at(-1)!.boss!
+    walk(s, 1e6, () => 0.99)
+    const battle = s.run!.lastBattle!
+    expect(battle.boss).toBe(true)
+    expect(battle.enemy).toMatchObject({ speciesId: PIDGEOTTO, level: boss.level })
+  })
+
+  it('derrotar al jefe da siempre un ticket y el triple de dinero que un salvaje', () => {
+    const s = stateBeforeBoss()
+    walk(s, 1e6, () => 0.99)
+    const { rewards, outcome } = s.run!.lastBattle!
+    expect(outcome).toBe('win')
+    expect(rewards.tickets).toBe(1)
+    // Un salvaje del mismo nivel da 8 + nivel × 4 + 0..5 ₽
+    const level = s.run!.lastBattle!.enemy.level
+    expect(rewards.money).toBeGreaterThanOrEqual((8 + level * 4) * 3)
+  })
+})

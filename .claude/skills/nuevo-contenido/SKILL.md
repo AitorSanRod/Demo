@@ -22,6 +22,8 @@ se comporte distinto), primero implementa la regla con la skill `nueva-mecanica`
 - Camino único: usa `chain(...)` con las paradas en orden; `steps` son los pasos para llegar a cada una.
 - Con bifurcaciones: escribe los nodos a mano con varios `next`. El jugador elige rama antes de salir.
 - Exactamente un nodo `kind: 'start'`. El nodo final tiene `next: []`.
+- Jefe: `kind: 'boss'` con `boss: boss('Nombre', nivel)` (nombre exacto de `pokemon.json`). Lucha con stats
+  completas, así que su nivel debe quedar por debajo del de los salvajes de alrededor: ajústalo simulando.
 - Todo `next[].to` apunta a un nodo existente y todo nodo es alcanzable desde el inicio.
 - Encuentros con `enc({ Pidgey: 30, Rattata: 70 })`: nombre exacto de `pokemon.json` y probabilidad en %.
   Cada lista (la de la ruta y la de cada parada que la sustituya) debe sumar 100.
