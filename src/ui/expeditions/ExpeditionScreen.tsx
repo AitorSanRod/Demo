@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { species } from '../../data/species'
-import { monPlace, type GameState } from '../../game/core/state'
+import { MonPlace, monPlace, type GameState } from '../../game/core/state'
 import { expeditionSlots } from '../../game/team/expedition'
 import { Sprite } from '../shared/common'
 import { ExpeditionForm } from './ExpeditionForm'
@@ -8,7 +8,7 @@ import { ExpeditionList } from './ExpeditionList'
 import './expeditions.css'
 
 export function ExpeditionScreen({ game }: { game: GameState }) {
-  const home = game.owned.filter((m) => monPlace(game, m.uid) === 'ranch')
+  const home = game.owned.filter((m) => monPlace(game, m.uid) === MonPlace.Ranch)
   const [selectedUid, setSelectedUid] = useState('')
   const mon = home.find((m) => m.uid === selectedUid) ?? home[0]
 

@@ -1,3 +1,4 @@
+import { RouteId } from '../../data/maps'
 import type { BattleRecord } from '../battle/battle'
 import type { UpgradeId } from '../team/upgrades'
 
@@ -15,7 +16,8 @@ export interface OwnedMon {
 type RunPhase = 'walking' | 'complete' | 'fainted'
 
 /** Paso del tutorial inicial (ver tutorial.ts); null cuando ya se juega con libertad */
-type TutorialStep = 'starter' | 'combine' | 'route'
+export const TutorialStep = { Starter: 'starter', Combine: 'combine', Route: 'route' } as const
+export type TutorialStep = (typeof TutorialStep)[keyof typeof TutorialStep]
 
 export interface Run {
   routeId: string
@@ -92,8 +94,8 @@ export function initialState(): GameState {
     missingnoShards: 0,
     favorites: [],
     upgrades: {},
-    tutorial: 'starter',
-    unlockedRoutes: ['pueblo-paleta'],
+    tutorial: TutorialStep.Starter,
+    unlockedRoutes: [RouteId.PuebloPaleta],
     completedRoutes: [],
     run: null,
     expeditions: [],
@@ -110,13 +112,14 @@ export function activeMon(s: GameState): OwnedMon | null {
   return (s.activeUid && findMon(s, s.activeUid)) || null
 }
 
-export type MonPlace = 'ranch' | 'run' | 'expedition'
+export const MonPlace = { Ranch: 'ranch', Run: 'run', Expedition: 'expedition' } as const
+export type MonPlace = (typeof MonPlace)[keyof typeof MonPlace]
 
 /** Dónde está un Pokémon: solo los que están en el rancho se pueden curar, entrenar o enviar */
 export function monPlace(s: GameState, uid: string): MonPlace {
-  if (s.run && uid === s.activeUid) return 'run'
-  if (s.expeditions.some((e) => e.uid === uid)) return 'expedition'
-  return 'ranch'
+  if (s.run && uid === s.activeUid) return MonPlace.Run
+  if (s.expeditions.some((e) => e.uid === uid)) return MonPlace.Expedition
+  return MonPlace.Ranch
 }
 
 /** Recupera una partida guardada de esta versión; los campos que falten toman su valor inicial */

@@ -102,6 +102,13 @@
   align-items: center;
   gap: 2px;
 }
+/* Opciones de evolución: una sola ocupa todo el ancho; las de Eevee se reparten */
+.evolve-options {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
+}
 @keyframes sheet-up {
   from {
     transform: translateY(100%);

@@ -1,4 +1,4 @@
-import type { Boss, Route, RouteNode } from '../../data/maps'
+import { NodeKind, type Boss, type Route, type RouteNode } from '../../data/maps'
 import { makeFighter, simulateBattle, type BattleRecord } from '../battle/battle'
 import { moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
@@ -42,7 +42,7 @@ function rivalOf(r: Route, n: RouteNode, rng: Rng): Boss {
 export function startStopBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) {
   const run = s.run!
   const mon = activeMon(s)!
-  const isBoss = n.kind === 'boss'
+  const isBoss = n.kind === NodeKind.Boss
   const { speciesId: enemyId, level } = rivalOf(r, n, rng)
   const enemy = makeFighter('enemy', enemyId, level, { statMult: isBoss ? 1 : WILD_STAT_MULT })
   const player = makeFighter('player', mon.speciesId, mon.level, {

@@ -12,7 +12,18 @@
 ## TypeScript
 
 - Tipos explícitos en la API pública de cada módulo (parámetros y retorno de funciones exportadas).
-- `interface` para objetos y `type` para uniones y alias. Uniones de strings en lugar de `enum`.
+- `interface` para objetos y `type` para uniones y alias.
+- **Sin strings ni números sueltos para nombrar cosas del juego.** Cada conjunto cerrado de valores (tipos de
+  parada, biomas, rutas, rarezas, pasos del tutorial, resultados de una acción…) es un diccionario `as const` con
+  un tipo del mismo nombre, en lugar de `enum`:
+  ```ts
+  export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss' } as const
+  export type NodeKind = (typeof NodeKind)[keyof typeof NodeKind]
+  ```
+  Se usa `NodeKind.Boss`, nunca `'boss'`; en un `Record` las claves van entre corchetes (`[Rarity.Common]: …`). El
+  valor es el que se guarda en la partida: cambiarlo obliga a subir `SAVE_VERSION`.
+- Las especies se nombran con `Pokemon` (`data/pokemon.ts`): `Pokemon.Pidgey`, no `16` ni `'Pidgey'`; también en
+  los tests. Quedan fuera las clases CSS y los ids que solo usa una pantalla (p. ej. las pestañas de `App.tsx`).
 - Prohibido `any`. Usa `!` solo cuando una invariante lo garantice y sea evidente en el contexto.
 - `import type` para importar solo tipos (lo exige `verbatimModuleSyntax`).
 - Datos con forma fija: `Record<Union, ...>` para que el compilador avise si falta un caso.

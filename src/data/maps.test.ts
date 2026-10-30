@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { isValidPath, KANTO, pathFrom, type Route } from './maps'
+import { isValidPath, KANTO, NodeKind, pathFrom, type Route } from './maps'
 
 function reachableIds(r: Route): Set<string> {
   const byId = new Map(r.nodes.map((n) => [n.id, n]))
-  const start = r.nodes.find((n) => n.kind === 'start')!
+  const start = r.nodes.find((n) => n.kind === NodeKind.Start)!
   const seen = new Set([start.id])
   const queue = [start]
   for (const current of queue) {
@@ -20,7 +20,7 @@ describe.each(KANTO.routes)('ruta $id', (r) => {
   const ids = new Set(r.nodes.map((n) => n.id))
 
   it('tiene exactamente un nodo de inicio', () => {
-    expect(r.nodes.filter((n) => n.kind === 'start')).toHaveLength(1)
+    expect(r.nodes.filter((n) => n.kind === NodeKind.Start)).toHaveLength(1)
   })
 
   it('todos los caminos llevan a nodos existentes', () => {
@@ -45,7 +45,7 @@ describe.each(KANTO.routes)('ruta $id', (r) => {
 
   it('las paradas de jefe tienen su Pokémon y nivel, y las demás no', () => {
     for (const n of r.nodes) {
-      if (n.kind === 'boss') expect(n.boss?.level).toBeGreaterThan(0)
+      if (n.kind === NodeKind.Boss) expect(n.boss?.level).toBeGreaterThan(0)
       else expect(n.boss).toBeUndefined()
     }
   })
@@ -59,10 +59,10 @@ describe('caminos con bifurcación', () => {
   const forked: Route = {
     ...KANTO.routes[0],
     nodes: [
-      { id: 's', name: 'Inicio', kind: 'start', next: [{ to: 'a', steps: 10 }, { to: 'b', steps: 10 }] },
-      { id: 'a', name: 'A', kind: 'wild', next: [{ to: 'z', steps: 10 }] },
-      { id: 'b', name: 'B', kind: 'wild', next: [{ to: 'z', steps: 10 }] },
-      { id: 'z', name: 'Fin', kind: 'wild', next: [] },
+      { id: 's', name: 'Inicio', kind: NodeKind.Start, next: [{ to: 'a', steps: 10 }, { to: 'b', steps: 10 }] },
+      { id: 'a', name: 'A', kind: NodeKind.Wild, next: [{ to: 'z', steps: 10 }] },
+      { id: 'b', name: 'B', kind: NodeKind.Wild, next: [{ to: 'z', steps: 10 }] },
+      { id: 'z', name: 'Fin', kind: NodeKind.Wild, next: [] },
     ],
   }
 

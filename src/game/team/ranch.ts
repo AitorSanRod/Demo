@@ -1,4 +1,4 @@
-import { findMon, monPlace, type GameState, type OwnedMon } from '../core/state'
+import { findMon, MonPlace, monPlace, type GameState, type OwnedMon } from '../core/state'
 import { expToNext, gainExp, maxHp, type LevelUpResult } from './stats'
 
 /** Fracción de PS máximos que se recupera por minuto descansando en el rancho */
@@ -12,12 +12,12 @@ export const trainCost = (m: OwnedMon) => 20 + m.level * 8
 /** El Pokémon solo se puede gestionar si está en el rancho (no en ruta ni de expedición) */
 function ranchMon(s: GameState, uid: string): OwnedMon | null {
   const m = findMon(s, uid)
-  return m && monPlace(s, uid) === 'ranch' ? m : null
+  return m && monPlace(s, uid) === MonPlace.Ranch ? m : null
 }
 
 export function restInRanch(s: GameState, minutes: number) {
   for (const m of s.owned) {
-    if (monPlace(s, m.uid) !== 'ranch') continue
+    if (monPlace(s, m.uid) !== MonPlace.Ranch) continue
     m.hp = Math.min(maxHp(m), m.hp + maxHp(m) * REGEN_PER_MIN * minutes)
   }
 }

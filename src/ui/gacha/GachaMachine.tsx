@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RARITY_INFO, species, type Rarity } from '../../data/species'
+import { Rarity, RARITY_INFO, species } from '../../data/species'
 import { buyTicket, PIECES_PER_PULL, pull, TICKET_PRICE, type PieceDrop } from '../../game/collection/gacha'
 import { PIECES_PER_COMBINE } from '../../game/collection/pieces'
 import type { GameState } from '../../game/core/state'
@@ -86,7 +86,7 @@ export function GachaMachine({ game }: { game: GameState }) {
 }
 
 function bestRarity(drops: PieceDrop[]): Rarity {
-  return drops.reduce<Rarity>((best, d) => (RARITY_INFO[d.rarity].rate < RARITY_INFO[best].rate ? d.rarity : best), 'common')
+  return drops.reduce<Rarity>((best, d) => (RARITY_INFO[d.rarity].rate < RARITY_INFO[best].rate ? d.rarity : best), Rarity.Common)
 }
 
 /** Agrupa las piezas por especie («Pidgey ×2»); las más raras salen al final */

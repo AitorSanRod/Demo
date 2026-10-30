@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { legSteps, pathFrom, route } from '../../data/maps'
+import { legSteps, pathFrom, route, RouteId } from '../../data/maps'
+import { Pokemon } from '../../data/pokemon'
 import { activeMon, initialState } from '../core/state'
 import { chooseStarter } from '../core/test-utils'
 import { maxHp, stepsPerMinute } from '../team/stats'
 import { advanceRun, endRun, runBlocker, startRun, tapRun, walk } from './run'
 import { battleDuration } from './runBattle'
 
-const CHARMANDER = 4
-const ROUTE = 'pueblo-paleta'
+const ROUTE = RouteId.PuebloPaleta
 
 function stateOnRoute(level = 5) {
   const s = initialState()
-  chooseStarter(s, CHARMANDER)
+  chooseStarter(s, Pokemon.Charmander)
   const mon = activeMon(s)!
   mon.level = level
   mon.hp = maxHp(mon)
@@ -32,22 +32,22 @@ describe('startRun', () => {
 
   it('rechaza un camino que no llega al final', () => {
     const s = initialState()
-    chooseStarter(s, CHARMANDER)
+    chooseStarter(s, Pokemon.Charmander)
     startRun(s, ROUTE, ['s', 'a'])
     expect(s.run).toBeNull()
   })
 
   it('no sale a una ruta bloqueada', () => {
     const s = initialState()
-    chooseStarter(s, CHARMANDER)
+    chooseStarter(s, Pokemon.Charmander)
     // Al empezar solo está desbloqueada la primera ruta
-    startRun(s, 'ruta-1')
+    startRun(s, RouteId.Ruta1)
     expect(s.run).toBeNull()
   })
 
   it('no sale con el Pokémon debilitado', () => {
     const s = initialState()
-    chooseStarter(s, CHARMANDER)
+    chooseStarter(s, Pokemon.Charmander)
     activeMon(s)!.hp = 0
     expect(runBlocker(s)).not.toBeNull()
     startRun(s, ROUTE)
@@ -206,17 +206,16 @@ describe('endRun', () => {
 })
 
 describe('jefes', () => {
-  const PIDGEOTTO = 17
 
   /** Ruta 1 con el Pokémon fuerte para ganar siempre y rng alto para que ningún salvaje suelte ticket */
   function stateBeforeBoss() {
     const s = initialState()
-    chooseStarter(s, CHARMANDER)
+    chooseStarter(s, Pokemon.Charmander)
     const mon = activeMon(s)!
     mon.level = 60
     mon.hp = maxHp(mon)
-    s.unlockedRoutes.push('ruta-1')
-    startRun(s, 'ruta-1')
+    s.unlockedRoutes.push(RouteId.Ruta1)
+    startRun(s, RouteId.Ruta1)
     const run = s.run!
     while (run.stop < run.path.length - 2) {
       advanceRun(s, run.battleMsLeft, () => 0.99)
@@ -228,11 +227,11 @@ describe('jefes', () => {
 
   it('la última parada de la Ruta 1 es siempre el jefe Pidgeotto a su nivel fijo', () => {
     const s = stateBeforeBoss()
-    const boss = route('ruta-1').nodes.at(-1)!.boss!
+    const boss = route(RouteId.Ruta1).nodes.at(-1)!.boss!
     walk(s, 1e6, () => 0.99)
     const battle = s.run!.lastBattle!
     expect(battle.boss).toBe(true)
-    expect(battle.enemy).toMatchObject({ speciesId: PIDGEOTTO, level: boss.level })
+    expect(battle.enemy).toMatchObject({ speciesId: Pokemon.Pidgeotto, level: boss.level })
   })
 
   it('derrotar al jefe da siempre un ticket y el triple de dinero que un salvaje', () => {

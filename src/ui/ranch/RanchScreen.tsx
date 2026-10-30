@@ -1,17 +1,24 @@
 import { useState, type CSSProperties } from 'react'
-import { species } from '../../data/species'
-import { findMon, monPlace, type GameState, type OwnedMon } from '../../game/core/state'
+import { RARITY_INFO, rarityOf, species } from '../../data/species'
+import { findMon, MonPlace, monPlace, type GameState, type OwnedMon } from '../../game/core/state'
+import { EvolveKind, type EvolveResult } from '../../game/team/evolution'
 import { SettingsMenu } from '../settings/SettingsMenu'
 import { Sprite } from '../shared/common'
+import { RevealOverlay } from '../shared/RevealOverlay'
 import { MonDetail } from './MonDetail'
 import './ranch.css'
 
 /** El rancho ocupa toda la pantalla; tocar un Pokémon abre su ficha en una hoja que sube desde abajo */
 export function RanchScreen({ game }: { game: GameState }) {
   const [selectedUid, setSelectedUid] = useState<string | null>(null)
-  const home = game.owned.filter((m) => monPlace(game, m.uid) === 'ranch')
+  const home = game.owned.filter((m) => monPlace(game, m.uid) === MonPlace.Ranch)
   const mon = selectedUid ? findMon(game, selectedUid) : undefined
+  const [evolution, setEvolution] = useState<EvolveResult | null>(null)
   const close = () => setSelectedUid(null)
+  const onEvolved = (result: EvolveResult) => {
+    close()
+    setEvolution(result)
+  }
 
   return (
     <div className="screen ranch">
@@ -34,14 +41,31 @@ export function RanchScreen({ game }: { game: GameState }) {
       {mon && (
         <div className="ranch-sheet-backdrop" onClick={close}>
           <div className="ranch-sheet" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <MonDetail key={mon.uid} game={game} mon={mon} />
+            <MonDetail key={mon.uid} game={game} mon={mon} onEvolved={onEvolved} />
             <button className="btn primary wide" onClick={close}>
               Aceptar
             </button>
           </div>
         </div>
       )}
+      {evolution && <EvolutionReveal result={evolution} onClose={() => setEvolution(null)} />}
     </div>
+  )
+}
+
+function EvolutionReveal({ result, onClose }: { result: EvolveResult; onClose: () => void }) {
+  const into = species(result.intoId)
+  const detail =
+    result.kind === EvolveKind.New ? `${species(result.fromId).name} ha evolucionado` : `Tu ${into.name} gana una ★ · ${'★'.repeat(result.stars)}`
+  return (
+    <RevealOverlay
+      title="¡Evolución!"
+      speciesId={result.intoId}
+      name={into.name}
+      detail={detail}
+      color={RARITY_INFO[rarityOf(into)].color}
+      onClose={onClose}
+    />
   )
 }
 

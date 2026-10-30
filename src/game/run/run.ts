@@ -1,7 +1,7 @@
-import { isValidPath, legSteps, node, pathFrom, route, type Route } from '../../data/maps'
+import { isValidPath, legSteps, node, NodeKind, pathFrom, route, type Route } from '../../data/maps'
 import { species } from '../../data/species'
 import type { Rng } from '../core/random'
-import { activeMon, monPlace, type GameState } from '../core/state'
+import { activeMon, MonPlace, monPlace, TutorialStep, type GameState } from '../core/state'
 import { stepsPerMinute } from '../team/stats'
 import { BATTLE_EVENT_MS, completeRoute, spendBattleTime, startStopBattle } from './runBattle'
 
@@ -10,7 +10,7 @@ export function runBlocker(s: GameState): string | null {
   if (!mon) return 'No tienes Pokémon activo.'
   if (s.run) return 'Ya hay una ruta en curso.'
   const name = species(mon.speciesId).name
-  if (monPlace(s, mon.uid) === 'expedition') return `${name} está de expedición.`
+  if (monPlace(s, mon.uid) === MonPlace.Expedition) return `${name} está de expedición.`
   if (mon.hp < 1) return `${name} está debilitado. Déjalo descansar o cúralo en el rancho.`
   return null
 }
@@ -18,7 +18,7 @@ export function runBlocker(s: GameState): string | null {
 /** Sale a la ruta con el camino ya elegido; a partir de aquí todo es automático */
 export function startRun(s: GameState, routeId: string, path = pathFrom(route(routeId))) {
   if (runBlocker(s) || !s.unlockedRoutes.includes(routeId) || !isValidPath(route(routeId), path)) return
-  if (s.tutorial === 'route') s.tutorial = null
+  if (s.tutorial === TutorialStep.Route) s.tutorial = null
   s.run = {
     routeId,
     path,
@@ -81,7 +81,7 @@ function arrive(s: GameState, r: Route, rng: Rng) {
   run.steps = 0
   const n = node(r, run.path[run.stop])
   // Con combate, el final de la ruta se decide al acabar el combate (ver runBattle.ts)
-  if (n.kind === 'wild' || n.kind === 'boss') startStopBattle(s, r, n, rng)
+  if (n.kind === NodeKind.Wild || n.kind === NodeKind.Boss) startStopBattle(s, r, n, rng)
   else if (run.stop === run.path.length - 1) completeRoute(s, r)
 }
 

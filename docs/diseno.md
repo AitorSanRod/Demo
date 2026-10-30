@@ -29,6 +29,8 @@ automático. Entre rutas gestiona su equipo en el rancho y manda al resto de Pok
 7. **Trituradora y MissingNo** (pestañas del gacha): las piezas que sobran se trituran en trozos de MissingNo,
    que se cambian por piezas del Pokémon que se quiera.
 8. **Pokédex**: combinar 5 piezas iguales para desbloquear el Pokémon o, si ya lo tienes, darle una ★.
+9. **Evolución** (ficha del rancho): un Pokémon con 5 ★ que tenga evolución puede evolucionar. Se pierde y llega
+   su evolución a Nv. 5 y sin ★; si ya la tenías, esa gana una ★ y conserva todo lo demás. Eevee elige entre sus tres.
 
 Los premios del gacha, de las expediciones, del final de ruta y de cada combinación se muestran en una pantalla
 a oscuras, de uno en uno (`RewardOverlay`).
@@ -61,6 +63,7 @@ At. Esp. La defensa es la media de ambas defensas.
 | MissingNo | En el gacha: 1 pieza del Pokémon que elijas por 10 / 15 / 20 / 25 trozos (común / raro / épico / legendario) | `shredder.ts › PIECE_SHARD_PRICE` |
 | Gacha | 250 ₽/ticket; 5 piezas por tirada, cada una con rareza 68/24/7/1% (según el total de las 4 stats base) | `gacha.ts › PIECES_PER_PULL`, `species.ts › rarityOf` |
 | Piezas | 5 iguales desbloquean el Pokémon (llega al 70% del nivel máximo del equipo, mín. 5) o dan +1 ★; con 5 ★, se cambian por ₽ según rareza | `pieces.ts › PIECES_PER_COMBINE`, `RARITY_INFO.surplusMoney` |
+| Evolución | Con 5 ★ (y en el rancho): el Pokémon se va y llega su evolución a Nv. 5 sin ★, o la que ya tenías gana +1 ★ (no se puede si ya tiene 5). Si era el activo, la evolución pasa a serlo. Solo evoluciones dentro de la 1ª gen. | `evolution.ts › EVOLUTION_STARS, EVOLVED_LEVEL`, `data/evolutions.ts` |
 
 Dificultad medida con 300 simulaciones por caso (Bulbasaur / Charmander / Squirtle), en tiempo real a x1:
 

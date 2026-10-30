@@ -1,5 +1,5 @@
 import { RARITY_INFO, rarityOf, species } from '../../data/species'
-import type { GameState } from '../core/state'
+import { TutorialStep, type GameState } from '../core/state'
 import { createMon } from '../team/mons'
 import { MAX_STARS } from '../team/stats'
 import { markCaught, markSeen } from './dex'
@@ -8,7 +8,8 @@ import { markCaught, markSeen } from './dex'
 export const PIECES_PER_COMBINE = 5
 
 /** Qué da combinar: el Pokémon si no lo tienes, una ★ si la admite y, con ★ al máximo, pokécuartos */
-export type CombineKind = 'unlock' | 'star' | 'money'
+export const CombineKind = { Unlock: 'unlock', Star: 'star', Money: 'money' } as const
+export type CombineKind = (typeof CombineKind)[keyof typeof CombineKind]
 
 export interface CombineResult {
   kind: CombineKind
@@ -33,8 +34,8 @@ export const combinableCount = (s: GameState): number =>
 
 export function combineKind(s: GameState, speciesId: number): CombineKind {
   const owned = s.owned.find((m) => m.speciesId === speciesId)
-  if (!owned) return 'unlock'
-  return owned.stars < MAX_STARS ? 'star' : 'money'
+  if (!owned) return CombineKind.Unlock
+  return owned.stars < MAX_STARS ? CombineKind.Star : CombineKind.Money
 }
 
 export function combine(s: GameState, speciesId: number): CombineResult | null {
@@ -42,17 +43,17 @@ export function combine(s: GameState, speciesId: number): CombineResult | null {
   const kind = combineKind(s, speciesId)
   s.pieces[speciesId] -= PIECES_PER_COMBINE
 
-  if (kind === 'unlock') {
+  if (kind === CombineKind.Unlock) {
     const level = arrivalLevel(s)
     const mon = createMon(speciesId, level)
     s.owned.push(mon)
     markCaught(s, speciesId)
     // El primer Pokémon (el inicial del tutorial) sale directamente como activo
     s.activeUid ??= mon.uid
-    if (s.tutorial === 'combine') s.tutorial = 'route'
+    if (s.tutorial === TutorialStep.Combine) s.tutorial = TutorialStep.Route
     return { kind, speciesId, level }
   }
-  if (kind === 'star') {
+  if (kind === CombineKind.Star) {
     const mon = s.owned.find((m) => m.speciesId === speciesId)!
     mon.stars++
     return { kind, speciesId, stars: mon.stars }

@@ -1,4 +1,4 @@
-import { RARITY_INFO, SPECIES, rarityOf, type Rarity } from '../../data/species'
+import { Rarity, RARITY_INFO, SPECIES, rarityOf } from '../../data/species'
 import type { Rng } from '../core/random'
 import type { GameState } from '../core/state'
 import { addPieces } from './pieces'
@@ -17,11 +17,11 @@ const POOLS = Object.fromEntries(
 
 function rollRarity(rng: Rng): Rarity {
   let roll = rng()
-  for (const r of ['legendary', 'epic', 'rare'] as const) {
+  for (const r of [Rarity.Legendary, Rarity.Epic, Rarity.Rare]) {
     roll -= RARITY_INFO[r].rate
     if (roll < 0) return r
   }
-  return 'common'
+  return Rarity.Common
 }
 
 function rollPiece(rng: Rng): PieceDrop {

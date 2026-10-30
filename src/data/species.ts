@@ -1,3 +1,4 @@
+import { Pokemon } from './pokemon'
 import raw from './pokemon.json'
 import type { PokeType } from './types'
 
@@ -15,7 +16,8 @@ interface Species {
   base: BaseStats
 }
 
-export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
+export const Rarity = { Common: 'common', Rare: 'rare', Epic: 'epic', Legendary: 'legendary' } as const
+export type Rarity = (typeof Rarity)[keyof typeof Rarity]
 
 interface RarityInfo {
   name: string
@@ -27,10 +29,10 @@ interface RarityInfo {
 }
 
 export const RARITY_INFO: Record<Rarity, RarityInfo> = {
-  common: { name: 'Común', color: '#888070', rate: 0.68, surplusMoney: 20 },
-  rare: { name: 'Raro', color: '#1a6fbf', rate: 0.24, surplusMoney: 50 },
-  epic: { name: 'Épico', color: '#a040a0', rate: 0.07, surplusMoney: 150 },
-  legendary: { name: 'Legendario', color: '#e0a000', rate: 0.01, surplusMoney: 500 },
+  [Rarity.Common]: { name: 'Común', color: '#888070', rate: 0.68, surplusMoney: 20 },
+  [Rarity.Rare]: { name: 'Raro', color: '#1a6fbf', rate: 0.24, surplusMoney: 50 },
+  [Rarity.Epic]: { name: 'Épico', color: '#a040a0', rate: 0.07, surplusMoney: 150 },
+  [Rarity.Legendary]: { name: 'Legendario', color: '#e0a000', rate: 0.01, surplusMoney: 500 },
 }
 
 interface RawSpecies extends Omit<Species, 'base'> {
@@ -44,18 +46,10 @@ function simplifyStats(b: RawSpecies['base']): BaseStats {
 
 export const SPECIES: Species[] = (raw as RawSpecies[]).map((s) => ({ ...s, base: simplifyStats(s.base) }))
 const BY_ID = new Map(SPECIES.map((s) => [s.id, s]))
-const BY_NAME = new Map(SPECIES.map((s) => [s.name, s]))
 
 export function species(id: number): Species {
   const s = BY_ID.get(id)
   if (!s) throw new Error(`Especie desconocida: ${id}`)
-  return s
-}
-
-/** Busca una especie por su nombre exacto, como aparece en pokemon.json (p. ej. "Nidoran♀") */
-export function speciesByName(name: string): Species {
-  const s = BY_NAME.get(name)
-  if (!s) throw new Error(`Especie desconocida: ${name}`)
   return s
 }
 
@@ -67,10 +61,10 @@ function baseStatTotal(s: Species): number {
 /** Umbrales sobre el total de las 4 stats base (Mewtwo, el máximo, suma 480) */
 export function rarityOf(s: Species): Rarity {
   const bst = baseStatTotal(s)
-  if (bst >= 392) return 'legendary'
-  if (bst >= 335) return 'epic'
-  if (bst >= 275) return 'rare'
-  return 'common'
+  if (bst >= 392) return Rarity.Legendary
+  if (bst >= 335) return Rarity.Epic
+  if (bst >= 275) return Rarity.Rare
+  return Rarity.Common
 }
 
 const SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
@@ -82,4 +76,4 @@ export const sprite = {
   animatedBack: (id: number) => `${SPRITES}/versions/generation-v/black-white/animated/back/${id}.gif`,
 }
 
-export const STARTERS = [1, 4, 7]
+export const STARTERS: number[] = [Pokemon.Bulbasaur, Pokemon.Charmander, Pokemon.Squirtle]

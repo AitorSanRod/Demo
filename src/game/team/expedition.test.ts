@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { route } from '../../data/maps'
+import { route, RouteId } from '../../data/maps'
+import { Pokemon } from '../../data/pokemon'
 import { activeMon, initialState } from '../core/state'
 import { chooseStarter } from '../core/test-utils'
 import { seqRng } from '../core/test-utils'
@@ -18,9 +19,9 @@ import { buyUpgrade } from './upgrades'
 
 function stateOnExpedition(durationMin = 60) {
   const s = initialState()
-  chooseStarter(s, 1)
+  chooseStarter(s, Pokemon.Bulbasaur)
   const mon = activeMon(s)!
-  sendExpedition(s, mon.uid, 'pueblo-paleta', durationMin)
+  sendExpedition(s, mon.uid, RouteId.PuebloPaleta, durationMin)
   return { s, mon }
 }
 
@@ -51,7 +52,7 @@ describe('expediciones', () => {
     expect(result.battles).toBe(expeditionBattles(60))
     expect(result.wins).toBe(result.battles)
     expect(s.money).toBe(money + result.money)
-    expect(result.exp).toBe(route('pueblo-paleta').reward.exp)
+    expect(result.exp).toBe(route(RouteId.PuebloPaleta).reward.exp)
     expect(s.expeditions).toHaveLength(0)
   })
 
@@ -67,7 +68,7 @@ describe('expediciones', () => {
 
   it('un Pokémon débil para la ruta tiene menos probabilidad de ganar', () => {
     const { mon } = stateOnExpedition()
-    const r = route('ruta-1')
+    const r = route(RouteId.Ruta1)
     mon.level = 2
     const weak = expeditionWinRate(mon, r)
     mon.level = 20
@@ -77,20 +78,20 @@ describe('expediciones', () => {
 
   it('sin mejoras solo cabe un Pokémon de expedición', () => {
     const { s } = stateOnExpedition()
-    const second = createMon(16, 5)
+    const second = createMon(Pokemon.Pidgey, 5)
     s.owned.push(second)
     expect(expeditionBlocker(s, second.uid)).toMatch(/huecos/)
-    sendExpedition(s, second.uid, 'pueblo-paleta', 60)
+    sendExpedition(s, second.uid, RouteId.PuebloPaleta, 60)
     expect(s.expeditions).toHaveLength(1)
   })
 
   it('la mejora de espacio permite uno más', () => {
     const { s } = stateOnExpedition()
-    const second = createMon(16, 5)
+    const second = createMon(Pokemon.Pidgey, 5)
     s.owned.push(second)
     s.money = 500
     buyUpgrade(s, 'expeditionSlots')
-    sendExpedition(s, second.uid, 'pueblo-paleta', 60)
+    sendExpedition(s, second.uid, RouteId.PuebloPaleta, 60)
     expect(s.expeditions).toHaveLength(2)
   })
 })

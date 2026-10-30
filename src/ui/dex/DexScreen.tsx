@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { RARITY_INFO, rarityOf, species, SPECIES } from '../../data/species'
 import { isFavorite } from '../../game/collection/dex'
 import { canCombine, combinableCount, PIECES_PER_COMBINE, piecesOf } from '../../game/collection/pieces'
-import type { GameState } from '../../game/core/state'
+import { TutorialStep, type GameState } from '../../game/core/state'
 import { tutorialStarter } from '../../game/team/tutorial'
 import { Sprite } from '../shared/common'
 import { TutorialHint } from '../shared/TutorialHint'
@@ -12,7 +12,7 @@ import './dex.css'
 export function DexScreen({ game }: { game: GameState }) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const ready = combinableCount(game)
-  const starter = game.tutorial === 'combine' ? tutorialStarter(game) : undefined
+  const starter = game.tutorial === TutorialStep.Combine ? tutorialStarter(game) : undefined
 
   return (
     <div className="screen scroll">

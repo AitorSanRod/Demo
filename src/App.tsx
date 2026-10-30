@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { combinableCount } from './game/collection/pieces'
+import { TutorialStep } from './game/core/state'
 import { act, useGame } from './game/core/store'
 import { tick } from './game/core/tick'
 import { isExpeditionDone } from './game/team/expedition'
@@ -44,7 +45,7 @@ export default function App() {
     dex: combinableCount(game) > 0,
   }
 
-  if (game.tutorial === 'starter') {
+  if (game.tutorial === TutorialStep.Starter) {
     return (
       <div className="app">
         <StarterScreen />

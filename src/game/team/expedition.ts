@@ -4,7 +4,7 @@ import { moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
 import { addPieces } from '../collection/pieces'
 import { pickEncounter, randInt, type Rng } from '../core/random'
-import { findMon, monPlace, type Expedition, type GameState, type OwnedMon } from '../core/state'
+import { findMon, MonPlace, monPlace, type Expedition, type GameState, type OwnedMon } from '../core/state'
 import { gainExp, type LevelUpResult } from './stats'
 import { upgradeLevel } from './upgrades'
 
@@ -34,7 +34,7 @@ export function expeditionBlocker(s: GameState, uid: string): string | null {
   if (!mon) return 'Ese Pokémon no existe.'
   const place = monPlace(s, uid)
   if (place === 'run') return 'Está explorando una ruta.'
-  if (place === 'expedition') return 'Ya está de expedición.'
+  if (place === MonPlace.Expedition) return 'Ya está de expedición.'
   if (s.expeditions.length >= expeditionSlots(s)) return 'No quedan huecos de expedición. Amplíalos en la Tienda.'
   if (mon.hp < 1) return `${species(mon.speciesId).name} está debilitado.`
   return null

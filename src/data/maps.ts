@@ -1,4 +1,4 @@
-import { speciesByName } from './species'
+import { Pokemon as P } from './pokemon'
 
 export interface Encounter {
   speciesId: number
@@ -6,8 +6,23 @@ export interface Encounter {
   chance: number
 }
 
-/** Tipos de parada. Previstos para más adelante: 'trainer' | 'chest' | 'rest' | 'special' */
-type NodeKind = 'start' | 'wild' | 'boss'
+/** Tipos de parada. Previstos para más adelante: entrenador, cofre, descanso y especial */
+export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss' } as const
+export type NodeKind = (typeof NodeKind)[keyof typeof NodeKind]
+
+/** Fondo de la escena de caminar (ver src/ui/route/scenery/) */
+export const Biome = { Meadow: 'meadow', Forest: 'forest', Cave: 'cave', Sea: 'sea' } as const
+export type Biome = (typeof Biome)[keyof typeof Biome]
+
+/** Rutas por su id. El valor se guarda en la partida: no cambiarlo sin subir SAVE_VERSION */
+export const RouteId = {
+  PuebloPaleta: 'pueblo-paleta',
+  Ruta1: 'ruta-1',
+  BosqueVerde: 'bosque-verde',
+  MonteMoon: 'monte-moon',
+  RutaMarina: 'ruta-marina',
+} as const
+export type RouteId = (typeof RouteId)[keyof typeof RouteId]
 
 /** Rival fijo de una parada de jefe */
 export interface Boss {
@@ -32,15 +47,12 @@ export interface RouteNode {
   levelBonus?: number
   /** Si se define, sustituye a los encuentros de la ruta */
   encounters?: Encounter[]
-  /** Obligatorio en las paradas 'boss': siempre sale este Pokémon a este nivel */
+  /** Obligatorio en las paradas de jefe: siempre sale este Pokémon a este nivel */
   boss?: Boss
 }
 
-/** Fondo de la escena de caminar (ver src/ui/route/scenery/) */
-export type Biome = 'meadow' | 'forest' | 'cave' | 'sea'
-
 export interface Route {
-  id: string
+  id: RouteId
   name: string
   description: string
   /** Fondo animado que se ve mientras el Pokémon camina */
@@ -53,7 +65,7 @@ export interface Route {
    * `firstClearTickets` se suma solo la primera vez que se completa.
    */
   reward: { tickets: number; money: number; exp: number; firstClearTickets?: number }
-  unlocks?: string
+  unlocks?: RouteId
 }
 
 interface GameMap {
@@ -62,12 +74,12 @@ interface GameMap {
   routes: Route[]
 }
 
-/** Pokémon que salen y su probabilidad en %: `enc({ Pidgey: 30, Rattata: 70 })` */
-const enc = (chances: Record<string, number>): Encounter[] =>
-  Object.entries(chances).map(([name, chance]) => ({ speciesId: speciesByName(name).id, chance }))
+/** Pokémon que salen y su probabilidad en %: `enc([P.Pidgey, 30], [P.Rattata, 70])` */
+const enc = (...chances: [speciesId: number, chance: number][]): Encounter[] =>
+  chances.map(([speciesId, chance]) => ({ speciesId, chance }))
 
-/** Jefe de una parada por su nombre exacto de pokemon.json: `boss('Pidgeotto', 7)` */
-const boss = (name: string, level: number): Boss => ({ speciesId: speciesByName(name).id, level })
+/** Jefe de una parada: `boss(P.Pidgeotto, 7)` */
+const boss = (speciesId: number, level: number): Boss => ({ speciesId, level })
 
 /** Atajo para un camino sin bifurcar: cada nodo enlaza con el siguiente de la lista */
 type Stop = Omit<RouteNode, 'next'> & { steps: number }
@@ -84,93 +96,93 @@ export const KANTO: GameMap = {
   routes: [
     {
       // Tutorial: ~3 min con un inicial (≈21 pasos/min) y 3 combates fáciles
-      id: 'pueblo-paleta',
+      id: RouteId.PuebloPaleta,
       name: 'Pueblo Paleta',
       description: 'Tu primer paseo: da una vuelta por el pueblo antes de salir a la Ruta 1.',
-      biome: 'meadow',
+      biome: Biome.Meadow,
       levels: [2, 3],
-      encounters: enc({ Pidgey: 40, Rattata: 40, Caterpie: 20 }),
+      encounters: enc([P.Pidgey, 40], [P.Rattata, 40], [P.Caterpie, 20]),
       reward: { tickets: 0, money: 50, exp: 100, firstClearTickets: 3 },
-      unlocks: 'ruta-1',
+      unlocks: RouteId.Ruta1,
       nodes: chain(
-        { id: 's', name: 'Tu casa', kind: 'start', steps: 0 },
-        { id: 'a', name: 'Jardín', kind: 'wild', steps: 18 },
-        { id: 'b', name: 'Plaza', kind: 'wild', steps: 18 },
-        { id: 'c', name: 'Afueras', kind: 'wild', steps: 20 },
+        { id: 's', name: 'Tu casa', kind: NodeKind.Start, steps: 0 },
+        { id: 'a', name: 'Jardín', kind: NodeKind.Wild, steps: 18 },
+        { id: 'b', name: 'Plaza', kind: NodeKind.Wild, steps: 18 },
+        { id: 'c', name: 'Afueras', kind: NodeKind.Wild, steps: 20 },
       ),
     },
     {
       // ~6 min y 7 combates, el último contra un jefe: con un inicial sin mejorar se pierde casi siempre
-      id: 'ruta-1',
+      id: RouteId.Ruta1,
       name: 'Ruta 1',
       description: 'El camino a Ciudad Verde. Más largo y peligroso de lo que parece.',
-      biome: 'meadow',
+      biome: Biome.Meadow,
       levels: [5, 8],
-      encounters: enc({ Pidgey: 30, Rattata: 30, Caterpie: 13, Weedle: 13, 'Nidoran♀': 7, 'Nidoran♂': 7 }),
+      encounters: enc([P.Pidgey, 30], [P.Rattata, 30], [P.Caterpie, 13], [P.Weedle, 13], [P.NidoranF, 7], [P.NidoranM, 7]),
       reward: { tickets: 2, money: 200, exp: 250 },
-      // unlocks: 'bosque-verde', (reactivar junto con Bosque Verde)
+      // unlocks: RouteId.BosqueVerde, (reactivar junto con Bosque Verde)
       nodes: chain(
-        { id: 's', name: 'Salida del pueblo', kind: 'start', steps: 0 },
-        { id: 'a', name: 'Prado', kind: 'wild', steps: 16 },
-        { id: 'b', name: 'Hierba alta', kind: 'wild', steps: 16, levelBonus: 1 },
-        { id: 'c', name: 'Arboleda', kind: 'wild', steps: 16, encounters: enc({ Caterpie: 40, Weedle: 40, Pidgey: 20 }) },
-        { id: 'd', name: 'Senda', kind: 'wild', steps: 16 },
-        { id: 'e', name: 'Campo', kind: 'wild', steps: 16, encounters: enc({ Rattata: 40, 'Nidoran♀': 30, 'Nidoran♂': 30 }) },
-        { id: 'f', name: 'Hierba crecida', kind: 'wild', steps: 16, levelBonus: 2 },
-        { id: 'g', name: 'Entrada a Ciudad Verde', kind: 'boss', steps: 16, boss: boss('Pidgeotto', 7) },
+        { id: 's', name: 'Salida del pueblo', kind: NodeKind.Start, steps: 0 },
+        { id: 'a', name: 'Prado', kind: NodeKind.Wild, steps: 16 },
+        { id: 'b', name: 'Hierba alta', kind: NodeKind.Wild, steps: 16, levelBonus: 1 },
+        { id: 'c', name: 'Arboleda', kind: NodeKind.Wild, steps: 16, encounters: enc([P.Caterpie, 40], [P.Weedle, 40], [P.Pidgey, 20]) },
+        { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 16 },
+        { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 16, encounters: enc([P.Rattata, 40], [P.NidoranF, 30], [P.NidoranM, 30]) },
+        { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 16, levelBonus: 2 },
+        { id: 'g', name: 'Entrada a Ciudad Verde', kind: NodeKind.Boss, steps: 16, boss: boss(P.Pidgeotto, 8) },
       ),
     },
     // {
-    //   id: 'bosque-verde',
+    //   id: RouteId.BosqueVerde,
     //   name: 'Bosque Verde',
     //   description: 'Un bosque frondoso lleno de Pokémon bicho.',
-    //   biome: 'forest',
+    //   biome: Biome.Forest,
     //   levels: [4, 7],
-    //   encounters: enc({ Caterpie: 20, Weedle: 20, Metapod: 15, Kakuna: 15, Pidgey: 8, Oddish: 8, Bellsprout: 8, Pikachu: 6 }),
+    //   encounters: enc([P.Caterpie, 20], [P.Weedle, 20], [P.Metapod, 15], [P.Kakuna, 15], [P.Pidgey, 8], [P.Oddish, 8], [P.Bellsprout, 8], [P.Pikachu, 6]),
     //   reward: { tickets: 4, money: 180, exp: 350 },
-    //   unlocks: 'monte-moon',
+    //   unlocks: RouteId.MonteMoon,
     //   nodes: chain(
-    //     { id: 's', name: 'Linde del bosque', kind: 'start', steps: 0 },
-    //     { id: 'a', name: 'Sotobosque', kind: 'wild', steps: 80 },
-    //     { id: 'b', name: 'Matorral', kind: 'wild', steps: 90, encounters: enc({ Oddish: 40, Bellsprout: 40, Caterpie: 20 }) },
-    //     { id: 'c', name: 'Tronco hueco', kind: 'wild', steps: 80, encounters: enc({ Metapod: 43, Kakuna: 43, Pikachu: 14 }) },
-    //     { id: 'd', name: 'Claro', kind: 'wild', steps: 80, levelBonus: 1 },
-    //     { id: 'e', name: 'Corazón del bosque', kind: 'wild', steps: 70, levelBonus: 2, encounters: enc({ Pikachu: 60, Butterfree: 20, Beedrill: 20 }) },
+    //     { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
+    //     { id: 'a', name: 'Sotobosque', kind: NodeKind.Wild, steps: 80 },
+    //     { id: 'b', name: 'Matorral', kind: NodeKind.Wild, steps: 90, encounters: enc([P.Oddish, 40], [P.Bellsprout, 40], [P.Caterpie, 20]) },
+    //     { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([P.Metapod, 43], [P.Kakuna, 43], [P.Pikachu, 14]) },
+    //     { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
+    //     { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([P.Pikachu, 60], [P.Butterfree, 20], [P.Beedrill, 20]) },
     //   ),
     // },
     // {
-    //   id: 'monte-moon',
+    //   id: RouteId.MonteMoon,
     //   name: 'Monte Moon',
     //   description: 'Cuevas oscuras donde dicen que caen meteoritos.',
-    //   biome: 'cave',
+    //   biome: Biome.Cave,
     //   levels: [7, 11],
-    //   encounters: enc({ Zubat: 25, Geodude: 20, Paras: 15, Sandshrew: 10, Ekans: 10, Machop: 10, Clefairy: 5, Jigglypuff: 5 }),
+    //   encounters: enc([P.Zubat, 25], [P.Geodude, 20], [P.Paras, 15], [P.Sandshrew, 10], [P.Ekans, 10], [P.Machop, 10], [P.Clefairy, 5], [P.Jigglypuff, 5]),
     //   reward: { tickets: 5, money: 300, exp: 800 },
-    //   unlocks: 'ruta-marina',
+    //   unlocks: RouteId.RutaMarina,
     //   nodes: chain(
-    //     { id: 's', name: 'Entrada a la cueva', kind: 'start', steps: 0 },
-    //     { id: 'a', name: 'Galería', kind: 'wild', steps: 90 },
-    //     { id: 'b', name: 'Túnel de rocas', kind: 'wild', steps: 100, encounters: enc({ Geodude: 50, Sandshrew: 25, Machop: 25 }) },
-    //     { id: 'c', name: 'Charca subterránea', kind: 'wild', steps: 90, encounters: enc({ Zubat: 45, Paras: 33, Ekans: 22 }) },
-    //     { id: 'd', name: 'Cráter lunar', kind: 'wild', steps: 100, levelBonus: 1, encounters: enc({ Clefairy: 45, Jigglypuff: 33, Zubat: 22 }) },
-    //     { id: 'e', name: 'Cima del monte', kind: 'wild', steps: 80, levelBonus: 3, encounters: enc({ Clefairy: 33, Geodude: 33, Golbat: 17, Graveler: 17 }) },
+    //     { id: 's', name: 'Entrada a la cueva', kind: NodeKind.Start, steps: 0 },
+    //     { id: 'a', name: 'Galería', kind: NodeKind.Wild, steps: 90 },
+    //     { id: 'b', name: 'Túnel de rocas', kind: NodeKind.Wild, steps: 100, encounters: enc([P.Geodude, 50], [P.Sandshrew, 25], [P.Machop, 25]) },
+    //     { id: 'c', name: 'Charca subterránea', kind: NodeKind.Wild, steps: 90, encounters: enc([P.Zubat, 45], [P.Paras, 33], [P.Ekans, 22]) },
+    //     { id: 'd', name: 'Cráter lunar', kind: NodeKind.Wild, steps: 100, levelBonus: 1, encounters: enc([P.Clefairy, 45], [P.Jigglypuff, 33], [P.Zubat, 22]) },
+    //     { id: 'e', name: 'Cima del monte', kind: NodeKind.Wild, steps: 80, levelBonus: 3, encounters: enc([P.Clefairy, 33], [P.Geodude, 33], [P.Golbat, 17], [P.Graveler, 17]) },
     //   ),
     // },
     // {
-    //   id: 'ruta-marina',
+    //   id: RouteId.RutaMarina,
     //   name: 'Ruta Marina',
     //   description: 'Islotes y corrientes. Hay que nadar mucho.',
-    //   biome: 'sea',
+    //   biome: Biome.Sea,
     //   levels: [13, 18],
-    //   encounters: enc({ Tentacool: 22, Magikarp: 17, Psyduck: 13, Poliwag: 13, Horsea: 9, Krabby: 9, Staryu: 9, Shellder: 8 }),
+    //   encounters: enc([P.Tentacool, 22], [P.Magikarp, 17], [P.Psyduck, 13], [P.Poliwag, 13], [P.Horsea, 9], [P.Krabby, 9], [P.Staryu, 9], [P.Shellder, 8]),
     //   reward: { tickets: 6, money: 450, exp: 1800 },
     //   nodes: chain(
-    //     { id: 's', name: 'Playa', kind: 'start', steps: 0 },
-    //     { id: 'a', name: 'Bajío', kind: 'wild', steps: 100 },
-    //     { id: 'b', name: 'Arrecife', kind: 'wild', steps: 110, encounters: enc({ Staryu: 34, Shellder: 33, Krabby: 33 }) },
-    //     { id: 'c', name: 'Mar abierto', kind: 'wild', steps: 100, encounters: enc({ Tentacool: 40, Horsea: 30, Magikarp: 30 }) },
-    //     { id: 'd', name: 'Cala', kind: 'wild', steps: 110, levelBonus: 2, encounters: enc({ Psyduck: 38, Poliwag: 37, Slowpoke: 25 }) },
-    //     { id: 'e', name: 'Remolino', kind: 'wild', steps: 90, levelBonus: 3, encounters: enc({ Tentacruel: 40, Gyarados: 20, Starmie: 20, Golduck: 20 }) },
+    //     { id: 's', name: 'Playa', kind: NodeKind.Start, steps: 0 },
+    //     { id: 'a', name: 'Bajío', kind: NodeKind.Wild, steps: 100 },
+    //     { id: 'b', name: 'Arrecife', kind: NodeKind.Wild, steps: 110, encounters: enc([P.Staryu, 34], [P.Shellder, 33], [P.Krabby, 33]) },
+    //     { id: 'c', name: 'Mar abierto', kind: NodeKind.Wild, steps: 100, encounters: enc([P.Tentacool, 40], [P.Horsea, 30], [P.Magikarp, 30]) },
+    //     { id: 'd', name: 'Cala', kind: NodeKind.Wild, steps: 110, levelBonus: 2, encounters: enc([P.Psyduck, 38], [P.Poliwag, 37], [P.Slowpoke, 25]) },
+    //     { id: 'e', name: 'Remolino', kind: NodeKind.Wild, steps: 90, levelBonus: 3, encounters: enc([P.Tentacruel, 40], [P.Gyarados, 20], [P.Starmie, 20], [P.Golduck, 20]) },
     //   ),
     // },
   ],
@@ -189,7 +201,7 @@ export function node(r: Route, id: string): RouteNode {
 }
 
 function startNode(r: Route): RouteNode {
-  return r.nodes.find((n) => n.kind === 'start') ?? r.nodes[0]
+  return r.nodes.find((n) => n.kind === NodeKind.Start) ?? r.nodes[0]
 }
 
 /** Camino desde `fromId` hasta un final tomando siempre la primera opción de cada bifurcación */

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { Rarity } from '../../data/species'
 import { initialState } from '../core/state'
 import { seqRng } from '../core/test-utils'
 import { buyTicket, PIECES_PER_PULL, pull, TICKET_PRICE } from './gacha'
@@ -27,7 +28,7 @@ describe('pull', () => {
   it('las piezas se suman por especie y la marcan como vista, no como capturada', () => {
     const s = initialState()
     const [drop] = pull(s, 1, LEGENDARY)
-    expect(drop.rarity).toBe('legendary')
+    expect(drop.rarity).toBe(Rarity.Legendary)
     expect(piecesOf(s, drop.speciesId)).toBe(PIECES_PER_PULL)
     expect(s.seen).toContain(drop.speciesId)
     expect(s.caught).not.toContain(drop.speciesId)

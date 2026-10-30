@@ -1,21 +1,27 @@
 import { useState } from 'react'
 import { signatureMove } from '../../data/moves'
 import { RARITY_INFO, rarityOf, species } from '../../data/species'
-import { monPlace, type GameState, type MonPlace, type OwnedMon } from '../../game/core/state'
+import { MonPlace, monPlace, type GameState, type OwnedMon } from '../../game/core/state'
 import { act } from '../../game/core/store'
+import type { EvolveResult } from '../../game/team/evolution'
 import { healCost, healInstant, REGEN_PER_MIN, setActive, train, trainCost } from '../../game/team/ranch'
 import { calcStats, expToNext, maxHp, stepsPerMinute } from '../../game/team/stats'
 import { Bar, MoveChip, Sprite, TypeBadge } from '../shared/common'
+import { EvolvePanel } from './EvolvePanel'
 
-const PLACE_LABEL: Record<MonPlace, string> = { ranch: 'En el rancho', run: 'En ruta', expedition: 'De expedición' }
+const PLACE_LABEL: Record<MonPlace, string> = {
+  [MonPlace.Ranch]: 'En el rancho',
+  [MonPlace.Run]: 'En ruta',
+  [MonPlace.Expedition]: 'De expedición',
+}
 
-export function MonDetail({ game, mon }: { game: GameState; mon: OwnedMon }) {
+export function MonDetail({ game, mon, onEvolved }: { game: GameState; mon: OwnedMon; onEvolved: (result: EvolveResult) => void }) {
   const [message, setMessage] = useState('')
   const sp = species(mon.speciesId)
   const stats = calcStats(mon.speciesId, mon.level, mon.stars)
   const hpMax = maxHp(mon)
   const place = monPlace(game, mon.uid)
-  const busy = place !== 'ranch'
+  const busy = place !== MonPlace.Ranch
   const isActive = mon.uid === game.activeUid
   const rarity = RARITY_INFO[rarityOf(sp)]
 
@@ -88,6 +94,7 @@ export function MonDetail({ game, mon }: { game: GameState; mon: OwnedMon }) {
         </button>
       </div>
 
+      <EvolvePanel game={game} mon={mon} onEvolved={onEvolved} />
     </div>
   )
 }

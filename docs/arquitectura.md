@@ -19,13 +19,13 @@ src/
   App.tsx             Bucle de tiempo, menú inferior y pantalla de cada pestaña
   index.css           Entrada de los estilos base (src/styles/: variables, estructura y piezas comunes)
   assets/             Imágenes propias (fondo del rancho)
-  data/               species, types, moves, maps + pokemon.json
+  data/               species, pokemon (ids por nombre), types, moves, maps, evolutions + pokemon.json
   game/
     core/             state (GameState, SAVE_VERSION), store (useGame, act, guardado), teamBackup, random, tick,
                       test-utils
     battle/           battle (simulación por turnos), rewards (₽, tickets y piezas por victoria)
     run/              run (salida, avance por tiempo, toques), runBattle (combates de la ruta y premio final)
-    team/             mons (alta), stats, ranch, expedition, upgrades, tutorial
+    team/             mons (alta), stats, ranch, evolution, expedition, upgrades, tutorial
     collection/       dex (vistos, capturados, favoritos), pieces, gacha, shredder
   ui/
     shared/           Sprite y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
@@ -46,9 +46,11 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | Módulo | Responsabilidad |
 |---|---|
 | `data/species.ts` | Especies (desde `pokemon.json`, reducidas a 4 stats), rarezas, sprites, iniciales |
+| `data/pokemon.ts` | `Pokemon`: número de cada especie por su nombre (`Pokemon.Pidgey`), para no escribir ids sueltos |
 | `data/types.ts` | Tipos y tabla de eficacias |
 | `data/moves.ts` | Un movimiento de daño por tipo y rareza; `signatureMove` da el de cada especie |
 | `data/maps.ts` | Mapas, rutas, nodos, encuentros y consultas de caminos (`pathFrom`, `isValidPath`) |
+| `data/evolutions.ts` | Evoluciones de la 1ª gen. (`evolutionsOf`) |
 | `game/core/state.ts` | Tipos de `GameState`, estado inicial, `SAVE_VERSION`, `restoreState` y dónde está cada Pokémon (`monPlace`) |
 | `game/core/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
 | `game/core/teamBackup.ts` | Copia del equipo que sobrevive a los cambios de `SAVE_VERSION` (provisional, hasta tener servidor) |
@@ -61,6 +63,7 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/team/mons.ts` | Alta de un Pokémon (`createMon`) |
 | `game/team/stats.ts` | Fórmulas de stats, EXP y velocidad de paso |
 | `game/team/ranch.ts` | Acciones del rancho y descanso |
+| `game/team/evolution.ts` | Evolucionar un Pokémon de 5 ★ (`evolve`, `evolveBlocker`) |
 | `game/team/expedition.ts` | Expediciones por tiempo |
 | `game/team/upgrades.ts` | Mejoras de la pestaña Tienda (precios por nivel y compra) |
 | `game/team/tutorial.ts` | Elección del inicial (da sus piezas) y pasos del tutorial; `combine` y `startRun` lo avanzan |

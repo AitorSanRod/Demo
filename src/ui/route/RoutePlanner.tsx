@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { node, pathFrom, type Route } from '../../data/maps'
-import type { GameState } from '../../game/core/state'
+import { node, NodeKind, pathFrom, type Route } from '../../data/maps'
+import { TutorialStep, type GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { startRun } from '../../game/run/run'
 import { Sprite } from '../shared/common'
@@ -34,7 +34,7 @@ export function RoutePlanner({ game, route: r, canStart }: { game: GameState; ro
                   <span className="tiny muted">Te espera al final. Pega más fuerte que un salvaje, pero da más premio.</span>
                 </span>
               )}
-              {n.kind === 'wild' && (
+              {n.kind === NodeKind.Wild && (
                 <span className="pool mini">
                   {pool.slice(0, 6).map((sid) => (
                     <Sprite key={sid} id={sid} size={28} animated={false} silhouette={!game.seen.includes(sid)} />
@@ -58,7 +58,7 @@ export function RoutePlanner({ game, route: r, canStart }: { game: GameState; ro
           )
         })}
       </ol>
-      {game.tutorial === 'route' && (
+      {game.tutorial === TutorialStep.Route && (
         <TutorialHint arrowX="85%">
           Tu Pokémon caminará solo y combatirá en cada parada. ¡Pulsa «¡En marcha!» y a partir de aquí juega a tu aire!
         </TutorialHint>
@@ -66,7 +66,7 @@ export function RoutePlanner({ game, route: r, canStart }: { game: GameState; ro
       <div className="row between">
         <RouteReward game={game} r={r} />
         <button
-          className={`btn primary ${game.tutorial === 'route' ? 'tutorial-target' : ''}`}
+          className={`btn primary ${game.tutorial === TutorialStep.Route ? 'tutorial-target' : ''}`}
           disabled={!canStart}
           onClick={() => act((s) => startRun(s, r.id, path))}
         >

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { KANTO } from '../../data/maps'
 import { signatureMove } from '../../data/moves'
 import { species } from '../../data/species'
-import { activeMon, type GameState } from '../../game/core/state'
+import { activeMon, TutorialStep, type GameState } from '../../game/core/state'
 import { runBlocker } from '../../game/run/run'
 import { TutorialHint } from '../shared/TutorialHint'
 import { RoutePlanner } from './RoutePlanner'
@@ -29,7 +29,7 @@ export function RouteMap({ game }: { game: GameState }) {
           const done = game.completedRoutes.includes(r.id)
           const open = unlocked && openId === r.id
           // En el tutorial se guía hasta la primera ruta, que es la única desbloqueada
-          const guided = game.tutorial === 'route' && unlocked
+          const guided = game.tutorial === TutorialStep.Route && unlocked
           return (
             <div key={r.id} className={`card route-card ${unlocked ? '' : 'locked'}`}>
               <div className="route-card-head">
