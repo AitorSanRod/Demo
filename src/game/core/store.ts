@@ -1,19 +1,33 @@
 import { useSyncExternalStore } from 'react'
 import { initialState, restoreState, type GameState } from './state'
+import { backupTeam, parseTeamBackup, restoreTeam } from './teamBackup'
 
 const SAVE_KEY = 'pokerancho-save'
+/** Copia del equipo que sobrevive a los cambios de versión (ver teamBackup.ts). Provisional hasta tener servidor */
+const TEAM_KEY = 'pokerancho-team'
 
+const readJson = (key: string): unknown => {
+  const raw = localStorage.getItem(key)
+  return raw ? JSON.parse(raw) : null
+}
+
+/** La partida guardada si es de esta versión; si no, una nueva con el equipo recuperado de su copia */
 function load(): GameState {
   try {
-    const raw = localStorage.getItem(SAVE_KEY)
-    if (raw) {
-      const restored = restoreState(JSON.parse(raw))
-      if (restored) return restored
-    }
+    const saved = readJson(SAVE_KEY)
+    const restored = saved ? restoreState(saved as GameState) : null
+    if (restored) return restored
   } catch {
-    // Partida corrupta o almacenamiento no disponible: se empieza de cero
+    // Partida corrupta: se empieza de cero (intentando recuperar el equipo)
   }
-  return initialState()
+  const fresh = initialState()
+  try {
+    const backup = parseTeamBackup(readJson(TEAM_KEY))
+    if (backup) restoreTeam(fresh, backup)
+  } catch {
+    // Copia corrupta o almacenamiento no disponible: partida nueva sin equipo
+  }
+  return fresh
 }
 
 let state = load()
@@ -24,6 +38,7 @@ function save() {
   saveTimer = undefined
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state))
+    localStorage.setItem(TEAM_KEY, JSON.stringify(backupTeam(state)))
   } catch {
     // Sin almacenamiento: la partida dura lo que la pestaña
   }
@@ -50,6 +65,7 @@ export function act<T>(recipe: (draft: GameState) => T): T {
   return result
 }
 
+/** Reiniciar borra también la copia del equipo: se empieza de verdad de cero, con el tutorial */
 export function resetGame() {
   state = initialState()
   save()

@@ -21,7 +21,8 @@ src/
   assets/             Imágenes propias (fondo del rancho)
   data/               species, types, moves, maps + pokemon.json
   game/
-    core/             state (GameState, SAVE_VERSION), store (useGame, act, guardado), random, tick, test-utils
+    core/             state (GameState, SAVE_VERSION), store (useGame, act, guardado), teamBackup, random, tick,
+                      test-utils
     battle/           battle (simulación por turnos), rewards (₽, tickets y piezas por victoria)
     run/              run (salida, avance por tiempo, toques), runBattle (combates de la ruta y premio final)
     team/             mons (alta), stats, ranch, expedition, upgrades, tutorial
@@ -50,6 +51,7 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `data/maps.ts` | Mapas, rutas, nodos, encuentros y consultas de caminos (`pathFrom`, `isValidPath`) |
 | `game/core/state.ts` | Tipos de `GameState`, estado inicial, `SAVE_VERSION`, `restoreState` y dónde está cada Pokémon (`monPlace`) |
 | `game/core/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
+| `game/core/teamBackup.ts` | Copia del equipo que sobrevive a los cambios de `SAVE_VERSION` (provisional, hasta tener servidor) |
 | `game/core/random.ts` | Tipo `Rng` y utilidades de azar |
 | `game/core/tick.ts` | `tick`: avance del tiempo (ruta, expediciones y descanso) |
 | `game/battle/battle.ts` | Simulación de combate automático |
@@ -91,8 +93,15 @@ En los tests se pasa un rng determinista. Una función nueva con azar **debe** s
 - `SAVE_VERSION` (en `core/state.ts`) se compara al cargar; si no coincide, se empieza partida nueva.
 - Si coincide, `restoreState` rellena con su valor inicial los campos que falten en la partida guardada.
 - Cualquier cambio en la forma de `GameState`, `OwnedMon`, `Run` o `Expedition` obliga a subir la versión.
-- Si en el futuro se quiere conservar partidas, añade una función `migrate(old)` en `core/state.ts` en lugar de
-  descartarlas.
+- **El equipo se conserva entre versiones** (provisional, mientras la partida viva en el navegador). Cada guardado
+  escribe también `pokerancho-team`: especie, nivel, EXP y estrellas de cada Pokémon y cuál es el activo, con un
+  formato propio (`TEAM_BACKUP_FORMAT`) que no depende de `SAVE_VERSION`. Si la partida es de otra versión, se
+  empieza una nueva y `restoreTeam` rehace el equipo (PS al máximo, capturados y sin tutorial); dinero, piezas,
+  rutas y lo demás empiezan de cero. Reiniciar desde ⚙️ guarda la copia vacía y se empieza de verdad desde el
+  tutorial.
+- Si cambia la forma de `TeamBackup`, sube `TEAM_BACKUP_FORMAT` y haz que `parseTeamBackup` siga leyendo el
+  formato anterior: es lo único que debe sobrevivir a cualquier actualización.
+- Con servidor y base de datos, la copia del equipo desaparece: la partida completa vivirá allí.
 
 ## Bucle de tiempo
 

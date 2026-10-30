@@ -67,3 +67,7 @@
     opacity: 0;
   }
 }
+/* La silueta va centrada en el foco, donde estaba la Pokéball (por defecto .sprite se apoya abajo) */
+.starter-slot .sprite {
+  align-items: center;
+}

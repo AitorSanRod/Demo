@@ -31,7 +31,8 @@ Las dependencias solo van en ese sentido. `src/game` se agrupa por dominio (`cor
 - **La lógica del juego vive en `src/game`** y es pura: recibe el estado (y un `rng` inyectable) y lo modifica.
   La UI solo lee el estado y llama a acciones mediante `act()`.
 - **Constantes de balance con nombre y `/** comentario */`** que explique la unidad y el efecto.
-- **Cambios en `GameState`** ⇒ subir `SAVE_VERSION` en `src/game/core/state.ts`.
+- **Cambios en `GameState`** ⇒ subir `SAVE_VERSION` en `src/game/core/state.ts`. La partida se reinicia, pero el
+  equipo se conserva (`core/teamBackup.ts`, provisional hasta tener servidor).
 - **Tests** para toda lógica nueva o modificada en `src/game` (`*.test.ts` junto al fichero).
 - Identificadores en inglés; comentarios, textos de UI y documentación en español.
 
