@@ -17,6 +17,15 @@
     box-shadow: none;
   }
 }
+/* App instalada: en iOS, con la barra de estado translúcida, la ventana que recibe la página es más corta que la
+   pantalla (le falta el alto de la barra de estado) y inset: 0 deja esa franja vacía abajo. 100vh sí mide la
+   pantalla entera en este modo. Solo aquí: en el navegador 100vh mete el menú bajo la barra de Safari. */
+@media (display-mode: standalone) {
+  .app {
+    bottom: auto;
+    height: 100vh;
+  }
+}
 .top-bar {
   display: flex;
   align-items: center;
