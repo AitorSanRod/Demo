@@ -80,10 +80,9 @@ Pueblo Paleta da 3 tickets solo la primera vez (`reward.firstClearTickets` en `m
 
 ## Contenido actual
 
-- Mapa de Kanto con 5 rutas encadenadas: Pueblo Paleta (tutorial, 3 combates), Ruta 1 (6 combates y el jefe
-  Pidgeotto Nv. 7 al final, exige entrenar),
-  Bosque Verde, Monte Moon y Ruta Marina; todas de camino único. Ver
-  `src/data/maps.ts`.
+- Mapa de Kanto con 2 rutas activas, de camino único: Pueblo Paleta (tutorial, 3 combates) y Ruta 1 (6 combates
+  y el jefe Pidgeotto Nv. 7 al final, exige entrenar). Bosque Verde, Monte Moon y Ruta Marina están comentadas en
+  `src/data/maps.ts`; al reactivarlas hay que devolver `unlocks` a la ruta anterior.
 - Los 151 Pokémon de 1ª generación, de PokeAPI, en `src/data/pokemon.json` (se regenera con
   `scripts/fetch-pokemon.mjs`).
 - Existen nodos `start`, `wild` y `boss` (solo el final de la Ruta 1).

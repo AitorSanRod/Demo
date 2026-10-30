@@ -67,8 +67,8 @@ describe('expediciones', () => {
 
   it('un Pokémon débil para la ruta tiene menos probabilidad de ganar', () => {
     const { mon } = stateOnExpedition()
-    const r = route('ruta-marina')
-    mon.level = 5
+    const r = route('ruta-1')
+    mon.level = 2
     const weak = expeditionWinRate(mon, r)
     mon.level = 20
     expect(weak).toBeLessThan(expeditionWinRate(mon, r))

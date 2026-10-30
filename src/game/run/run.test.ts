@@ -40,7 +40,8 @@ describe('startRun', () => {
   it('no sale a una ruta bloqueada', () => {
     const s = initialState()
     chooseStarter(s, CHARMANDER)
-    startRun(s, 'monte-moon')
+    // Al empezar solo está desbloqueada la primera ruta
+    startRun(s, 'ruta-1')
     expect(s.run).toBeNull()
   })
 
