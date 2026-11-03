@@ -12,32 +12,32 @@ function addFighter(raid: Raid, id: string) {
 
 describe('tiempo estimado para tirar al jefe', () => {
   it('sin nadie en la sala no hay estimación', () => {
-    const { s } = raidState()
-    expect(raidMinutesLeft(s)).toBeNull()
+    const { s, raid } = raidState()
+    expect(raidMinutesLeft(s, raid)).toBeNull()
   })
 
   it('con la misma sala sale siempre lo mismo y no la cambia', () => {
     const { s, raid } = raidState()
     addFighter(raid, 'a')
     const before = structuredClone(raid)
-    expect(raidMinutesLeft(s)).toBe(raidMinutesLeft(s))
+    expect(raidMinutesLeft(s, raid)).toBe(raidMinutesLeft(s, raid))
     expect(raid).toEqual(before)
   })
 
   it('con más Pokémon en la sala tarda menos', () => {
     const { s, raid } = raidState()
     addFighter(raid, 'a')
-    const alone = raidMinutesLeft(s)!
+    const alone = raidMinutesLeft(s, raid)!
     addFighter(raid, 'b')
     addFighter(raid, 'c')
-    expect(raidMinutesLeft(s)!).toBeLessThan(alone)
+    expect(raidMinutesLeft(s, raid)!).toBeLessThan(alone)
   })
 
   it('con menos vida por quitar tarda menos', () => {
     const { s, raid } = raidState()
     addFighter(raid, 'a')
-    const full = raidMinutesLeft(s)!
+    const full = raidMinutesLeft(s, raid)!
     raid.hp = Math.round(raid.maxHp / 2)
-    expect(raidMinutesLeft(s)!).toBeCloseTo(full / 2)
+    expect(raidMinutesLeft(s, raid)!).toBeCloseTo(full / 2)
   })
 })

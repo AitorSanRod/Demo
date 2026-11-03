@@ -6,8 +6,11 @@ export interface Encounter {
   chance: number
 }
 
-/** Tipos de parada. Previstos para más adelante: entrenador, cofre, descanso y especial */
-export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss' } as const
+/**
+ * Tipos de parada. `Raid`: jefe comunitario; al llegar empieza una pelea en sala con los que van llegando (ver
+ * game/raid/routeRaid.ts). Previstos para más adelante: entrenador, cofre, descanso y especial
+ */
+export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss', Raid: 'raid' } as const
 export type NodeKind = (typeof NodeKind)[keyof typeof NodeKind]
 
 /** Fondo de la escena de caminar (ver src/ui/route/scenery/) */
@@ -48,7 +51,7 @@ export interface RouteNode {
   levelBonus?: number
   /** Si se define, sustituye a los encuentros de la ruta */
   encounters?: Encounter[]
-  /** Obligatorio en las paradas de jefe: siempre sale este Pokémon a este nivel */
+  /** Obligatorio en las paradas de jefe y de jefe comunitario: siempre sale este Pokémon a este nivel */
   boss?: Boss
 }
 

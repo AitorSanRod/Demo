@@ -1,24 +1,18 @@
 import { useState } from 'react'
-import { RARITY_INFO, rarityOf, species, SPECIES } from '../../data/species'
-import { isFavorite } from '../../game/collection/dex'
-import { canCombine, combinableCount, CombineKind, combineKind, PIECES_PER_COMBINE, piecesOf } from '../../game/collection/pieces'
+import { dexSections } from '../../data/pokedexes'
+import { species, SPECIES } from '../../data/species'
+import { canCombine, combinableCount } from '../../game/collection/pieces'
 import { TutorialStep, type GameState } from '../../game/core/state'
 import { tutorialStarter } from '../../game/team/tutorial'
-import { Sprite } from '../shared/common'
 import { TutorialHint } from '../shared/TutorialHint'
 import { PokemonSheet } from '../shared/sheet/PokemonSheet'
-import { PixelQuestion } from '../shared/PixelQuestion'
 import { ICON } from '../shared/icons'
-import { HeartIcon } from '../shared/HeartIcon'
 import { ItemIcon } from '../shared/ItemIcon'
+import { DexCell } from './DexCell'
+import { DexSection } from './DexSection'
 import './dex.css'
 
-/** Etiqueta sobre la casilla que ya se puede combinar */
-const READY_TAG: Record<CombineKind, string> = {
-  [CombineKind.Unlock]: '¡Crear!',
-  [CombineKind.Star]: '+1 ★',
-  [CombineKind.Money]: '₽',
-}
+const SECTIONS = dexSections()
 
 export function DexScreen({ game }: { game: GameState }) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -26,8 +20,8 @@ export function DexScreen({ game }: { game: GameState }) {
   const ready = combinableCount(game)
   // Si ya no queda ninguno listo, el filtro se quita solo
   const filtering = onlyReady && ready > 0
-  const shown = filtering ? SPECIES.filter((sp) => canCombine(game, sp.id)) : SPECIES
   const starter = game.tutorial === TutorialStep.Combine ? tutorialStarter(game) : undefined
+  const target = starter !== undefined && selectedId !== starter ? starter : undefined
 
   return (
     <>
@@ -42,9 +36,7 @@ export function DexScreen({ game }: { game: GameState }) {
           (filtering ? (
             <div className="notice small dex-filter">
               <ItemIcon item={ICON.Piece} size={18} />
-              <span className="grow">
-                Solo los listos para combinar ({ready})
-              </span>
+              <span className="grow">Solo los listos para combinar ({ready})</span>
               <button className="dex-filter-clear" onClick={() => setOnlyReady(false)} aria-label="Quitar el filtro">
                 ✕
               </button>
@@ -57,37 +49,40 @@ export function DexScreen({ game }: { game: GameState }) {
               </span>
             </button>
           ))}
-        {starter && selectedId !== starter && (
-          <TutorialHint>Toca a {species(starter).name} (la casilla que parpadea) para ver sus tickets.</TutorialHint>
+        {target !== undefined && (
+          <TutorialHint>Toca a {species(target).name} (la casilla que parpadea) para ver sus tickets.</TutorialHint>
         )}
-        <div className="dex-grid">
-          {shown.map((sp) => {
-            const caught = game.caught.includes(sp.id)
-            const seen = caught || game.seen.includes(sp.id)
-            const pieces = piecesOf(game, sp.id)
-            const ready = canCombine(game, sp.id)
-            return (
-              <button
-                key={sp.id}
-                className={`dex-cell ${caught ? 'caught' : ''} ${ready ? 'ready' : ''} ${selectedId === sp.id ? 'selected' : ''} ${sp.id === starter && selectedId !== starter ? 'tutorial-target' : ''}`}
-                style={{ ['--rarity' as string]: RARITY_INFO[rarityOf(sp)].color }}
-                disabled={!seen && pieces === 0}
-                onClick={() => setSelectedId(sp.id)}
-              >
-                <span className="tiny muted">#{String(sp.id).padStart(3, '0')}</span>
-                {isFavorite(game, sp.id) && <HeartIcon size={16} className="dex-favorite" />}
-                {ready && <span className="dex-ready-tag tiny">{READY_TAG[combineKind(game, sp.id)]}</span>}
-                {seen ? <Sprite id={sp.id} size={72} animated={false} silhouette={!caught} /> : <PixelQuestion size={72} />}
-                <span className="tiny">{seen ? sp.name : '???'}</span>
-                {pieces > 0 && (
-                  <span className="dex-pieces tiny">
-                    <ItemIcon item={ICON.Piece} size={14} /> {pieces}/{PIECES_PER_COMBINE}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+        {SECTIONS.map((section, i) => {
+          const shown = filtering ? section.species.filter((sp) => canCombine(game, sp.id)) : section.species
+          if (filtering && shown.length === 0) return null
+          return (
+            <DexSection
+              key={section.dex?.id ?? 'national'}
+              section={section}
+              caught={section.species.filter((sp) => game.caught.includes(sp.id)).length}
+              total={section.species.length}
+              defaultOpen={i === 0}
+              forceOpen={filtering || shown.some((sp) => sp.id === target)}
+            >
+              {shown.length === 0 ? (
+                <p className="muted small dex-section-empty">Aún no hay Pokémon en esta Pokédex.</p>
+              ) : (
+                <div className="dex-grid">
+                  {shown.map((sp) => (
+                    <DexCell
+                      key={sp.id}
+                      game={game}
+                      sp={sp}
+                      selected={selectedId === sp.id}
+                      tutorialTarget={sp.id === target}
+                      onSelect={() => setSelectedId(sp.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </DexSection>
+          )
+        })}
       </div>
       {/* Fuera de la lista que hace scroll, para cubrir toda la zona de contenido como la ficha del rancho */}
       {selectedId !== null && <PokemonSheet key={selectedId} game={game} speciesId={selectedId} onClose={() => setSelectedId(null)} />}

@@ -51,10 +51,11 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Espacios, varios ranchos, Caja, arrastrar | `game/team/ranches.ts` + `ui/ranch/RanchMon`, `RanchSlots`, `BoxSheet`, `ranchLooks.ts` + `ui/shared/sheet/MovePanel` |
 | Evolución | `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` |
 | Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (el selector de Pokémon es `ui/shared/MonPicker.tsx`) |
-| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raid`, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); la ruta de cada jefe es `routeId` en `raidBosses.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidRoster`, `RaidJoin`) y, en la lista de rutas, `ui/route/RouteRaidMark.tsx` |
+| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Jefes, `routeRaid` paradas de ruta, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster`, `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe y «Retirarse») |
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
-| Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (la ficha es `PokemonSheet`, la misma que el rancho) |
+| Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (`DexScreen`, `DexSection` el desplegable de cada Pokédex, `DexCell`; la ficha es `PokemonSheet`, la misma que el rancho) |
+| Pokédex regionales y Nacional (rangos y mapa de cada región) | `data/pokedexes.ts`; las especies nuevas, en `NATIONAL_IDS` de `scripts/fetch-pokemon.mjs` + `data/pokemon.ts` |
 | Gacha, trituradora, MissingNo | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
 | Rancho | `ui/ranch/RanchScreen.tsx` |
 | Pantalla de ruta: lista / diálogo de comenzar / en curso / combate | `ui/route/RouteMap`, `RouteStartDialog`, `RunView`, `RouteBattle` |

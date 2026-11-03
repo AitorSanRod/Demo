@@ -19,7 +19,8 @@ src/
   App.tsx             Bucle de tiempo, menú inferior y pantalla de cada pestaña
   index.css           Entrada de los estilos base (src/styles/: variables, estructura y piezas comunes)
   assets/             Imágenes propias (fondo del rancho)
-  data/               species, pokemon (ids por nombre), types, moves, evolutions + pokemon.json
+  data/               species, pokemon (ids por nombre), pokedexes (regionales y Nacional), types, moves,
+                      evolutions + pokemon.json
     maps/             kantoMaps (una por región), mapCommon, index (regiones y route)
   game/
     core/             state (GameState, SAVE_VERSION), store (useGame, act, guardado), teamBackup, random, tick,
@@ -31,9 +32,9 @@ src/
                       ranchTypes (tipos de rancho), evolution, expedition, upgrades,
                       tutorial
     collection/       dex (vistos, capturados, favoritos), pieces, gacha, shredder
-    raid/             raid (jefe comunitario: aparición, entrar, retirarse, avance), raidRoom (tipos y sala),
-                      raidCombat (rondas), raidBots (bots de la sala), raidPrizes (reparto y recogida),
-                      raidEstimate (tiempo que falta)
+    raid/             raidEngine (lo común a toda sala: crear, entrar, salir, avanzar, reparto), raid (jefe de la
+                      pestaña Jefes), routeRaid (jefes de las paradas de ruta), raidRoom (tipos y sala), raidCombat
+                      (rondas), raidBots (bots de la sala), raidPrizes (reparto y recogida), raidEstimate (tiempo que falta)
   ui/
     shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
                       barra superior, bocadillos del tutorial, ErrorBoundary
@@ -45,7 +46,9 @@ src/
     settings/         Menú ⚙️ y notificaciones
     route/            Pestaña Ruta: lista de rutas y diálogo de comenzar, ruta en curso, combate, escena (scenery/ por bioma)
     expeditions/      Enviar, seguir y recoger expediciones
-    raid/             Pestaña Ruta › Jefes: el jefe en su paisaje, la sala luchando y enviar o retirar a tu Pokémon
+    raid/             Pestaña Ruta › Jefes y la pelea contra un jefe comunitario (RaidBattleScene: la escena de ruta con
+                      el grupo en filas desordenadas, partySpot; roundReplay reparte los golpes en el tiempo), lista de
+                      la sala y enviar o retirar a tu Pokémon
     gacha/            Tiradas, apertura de la Pokéball, trituradora y tienda de MissingNo
     dex/              Pokédex; al tocar una casilla abre PokemonSheet, la misma ficha que el rancho
     shop/             Mejoras
@@ -85,7 +88,9 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/collection/pieces.ts` | Piezas por especie y combinación (desbloqueo, ★ o ₽) |
 | `game/collection/gacha.ts` | Tiradas (piezas) y compra de tickets |
 | `game/collection/shredder.ts` | Trituradora (piezas → trozos de MissingNo) y compra de piezas con trozos |
-| `game/raid/raid.ts` | Jefe comunitario: aparición, vida, entrar y retirarse, avance por rondas, EXP y caída |
+| `game/raid/raidEngine.ts` | Lo común a toda sala: vida del jefe, crear sala, entrar y salir, EXP, avanzar rondas (`advanceRoom`) y reparto al caer |
+| `game/raid/raid.ts` | Jefe de la pestaña Jefes: aparición, enviar y retirar, y el siguiente al caer |
+| `game/raid/routeRaid.ts` | Jefes de las paradas de ruta: al llegar, entrar en una sala de la parada o abrir otra; retirarse (derrota); al caer, la ruta sigue |
 | `game/raid/raidRoom.ts` | Tipos de la sala (`Raid`, `RaidMember`, `RaidPrize`) y quién está dentro |
 | `game/raid/raidCombat.ts` | Una ronda: todos pegan al jefe con la fórmula de siempre y el jefe pega a uno; revivir |
 | `game/raid/raidBots.ts` | Bots que entran y salen de la sala (se sustituirá por el servidor) |
@@ -165,12 +170,23 @@ primeros siguen ocupando su hueco en su rancho (`OwnedMon.ranch`).
 
 ## Jefes comunitarios
 
-`GameState.raid` guarda el jefe activo y la sala; aparece al acabar el tutorial (`ensureRaid`) y siempre hay uno.
-`tick` llama a `advanceRaid` con el tiempo de juego, que lo consume en rondas fijas (`RAID_ROUND_MS`): pasa el tiempo
-(presencia y revivir), entran y salen bots, el Pokémon del jugador gana su EXP y se juega la ronda (`playRound`).
-`lastRound` guarda los golpes de la última ronda para que la UI los pinte. Cuando la vida llega a 0 se reparte el
-premio (`raidPrizes`, pendiente de recoger; lleva el `routeId` del jefe para poder recogerlo también desde su ruta),
-los Pokémon del jugador vuelven al rancho y sale el siguiente jefe con los bots que siguen dentro.
+Hay dos clases de sala (`Raid`), con la misma mecánica (`raidEngine.ts`): `advanceRoom` consume el tiempo de juego
+en rondas fijas (`RAID_ROUND_MS`): pasa el tiempo (presencia y revivir), entran y salen bots según su `BotPolicy`, el
+Pokémon del jugador gana su EXP y se juega la ronda (`playRound`). `lastRound` guarda los golpes de la última ronda
+para que la UI los pinte: `ui/raid/roundReplay.ts` los reparte en orden a lo largo de la ronda siguiente (con
+`roundMsLeft`), así la pelea se ve por turnos aunque el motor la juegue de golpe. Al caer el jefe, `settleFall` tira el premio de cada Pokémon del jugador que cobra, los saca
+de la sala y devuelve los premios: cada clase de sala decide qué hace con ellos.
+
+- **Pestaña Jefes** (`GameState.raid`, `place: null`): aparece al acabar el tutorial (`ensureRaid`) y siempre hay
+  uno. Se manda a un Pokémon del rancho; al caer, el premio queda pendiente en `GameState.raidPrizes` (se recoge en
+  la pestaña) y sale el siguiente de `RAID_BOSSES` con los bots que siguen dentro.
+- **Paradas de ruta** (`NodeKind.Raid`, `Run.raid`, `place` = ruta y parada): al llegar el Pokémon de la ruta
+  (`arrive` → `enterRouteRaid`), entra en una sala; mientras no haya servidor, a veces se simula que ya había una en
+  marcha (con el jefe por encima de `ROUTE_RAID_JOIN_MIN_HP`). La ruta pasa a la fase `raid` y no avanza hasta que
+  cae el jefe o se retira (`retreatRouteRaid`, derrota sin su premio). Al caer, su premio se suma a lo ganado en la
+  ruta (`Run.earned`, con el jefe en `raidBosses` para el resumen) y la ruta sigue o se completa. Nunca pasa por
+  `raidPrizes`: son cosas separadas. En pantalla no se cambia de vista: `RunView` pinta `RaidBattle` dentro de su
+  `WalkScene` (sin el Pokémon que camina, que va en el grupo) y su marcador añade `RouteRaidHud`.
 
 Los participantes son `RaidMember` con `kind: 'player' | 'bot'`: la UI no distingue unos de otros. Los que se van
 se quedan en la lista con `left: true` hasta que cae el jefe, para el reparto.
@@ -180,6 +196,8 @@ se quedan en la lista con `left: true` hasta que cae el jefe, para el reparto.
   en cada una, y ejecuta `playRound` (es TypeScript puro, sin React ni DOM) para todas las salas; la vida global
   es la suma del daño de todas.
 - El cliente solo manda «entro con este Pokémon» / «me retiro» y recibe el estado de su sala.
+- En las paradas de ruta, el servidor decide en qué sala entra quien llega (una de esa parada con hueco y el jefe
+  por encima de `ROUTE_RAID_JOIN_MIN_HP`; si no, sala nueva) y `runningRoom` deja de simularse.
 - `raidBots.ts` desaparece (o queda para rellenar salas vacías) y `RAID_SOLO_MINUTES` pasa a calcularse con la
   población real para que el jefe global tarde lo previsto.
 

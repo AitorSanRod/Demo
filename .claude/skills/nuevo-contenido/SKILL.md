@@ -44,8 +44,10 @@ se comporte distinto), primero implementa la regla con la skill `nueva-mecanica`
 - `id` en inglés kebab-case (como PokeAPI) y nombre oficial en español.
 
 ### Especie
-- No edites `pokemon.json` a mano: cambia `TOTAL` en `scripts/fetch-pokemon.mjs` y regenera con
-  `node scripts/fetch-pokemon.mjs`.
+- No edites `pokemon.json` a mano: añade su número a `NATIONAL_IDS` en `scripts/fetch-pokemon.mjs` y regenera con
+  `node scripts/fetch-pokemon.mjs`. Añade también su clave a `POKEMON` en `data/pokemon.ts` (un test lo exige).
+- Sale en la Pokédex de la región cuyo rango lo incluye (`data/pokedexes.ts › REGIONAL_DEXES`); si no hay
+  ninguna, en la Nacional.
 - Rareza, sprites y movimientos se derivan solos. Las 6 stats de PokeAPI se reducen a 4 en `species.ts`
   (`simplifyStats`).
 

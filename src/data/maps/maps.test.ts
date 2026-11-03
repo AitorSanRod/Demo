@@ -43,9 +43,9 @@ describe.each(KANTO.routes)('ruta $id', (r) => {
     }
   })
 
-  it('las paradas de jefe tienen su Pokémon y nivel, y las demás no', () => {
+  it('las paradas de jefe y de jefe comunitario tienen su Pokémon y nivel, y las demás no', () => {
     for (const n of r.nodes) {
-      if (n.kind === NodeKind.Boss) expect(n.boss?.level).toBeGreaterThan(0)
+      if (n.kind === NodeKind.Boss || n.kind === NodeKind.Raid) expect(n.boss?.level).toBeGreaterThan(0)
       else expect(n.boss).toBeUndefined()
     }
   })

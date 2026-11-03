@@ -10,12 +10,14 @@ const hurts = (from: number, to: number) => effectiveness(signatureMove(from).ty
 /** Una especie que puede herir al jefe y a la que el jefe puede herir (sin depender de cuál sea hoy el jefe) */
 export const sparringSpecies = (bossId: number): number => SPECIES.find((sp) => hurts(sp.id, bossId) && hurts(bossId, sp.id))!.id
 
-/** Partida tras el tutorial, con un inicial que puede herir al primer jefe y el jefe ya aparecido */
+/** Partida tras el tutorial, con un inicial que puede herir al primer jefe y llega a su nivel mínimo, y el jefe ya aparecido */
 export function raidState() {
   const s = initialState()
   s.tutorial = null
   ensureRaid(s)
-  chooseStarter(s, sparringSpecies(s.raid!.boss.speciesId))
   const raid = s.raid!
-  return { s, raid, mon: s.owned[0] }
+  chooseStarter(s, sparringSpecies(raid.boss.speciesId))
+  const mon = s.owned[0]
+  mon.level = Math.max(mon.level, raid.boss.minLevel ?? 0)
+  return { s, raid, mon }
 }

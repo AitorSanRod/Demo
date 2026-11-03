@@ -38,5 +38,18 @@ export const KANTO: GameMap = {
         { id: 'z', name: 'Jefe', kind: NodeKind.Boss, steps: 20, boss: boss(POKEMON.Pidgeotto, 7) },
       ),
     },
+    {
+      id: RouteId.BosqueVerde,
+      name: 'Ruta con jefe comunitario',
+      description: '',
+      biome: Biome.Forest,
+      levels: [5, 6],
+      encounters: enc([POKEMON.Caterpie, 100]),
+      reward: { tickets: 1, money: 30, exp: 300 },
+      nodes: chain(
+        { id: 's', name: 'Inicio', kind: NodeKind.Start, steps: 0 },
+        { id: 'r', name: 'Jefe comunitario', kind: NodeKind.Raid, steps: 20, boss: boss(POKEMON.Snorlax, 10) },
+      ),
+    },
   ],
 }

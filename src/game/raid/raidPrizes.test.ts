@@ -1,10 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { RouteId } from '../../data/maps'
 import { RAID_PRIZE_TABLE, RaidPrizeKind } from '../../data/raidBosses'
 import { isSeen } from '../collection/dex'
 import { seqRng } from '../core/test-utils'
 import { raidBossAt } from './raid'
-import { collectRaidPrizes, earnsPrize, presenceShare, RAID_MIN_PRESENCE, rollPrize, routeRaidPrizes } from './raidPrizes'
+import { collectRaidPrizes, earnsPrize, presenceShare, RAID_MIN_PRESENCE, rollPrize } from './raidPrizes'
 import { newMember, RaidMemberKind } from './raidRoom'
 import { raidState } from './raid-test-utils'
 
@@ -66,15 +65,5 @@ describe('premio del jefe', () => {
     expect(s.pieces[boss.speciesId] ?? 0).toBe(prize.pieces * 2)
     expect(isSeen(s, boss.speciesId)).toBe(true)
     expect(s.raidPrizes).toHaveLength(0)
-  })
-
-  it('desde una ruta se recogen solo los premios de los jefes que vivían en ella', () => {
-    const { s } = raidState()
-    const optional = rollPrize(raidBossAt(0), seqRng(0))
-    const fromRoute = rollPrize({ ...raidBossAt(0), routeId: RouteId.Ruta1 }, seqRng(0))
-    s.raidPrizes = [optional, fromRoute]
-    expect(routeRaidPrizes(s, RouteId.Ruta1)).toEqual([fromRoute])
-    expect(collectRaidPrizes(s, RouteId.Ruta1)).toEqual([fromRoute])
-    expect(s.raidPrizes).toEqual([optional])
   })
 })

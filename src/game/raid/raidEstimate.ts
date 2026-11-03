@@ -1,6 +1,6 @@
 import { seededRng } from '../core/random'
 import type { GameState } from '../core/state'
-import { passivesOf } from './raid'
+import { passivesOf } from './raidEngine'
 import { elapseRound, playRound, RAID_ROUND_MS, type PassivesOf } from './raidCombat'
 import { BOSS_ID, type Raid } from './raidRoom'
 
@@ -23,8 +23,7 @@ export function raidDamagePerRound(raid: Raid, passives: PassivesOf): number {
 }
 
 /** Minutos de juego que tardará en caer el jefe con los que hay ahora en la sala; null si nadie puede hacerle daño */
-export function raidMinutesLeft(s: GameState): number | null {
-  if (!s.raid) return null
-  const perRound = raidDamagePerRound(s.raid, passivesOf(s))
-  return perRound > 0 ? ((s.raid.hp / perRound) * RAID_ROUND_MS) / 60_000 : null
+export function raidMinutesLeft(s: GameState, raid: Raid): number | null {
+  const perRound = raidDamagePerRound(raid, passivesOf(s))
+  return perRound > 0 ? ((raid.hp / perRound) * RAID_ROUND_MS) / 60_000 : null
 }

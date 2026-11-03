@@ -1,9 +1,13 @@
-// Descarga los 151 Pokémon de 1ª gen desde PokeAPI y genera src/data/pokemon.json
+// Descarga de PokeAPI los Pokémon del juego y genera src/data/pokemon.json
+// Son los 151 de Kanto más los de NATIONAL_IDS; los que no caen en el rango de ninguna región
+// (src/data/pokedexes.ts › REGIONAL_DEXES) salen en la Pokédex Nacional
 // Uso: node scripts/fetch-pokemon.mjs
 import { writeFile } from 'node:fs/promises'
 
 const API = 'https://pokeapi.co/api/v2'
-const TOTAL = 151
+const KANTO_LAST = 151
+/** Números de la Pokédex Nacional de los Pokémon que se añaden a mano, p. ej. [152, 196, 197] */
+const NATIONAL_IDS = [175, 183, 196, 197, 285]
 const CONCURRENCY = 8
 
 async function getJson(url) {
@@ -37,12 +41,12 @@ async function fetchOne(id) {
   }
 }
 
-const ids = Array.from({ length: TOTAL }, (_, i) => i + 1)
+const ids = [...new Set([...Array.from({ length: KANTO_LAST }, (_, i) => i + 1), ...NATIONAL_IDS])]
 const result = []
 for (let i = 0; i < ids.length; i += CONCURRENCY) {
   const chunk = await Promise.all(ids.slice(i, i + CONCURRENCY).map(fetchOne))
   result.push(...chunk)
-  process.stdout.write(`\r${result.length}/${TOTAL}`)
+  process.stdout.write(`\r${result.length}/${ids.length}`)
 }
 await writeFile(new URL('../src/data/pokemon.json', import.meta.url), JSON.stringify(result))
 console.log('\nOK -> src/data/pokemon.json')

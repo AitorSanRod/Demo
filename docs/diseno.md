@@ -44,15 +44,30 @@ cupón) y los tickets que se gastan en el gacha, «tickets de gacha». En el có
    segundo plano, no cerrada).
 6. **Jefes comunitarios** (pestaña Ruta › Jefes): siempre hay un jefe grande activo; al caer sale el siguiente de
    la lista sin esperar. Se manda a un Pokémon concreto del rancho, con su propio hueco (no quita el de expedición
-   ni bloquea al activo), y lucha solo, también con la app cerrada. Se ve el jefe en su paisaje con su barra de vida
-   y debajo la sala (hasta 10) con todos los Pokémon luchando: el daño flota sobre cada uno y los debilitados se ven
-   en gris con la cuenta atrás para volver. Mientras no haya servidor, 2–5 bots entran y salen de la sala. Al caer el
+   ni bloquea al activo), y lucha solo, también con la app cerrada. La pelea se ve como un combate de ruta: el
+   paisaje (el de la ruta o, en la pestaña, uno según el tipo del jefe), el jefe a la derecha con su barra «JEFE» y
+   la sala (hasta 10) a la izquierda en filas al tresbolillo, cada uno algo movido para que no parezca una rejilla y
+   los de atrás más pequeños. Los golpes de cada ronda salen uno tras otro a lo largo de ella (el del jefe, a mitad):
+   quien ataca embiste, quien lo recibe tiembla con su número y el destello del tipo, y la vida del jefe baja golpe a
+   golpe. En reposo se balancean y el jefe respira, así que la escena nunca está quieta; los debilitados se ven tumbados en gris con la
+   cuenta atrás. El tuyo lleva «Tú» y su barra a los pies; debajo, la vida del jefe, el tiempo estimado y la lista
+   de la sala con el entrenador, nivel y PS de cada uno. Mientras no haya servidor, 2–5 bots entran y salen de la sala. Al caer el
    jefe cobra quien haya estado dentro al menos el 10% de la pelea o siga dentro al final, y tu Pokémon vuelve al
-   rancho (no se queda para el siguiente). El premio se recoge en la misma pestaña o, si el jefe vivía en una ruta,
-   también desde la línea de esa ruta («Premio»). Se puede retirar al Pokémon cuando se quiera (con confirmación; avisa si aún no cobraría).
-   Bajo la vida del jefe se ve cuánto tardará en caer al ritmo de los que hay en la sala. Hay jefes opcionales y
-   jefes que viven en una ruta (una ruta normal con él dentro o una ruta solo para él, por diseñar): el jefe activo
-   se ve en la línea de su ruta y, para luchar contra él, hay que tenerla desbloqueada.
+   rancho (no se queda para el siguiente). El premio se recoge en la misma pestaña. Se puede retirar al Pokémon
+   cuando se quiera (con confirmación; avisa si aún no cobraría). Bajo la vida del jefe se ve cuánto tardará en caer
+   al ritmo de los que hay en la sala.
+
+   **Jefes comunitarios de ruta**: una ruta puede tener una parada de jefe comunitario (`NodeKind.Raid`). Al
+   llegar, la ruta se para y empieza la pelea: se entra en una sala de esa parada si tiene hueco (máx. 10) y al
+   jefe le queda más del 25% de vida; si no, se abre otra. Los que llegan después (bots, mientras no haya servidor)
+   se unen. La pelea es la misma que en la pestaña Jefes, pero sin salir de la vista de la ruta: misma pantalla,
+   mismo marcador arriba (con una línea del jefe y «Retirarse» en lugar de «Abandonar») y el grupo, con tu Pokémon
+   dentro, luchando en la escena de la ruta; lo que tarda depende de quién luche (su vida
+   es la que un Pokémon de su nivel tardaría ≈3 h en quitarle solo: uno de Nv. 100 lo tira en 1–2 min). Al caer,
+   la ruta sigue o se completa (premio de ruta y desbloqueo). El premio del jefe es parte del de la ruta: se suma a
+   lo ganado en ella y sale en su resumen final; no tiene nada que ver con la pestaña Jefes. Retirarse cuenta como
+   derrota: la ruta acaba sin el premio del jefe y se pierde la mitad del dinero ganado en ella. En la lista de rutas
+   no se anuncia: el jefe se descubre al llegar a su parada.
 7. **Gacha**: cada ticket abre una Pokéball (animación de captura; tocarla la abre antes) con 5 piezas.
 8. **Trituradora y MissingNo** (pestañas del gacha): las piezas que sobran se trituran en trozos de MissingNo, que
    se cambian por piezas del Pokémon que se quiera.
@@ -60,6 +75,9 @@ cupón) y los tickets que se gastan en el gacha, «tickets de gacha». En el có
    puede combinar una especie vista: en un combate de ruta, descubierta en una expedición o elegida como inicial.
    Las especies no vistas se muestran con una interrogación pixelada, tengan piezas o no (las que tienen piezas
    enseñan el contador y se pueden abrir); sus piezas se guardan y salen como ??? en gacha, trituradora y MissingNo.
+   La pantalla tiene un desplegable por Pokédex regional (cabecera con el mapa de la región difuminado; la de Kanto,
+   abierta al entrar) y debajo la Nacional, con las especies que no caen en el rango de ninguna región
+   (`data/pokedexes.ts › REGIONAL_DEXES`).
    Las casillas listas para combinar brillan con un destello y la etiqueta «¡Crear!» (o «+1 ★»).
    El aviso de cuántas hay se puede tocar para ver solo esas; el aspa del aviso quita el filtro.
    Tocar una casilla abre exactamente la misma ficha que en el rancho (es el mismo componente), con todas sus
@@ -96,7 +114,7 @@ At. Esp. La defensa es la media de ambas defensas.
 | Jefes | Parada `boss`: siempre el mismo Pokémon a nivel fijo, con stats completas (sin el ×0.8). Da ₽ ×3, EXP ×2 y 1 ticket seguro; se ve más grande, con «JEFE» y un aviso al aparecer | `mapCommon.ts › boss()`, `runBattle.ts › BOSS_MONEY_MULT, BOSS_EXP_MULT, BOSS_TICKETS` |
 | Derrota | Fin de la ruta y pérdida del 50% del dinero ganado en ella | `runBattle.ts › DEFEAT_MONEY_LOSS` |
 | Expediciones | 15 min, 1 h o 4 h; 8 combates/h; victoria con probabilidad `nivel / nivel medio de la ruta` (mín. 20%). Sin derrota. Se puede cancelar antes de que vuelva, sin ningún premio (`cancelExpedition`). La EXP sale de las victorias (misma regla que en ruta). EXP, ₽, tickets y piezas ×1 / ×2 / ×4 según la duración. Cada combate puede descubrir una especie no vista: 15 / 10 / 7,5 / 5% (común / raro / épico / legendario). 1 Pokémon a la vez (+1 por mejora) | `expedition.ts › DURATION_REWARD_MULT, DISCOVERY_CHANCE, BASE_EXPEDITION_SLOTS` |
-| Jefes comunitarios | Jefes en orden de la lista (`RAID_BOSSES`), con su Ataque ×0.35 (y nunca quita más del 40% de los PS máximos de un golpe) y una vida tal que un Pokémon neutral de su nivel tardaría ≈3 h solo (con tipos a favor o en contra, de 30 min a 6 h; con 2–5 bots, 30–75 min). Rondas de 10 s de juego: cada uno en pie pega al jefe con la fórmula de siempre (tipos, STAB, pasivas de su rancho) y el jefe pega a uno al azar. Debilitado, vuelve a los 30 s con todos sus PS. EXP: `nivel del jefe × 1` por minuto en pie. Sala de 10; 1 Pokémon del jugador. Bots: 2–5, se quedan 15–90 min, llegan 0–6 niveles por debajo del jefe, especies comunes o raras. Cobra quien estuvo ≥10% de la pelea o sigue dentro al caer; premio igual para todos: cada línea de la tabla se tira por separado. Tiempo estimado: se simulan 60 rondas con los que hay ahora en la sala (sin que entre ni salga nadie) y se divide la vida que queda entre su daño medio. Un jefe con `routeId` vive en esa ruta (sale en la lista de rutas) y hace falta tenerla desbloqueada; sin ella es opcional | `data/raidBosses.ts › RAID_BOSSES, RAID_PRIZE_TABLE`, `raid.ts › RAID_SOLO_MINUTES, RAID_PLAYER_SLOTS, RAID_EXP_PER_MINUTE_PER_LEVEL`, `raidCombat.ts › RAID_ROUND_MS, RAID_REVIVE_MS, RAID_BOSS_ATK_MULT, RAID_BOSS_MAX_HIT`, `raidEstimate.ts › ESTIMATE_ROUNDS`, `raidRoom.ts › RAID_ROOM_SIZE`, `raidBots.ts › RAID_BOTS_*`, `raidPrizes.ts › RAID_MIN_PRESENCE` |
+| Jefes comunitarios | Jefes en orden de la lista (`RAID_BOSSES`), con su Ataque ×0.35 (y nunca quita más del 40% de los PS máximos de un golpe) y una vida tal que un Pokémon neutral de su nivel tardaría ≈3 h solo (con tipos a favor o en contra, de 30 min a 6 h; con 2–5 bots, 30–75 min). Rondas de 4 s de juego: cada uno en pie pega al jefe con la fórmula de siempre (tipos, STAB, pasivas de su rancho) y el jefe pega a uno al azar. Debilitado, vuelve a los 30 s con todos sus PS. EXP: `nivel del jefe × 1` por minuto en pie. Sala de 10; 1 Pokémon del jugador. Un jefe puede pedir un nivel mínimo para entrar (`minLevel`; Snorlax, Nv. 10). Bots: 2–5 (entra uno más cada ≈17 min de media), se quedan 15–90 min, llegan 0–6 niveles por debajo del jefe, especies comunes o raras. Cobra quien estuvo ≥10% de la pelea o sigue dentro al caer; premio igual para todos: cada línea de la tabla se tira por separado. Tiempo estimado: se simulan 60 rondas con los que hay ahora en la sala (sin que entre ni salga nadie) y se divide la vida que queda entre su daño medio. Paradas de ruta (`NodeKind.Raid`): sin mínimo de bots, el primero entra a los 5 s y luego van llegando (uno cada ≈40 s de media) hasta llenar la sala; al llegar, 50% de encontrar una sala en marcha; se entra en una sala con hueco si al jefe le queda más del 25% | `data/raidBosses.ts › RAID_BOSSES (con minLevel), RAID_PRIZE_TABLE`, `raidEngine.ts › RAID_SOLO_MINUTES, RAID_EXP_PER_MINUTE_PER_LEVEL`, `raid.ts › RAID_PLAYER_SLOTS`, `routeRaid.ts › ROUTE_RAID_BOTS, ROUTE_RAID_FIRST_BOT_MS, ROUTE_RAID_RUNNING_CHANCE, ROUTE_RAID_JOIN_MIN_HP`, `raidCombat.ts › RAID_ROUND_MS, RAID_REVIVE_MS, RAID_BOSS_ATK_MULT, RAID_BOSS_MAX_HIT`, `raidEstimate.ts › ESTIMATE_ROUNDS`, `raidRoom.ts › RAID_ROOM_SIZE`, `raidBots.ts › RAID_BOTS`, `raidPrizes.ts › RAID_MIN_PRESENCE` |
 | Rancho | Regenera 10% PS/min (no en ruta, de expedición, contra el jefe ni en la Caja); curar `5 + nivel × 3` ₽; entrenar `20 + 2 × nivel²` ₽ por sesión (25% de un nivel: 4 sesiones por nivel), varias seguidas de una vez (cada una cobra según el nivel al empezarla; no pasa del nivel máximo) | `ranch.ts › TRAIN_EXP_FRACTION, TRAIN_BASE_COST, TRAIN_COST_PER_LEVEL_SQ` |
 | Pasivas de rancho | Con 3 Pokémon de un tipo en el rancho del activo (cuentan todos los que pertenecen a él, estén donde estén, el activo incluido; los de dos tipos, en ambos), el activo gana el nivel 1 de la pasiva de ese tipo en las rutas; con 5, el nivel 2. Se suman todas. Dan stats, estados alterados (quemar, envenenar, paralizar, congelar, confundir), regeneración, robo de vida, reducción de daño, esquiva, crítico, cura al ganar o daño extra por tipo. Los jefes pueden llevar pasivas escritas en el mapa. Se ven en el botón de arriba a la izquierda del rancho. No cuentan en expediciones | `data/passives.ts` (umbrales, efectos y estados, para editar a mano), `team/ranchPassives.ts`, `battle/combatBonus.ts`, `battle/status.ts` |
 | Tipos de rancho | Objetos que se compran en la Tienda (10000 ₽ los de un tipo, 25000 ₽ los de dos; como mucho 3 de cada uno, contando los colocados) y se ponen y quitan en un rancho desde su panel. En ese rancho hace falta un Pokémon menos de sus tipos para cada nivel de pasiva, y cambia el fondo (provisional: el prado con otro tono) | `data/ranchTypes.ts` (lista para editar a mano), `team/ranchTypes.ts`, `ui/ranch/ranchLooks.ts` |
@@ -119,20 +137,20 @@ Dificultad medida con 300 simulaciones por caso (Bulbasaur / Charmander / Squirt
 | Ruta 1 | 10 | 56 / 100 / 99% | ≈6 min |
 | Ruta 1 | 12 | 100 / 100 / 100% | ≈6 min |
 
-El jefe de la Ruta 1 (Pidgeotto) está a Nv. 7 con stats completas: a Nv. 10 ya no lo ganaba ningún inicial a Nv. 10, y
-Bulbasaur ni a Nv. 12 (Pidgeotto es más rápido y resiste planta). A Nv. 7 es donde más se pierde la ruta con un
-inicial a Nv. 8–10.
+La tabla anterior se midió con un jefe normal (Pidgeotto Nv. 7) al final de la Ruta 1. Ahora el final es un jefe
+comunitario (Pidgeotto Nv. 12): no se pierde la ruta por él, sino que tarda más o menos según el nivel del Pokémon y
+quién haya en la sala.
 
 El premio final de cada ruta (`reward` en `kantoMaps.ts`) solo se da la primera vez que se completa.
 
 ## Contenido actual
 
 - Mapa de Kanto con 2 rutas activas, de camino único: Pueblo Paleta (tutorial, 4 combates, el último contra un jefe) y Ruta 1 (6 combates
-  y el jefe Pidgeotto Nv. 7 al final, exige entrenar). Bosque Verde, Monte Moon y Ruta Marina están comentadas en
+  y el jefe comunitario Pidgeotto Nv. 12 al final). Bosque Verde, Monte Moon y Ruta Marina están comentadas en
   `src/data/maps/kantoMaps.ts`; al reactivarlas hay que devolver `unlocks` a la ruta anterior.
 - Los 151 Pokémon de 1ª generación, de PokeAPI, en `src/data/pokemon.json` (se regenera con
-  `scripts/fetch-pokemon.mjs`).
-- Existen nodos `start`, `wild` y `boss` (el final de Pueblo Paleta y el de la Ruta 1).
+  `scripts/fetch-pokemon.mjs`; los Pokémon de fuera de Kanto se añaden en su `NATIONAL_IDS`).
+- Existen nodos `start`, `wild`, `boss` (el final de Pueblo Paleta) y `raid` (jefe comunitario: Pidgeotto Nv. 12 al final de la Ruta 1).
 
 ## Ideas previstas (no implementadas)
 

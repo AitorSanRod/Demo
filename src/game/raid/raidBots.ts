@@ -6,12 +6,17 @@ import { hasRoom, newMember, presentMembers, RaidMemberKind, type Raid } from '.
 // Bots que llenan la sala mientras no haya servidor. Con jugadores reales, este módulo se cambia por lo que diga el
 // servidor sobre quién entra y quién sale.
 
-/** Bots que hay como mínimo en la sala: si se va uno y quedan menos, entra otro enseguida */
-export const RAID_BOTS_MIN = 2
-/** Bots que puede haber como máximo en la sala */
-export const RAID_BOTS_MAX = 5
-/** Probabilidad por ronda de que entre un bot más, si hay menos del máximo */
-export const RAID_BOT_JOIN_CHANCE = 0.01
+/** Cuántos bots puede haber en una sala y cómo llegan */
+export interface BotPolicy {
+  /** Mínimo: si se va uno y quedan menos, entra otro enseguida */
+  min: number
+  max: number
+  /** Bots que entran de media por minuto de juego mientras haya menos del máximo */
+  joinPerMinute: number
+}
+
+/** Bots de la sala del jefe de la pestaña Jefes: siempre hay de 2 a 5 */
+export const RAID_BOTS: BotPolicy = { min: 2, max: 5, joinPerMinute: 0.06 }
 /** Minutos de juego que se queda un bot, al azar entre ambos */
 export const RAID_BOT_STAY_MINUTES: readonly [number, number] = [15, 90]
 /** Niveles por debajo del jefe con los que llega un bot, al azar entre ambos */
@@ -25,7 +30,8 @@ const presentBots = (raid: Raid) => presentMembers(raid).filter((m) => m.kind ==
 
 const pick = <T>(list: T[], rng: Rng): T => list[Math.floor(rng() * list.length)]
 
-function addBot(raid: Raid, rng: Rng) {
+/** Entra un bot nuevo en la sala */
+export function addBot(raid: Raid, rng: Rng) {
   const busy = new Set(presentMembers(raid).map((m) => m.trainer))
   const free = BOT_TRAINERS.filter((t) => !busy.has(t))
   const [minBelow, maxBelow] = RAID_BOT_LEVELS_BELOW_BOSS
@@ -45,12 +51,12 @@ function addBot(raid: Raid, rng: Rng) {
   raid.members.push(bot)
 }
 
-/** Los bots cuyo tiempo se acaba se van; entra alguno nuevo al azar y siempre hay al menos RAID_BOTS_MIN */
-export function updateBots(raid: Raid, ms: number, rng: Rng) {
+/** Los bots cuyo tiempo se acaba se van; entra alguno nuevo al azar y siempre hay al menos el mínimo de `policy` */
+export function updateBots(raid: Raid, ms: number, policy: BotPolicy, rng: Rng) {
   for (const bot of presentBots(raid)) {
     bot.stayMs = Math.max(0, bot.stayMs! - ms)
     if (bot.stayMs === 0) bot.left = true
   }
-  while (presentBots(raid).length < RAID_BOTS_MIN && hasRoom(raid)) addBot(raid, rng)
-  if (presentBots(raid).length < RAID_BOTS_MAX && hasRoom(raid) && rng() < RAID_BOT_JOIN_CHANCE) addBot(raid, rng)
+  while (presentBots(raid).length < policy.min && hasRoom(raid)) addBot(raid, rng)
+  if (presentBots(raid).length < policy.max && hasRoom(raid) && rng() < (policy.joinPerMinute * ms) / 60_000) addBot(raid, rng)
 }

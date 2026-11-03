@@ -43,9 +43,17 @@ export interface RaidHit {
   fainted: boolean
 }
 
-/** El jefe comunitario activo y la sala del jugador */
+/** Parada de ruta (`NodeKind.Raid`) en la que está una sala */
+export interface RaidPlace {
+  routeId: RouteId
+  nodeId: string
+}
+
+/** Un jefe comunitario y una sala luchando contra él */
 export interface Raid {
   boss: RaidBoss
+  /** Parada de ruta de la sala; null para el jefe de la pestaña Jefes */
+  place: RaidPlace | null
   hp: number
   maxHp: number
   /** Milisegundos de juego desde que apareció este jefe */
@@ -55,17 +63,15 @@ export interface Raid {
   round: number
   members: RaidMember[]
   lastRound: RaidHit[]
-  /** Jefes derrotados desde el principio: decide cuál sale ahora */
+  /** Jefes de la pestaña Jefes derrotados desde el principio: decide cuál sale ahora (0 en las salas de ruta) */
   felled: number
   /** Contador para dar ids únicos a los bots */
   nextBotId: number
 }
 
-/** Premio de un jefe derrotado pendiente de recoger */
+/** Premio de un jefe comunitario derrotado */
 export interface RaidPrize {
   bossSpeciesId: number
-  /** Ruta en la que vivía el jefe (también se recoge desde ella); sin ella era un jefe opcional */
-  routeId?: RouteId
   money: number
   tickets: number
   /** Tickets (piezas) de la especie del jefe */

@@ -1,4 +1,3 @@
-import type { RouteId } from '../../data/maps'
 import { RAID_PRIZE_TABLE, RaidPrizeKind, type RaidBoss } from '../../data/raidBosses'
 import { markSeen } from '../collection/dex'
 import { addPieces } from '../collection/pieces'
@@ -17,7 +16,7 @@ export const earnsPrize = (m: RaidMember, fightMs: number): boolean => !m.left |
 
 /** Tira cada línea de la tabla de premios por separado */
 export function rollPrize(boss: RaidBoss, rng: Rng): RaidPrize {
-  const prize: RaidPrize = { bossSpeciesId: boss.speciesId, routeId: boss.routeId, money: 0, tickets: 0, pieces: 0 }
+  const prize: RaidPrize = { bossSpeciesId: boss.speciesId, money: 0, tickets: 0, pieces: 0 }
   const field: Record<RaidPrizeKind, 'money' | 'tickets' | 'pieces'> = {
     [RaidPrizeKind.Money]: 'money',
     [RaidPrizeKind.Tickets]: 'tickets',
@@ -27,21 +26,18 @@ export function rollPrize(boss: RaidBoss, rng: Rng): RaidPrize {
   return prize
 }
 
-/** Premios pendientes de los jefes que vivían en esa ruta */
-export const routeRaidPrizes = (s: GameState, routeId: RouteId): RaidPrize[] => s.raidPrizes.filter((p) => p.routeId === routeId)
+/** Suma un premio a la partida; el jefe queda visto en la Pokédex para poder usar sus tickets */
+export function applyPrize(s: GameState, p: RaidPrize) {
+  s.money += p.money
+  s.tickets += p.tickets
+  markSeen(s, p.bossSpeciesId)
+  if (p.pieces > 0) addPieces(s, p.bossSpeciesId, p.pieces)
+}
 
-/**
- * Entrega los premios pendientes: todos (desde Jefes) o solo los de los jefes de una ruta (desde esa ruta). El jefe
- * queda visto en la Pokédex para poder usar sus tickets
- */
-export function collectRaidPrizes(s: GameState, routeId?: RouteId): RaidPrize[] {
-  const prizes = routeId ? routeRaidPrizes(s, routeId) : s.raidPrizes
-  s.raidPrizes = s.raidPrizes.filter((p) => !prizes.includes(p))
-  for (const p of prizes) {
-    s.money += p.money
-    s.tickets += p.tickets
-    markSeen(s, p.bossSpeciesId)
-    if (p.pieces > 0) addPieces(s, p.bossSpeciesId, p.pieces)
-  }
+/** Entrega los premios pendientes de los jefes de la pestaña Jefes */
+export function collectRaidPrizes(s: GameState): RaidPrize[] {
+  const prizes = s.raidPrizes
+  s.raidPrizes = []
+  for (const p of prizes) applyPrize(s, p)
   return prizes
 }

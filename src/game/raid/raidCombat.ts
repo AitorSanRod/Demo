@@ -6,7 +6,7 @@ import type { Rng } from '../core/random'
 import { BOSS_ID, type Raid, type RaidHit, type RaidMember } from './raidRoom'
 
 /** Milisegundos de juego entre rondas: en cada una pegan todos los que están en pie y el jefe pega a uno al azar */
-export const RAID_ROUND_MS = 10_000
+export const RAID_ROUND_MS = 4_000
 /** Milisegundos de juego que tarda en revivir, con todos sus PS, un Pokémon debilitado en la sala */
 export const RAID_REVIVE_MS = 30_000
 /** Multiplicador del Ataque del jefe: pega a uno por ronda, y con su Ataque entero los debilitaría casi siempre */

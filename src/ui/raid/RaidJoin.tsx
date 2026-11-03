@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { species } from '../../data/species'
 import { findMon, MonPlace, monPlace, type GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
-import { joinRaid, leaveRaid, playerMembers, raidBlocker } from '../../game/raid/raid'
+import { joinRaid, leaveRaid, raidBlocker } from '../../game/raid/raid'
+import { playerMembers } from '../../game/raid/raidEngine'
 import { earnsPrize, presenceShare, RAID_MIN_PRESENCE } from '../../game/raid/raidPrizes'
 import { RaidMemberKind, type Raid } from '../../game/raid/raidRoom'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
@@ -68,6 +69,7 @@ function JoinPicker({ game, raid }: { game: GameState; raid: Raid }) {
   return (
     <>
       {secured && <p className="small muted">Ya tienes asegurado el premio de este jefe.</p>}
+      {raid.boss.minLevel && <p className="small">Solo pueden entrar Pokémon de Nv. {raid.boss.minLevel} o más.</p>}
       <MonPicker mons={home} selectedUid={mon?.uid} onSelect={setSelectedUid} />
       {blocker && <p className="small muted">{blocker}</p>}
       <BigAction

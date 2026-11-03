@@ -66,18 +66,23 @@ export function discoveryReward(speciesId: number): RewardItem {
   }
 }
 
+/** Jefe comunitario derrotado (`count` veces) */
+export function raidBossReward(speciesId: number, count = 1): RewardItem {
+  return {
+    key: `boss-${speciesId}`,
+    icon: <Sprite id={speciesId} size={160} />,
+    title: `¡${species(speciesId).name} derrotado${count > 1 ? ` ×${count}` : ''}!`,
+    detail: 'Jefe comunitario',
+    color: '#c04040',
+  }
+}
+
 /** Premios de los jefes comunitarios derrotados, sumados: cada jefe, y después ₽, tickets y tickets de cada jefe */
 export function raidPrizeRewards(prizes: RaidPrize[]): RewardItem[] {
   const bosses = [...new Set(prizes.map((p) => p.bossSpeciesId))]
   const ofBoss = (id: number) => prizes.filter((p) => p.bossSpeciesId === id)
   const sum = (list: RaidPrize[], field: 'money' | 'tickets' | 'pieces') => list.reduce((a, p) => a + p[field], 0)
-  const items: RewardItem[] = bosses.map((id) => ({
-    key: `boss-${id}`,
-    icon: <Sprite id={id} size={160} />,
-    title: `¡${species(id).name} derrotado${ofBoss(id).length > 1 ? ` ×${ofBoss(id).length}` : ''}!`,
-    detail: 'Jefe comunitario',
-    color: '#c04040',
-  }))
+  const items = bosses.map((id) => raidBossReward(id, ofBoss(id).length))
   items.push(...moneyAndTickets(sum(prizes, 'money'), sum(prizes, 'tickets')))
   for (const id of bosses) {
     const pieces = sum(ofBoss(id), 'pieces')

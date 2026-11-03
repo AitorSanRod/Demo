@@ -2,6 +2,7 @@ import { isValidPath, legSteps, node, NodeKind, pathFrom, route, type Route } fr
 import { species } from '../../data/species'
 import type { Rng } from '../core/random'
 import { activeMon, MonPlace, monPlace, TutorialStep, type GameState } from '../core/state'
+import { enterRouteRaid } from '../raid/routeRaid'
 import { stepsPerMinute } from '../team/stats'
 import { BATTLE_EVENT_MS, completeRoute, spendBattleTime, startStopBattle } from './runBattle'
 
@@ -28,7 +29,8 @@ export function startRun(s: GameState, routeId: string, path = pathFrom(route(ro
     phase: 'walking',
     lastBattle: null,
     battleMsLeft: 0,
-    earned: { money: 0, tickets: 0, pieces: [], exp: 0, levelsGained: 0, wins: 0, battles: 0 },
+    raid: null,
+    earned: { money: 0, tickets: 0, pieces: [], exp: 0, levelsGained: 0, wins: 0, battles: 0, raidBosses: [] },
   }
 }
 
@@ -81,8 +83,9 @@ function arrive(s: GameState, r: Route, rng: Rng) {
   run.stop++
   run.steps = 0
   const n = node(r, run.path[run.stop])
-  // Con combate, el final de la ruta se decide al acabar el combate (ver runBattle.ts)
+  // Con combate, el final de la ruta se decide al acabar el combate (ver runBattle.ts) o al caer el jefe comunitario
   if (n.kind === NodeKind.Wild || n.kind === NodeKind.Boss) startStopBattle(s, r, n, rng)
+  else if (n.kind === NodeKind.Raid) enterRouteRaid(s, r, n, rng)
   else if (run.stop === run.path.length - 1) completeRoute(s, r)
 }
 

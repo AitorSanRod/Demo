@@ -21,7 +21,7 @@ export const BOSS_MONEY_MULT = 3
 /** Multiplicador de la EXP por derrotar a un jefe (respecto a un salvaje de su nivel) */
 export const BOSS_EXP_MULT = 2
 /** Tickets que da siempre derrotar a un jefe (en lugar de la probabilidad de un salvaje) */
-export const BOSS_TICKETS = 1
+export const BOSS_TICKETS = 0
 /** Fracción del dinero ganado en la ruta que se pierde al ser derrotado */
 const DEFEAT_MONEY_LOSS = 0.5
 /** Milisegundos reales que dura cada evento del combate en la ruta; mientras, no se avanza */
@@ -120,7 +120,7 @@ function gainRunExp(s: GameState, exp: number) {
 }
 
 /** Derrota: la ruta termina y se pierde parte de lo ganado en ella. Devuelve lo perdido. */
-function faint(s: GameState): number {
+export function faint(s: GameState): number {
   const run = s.run!
   const lost = Math.min(s.money, Math.floor(run.earned.money * DEFEAT_MONEY_LOSS))
   s.money -= lost

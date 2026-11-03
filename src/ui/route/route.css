@@ -50,16 +50,6 @@
 .route-row.locked {
   opacity: 0.55;
 }
-/* El jefe comunitario activo vive en esta ruta: su icono y el jefe, en una píldora como los niveles */
-.route-raid {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 0 6px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--card) 85%, transparent);
-}
 /* Completada: insignia redonda verde */
 .route-done {
   display: grid;

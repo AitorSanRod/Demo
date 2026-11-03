@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { RouteId } from '../../data/maps'
 import { initialState, MonPlace, monPlace } from '../core/state'
 import { seqRng } from '../core/test-utils'
 import { runBlocker } from '../run/run'
 import { createMon } from '../team/mons'
 import { maxHp } from '../team/stats'
-import { advanceRaid, ensureRaid, joinRaid, leaveRaid, raidBlocker, raidBossAt, raidBossHp, raidExpPerRound } from './raid'
-import { RAID_BOTS_MIN } from './raidBots'
+import { advanceRaid, ensureRaid, joinRaid, leaveRaid, raidBlocker, raidBossAt } from './raid'
+import { RAID_BOTS } from './raidBots'
+import { raidBossHp, raidExpPerRound } from './raidEngine'
 import { RAID_ROUND_MS } from './raidCombat'
 import { newMember, RaidMemberKind } from './raidRoom'
 import { raidState, sparringSpecies } from './raid-test-utils'
@@ -41,11 +41,11 @@ describe('jefe comunitario', () => {
     expect(raidBlocker(s, other.uid)).not.toBeNull()
   })
 
-  it('un jefe que vive en una ruta bloqueada no admite a nadie hasta desbloquearla', () => {
+  it('si el jefe tiene nivel mínimo, solo entran los que llegan a él', () => {
     const { s, raid, mon } = raidState()
-    raid.boss = { ...raid.boss, routeId: RouteId.Ruta1 }
-    expect(raidBlocker(s, mon.uid)).toMatch(/desbloqu/)
-    s.unlockedRoutes.push(RouteId.Ruta1)
+    raid.boss = { ...raid.boss, minLevel: mon.level + 1 }
+    expect(raidBlocker(s, mon.uid)).toMatch(/Nv\./)
+    mon.level = raid.boss.minLevel!
     expect(raidBlocker(s, mon.uid)).toBeNull()
   })
 
@@ -71,7 +71,7 @@ describe('jefe comunitario', () => {
     const before = { level: mon.level, exp: mon.exp }
     advanceRaid(s, RAID_ROUND_MS, seqRng(0.5))
     expect(s.raid!.round).toBe(1)
-    expect(s.raid!.members.filter((m) => m.id !== mon.uid).length).toBeGreaterThanOrEqual(RAID_BOTS_MIN)
+    expect(s.raid!.members.filter((m) => m.id !== mon.uid).length).toBeGreaterThanOrEqual(RAID_BOTS.min)
     expect(raidExpPerRound(s.raid!.boss)).toBeGreaterThan(0)
     expect(mon.level > before.level || mon.exp > before.exp).toBe(true)
   })
@@ -95,16 +95,6 @@ describe('jefe comunitario', () => {
     expect(monPlace(s, mon.uid)).toBe(MonPlace.Ranch)
     expect(s.raid!.members.some((m) => m.id === mon.uid)).toBe(false)
     expect(s.raid!.members.every((m) => m.presentMs === 0 && m.damage === 0)).toBe(true)
-  })
-
-  it('el premio de un jefe que vive en una ruta lleva esa ruta', () => {
-    const { s, raid, mon } = raidState()
-    s.unlockedRoutes.push(RouteId.Ruta1)
-    raid.boss = { ...raid.boss, routeId: RouteId.Ruta1 }
-    joinRaid(s, mon.uid)
-    raid.hp = 1
-    advanceRaid(s, RAID_ROUND_MS, seqRng(0))
-    expect(s.raidPrizes[0].routeId).toBe(RouteId.Ruta1)
   })
 
   it('quien se retiró antes de tiempo sin llegar al mínimo de presencia no cobra', () => {

@@ -1,0 +1,171 @@
+/* Pelea contra el jefe comunitario vista como un combate de ruta (RaidBattleScene) */
+
+.raid-stage {
+  position: relative;
+  flex-shrink: 0;
+  height: 340px;
+  overflow: hidden;
+}
+.raid-stage .scene {
+  cursor: default;
+}
+/* El jefe, a la derecha y algo más allá que el de una ruta para dejar sitio al grupo */
+.route-fighter.enemy.boss.raid-boss-fighter {
+  left: 77%;
+}
+.raid-boss-fighter .battle-pop {
+  top: 56px;
+  font-size: 22px;
+}
+.raid-boss-fighter .sprite {
+  display: flex;
+  filter: drop-shadow(0 3px 0 #0003);
+}
+
+/* Cada Pokémon del grupo: centrado en su sitio y, en las filas de atrás, más pequeño */
+.raid-party-mon {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%) scale(var(--spot-scale));
+  transform-origin: bottom center;
+  animation: party-enter 0.5s ease-out;
+}
+.raid-party-mon .sprite {
+  display: flex;
+  transform: scaleX(-1);
+  filter: drop-shadow(0 2px 0 #0003);
+}
+.raid-party-mon .battle-pop {
+  top: 12px;
+  font-size: 15px;
+}
+/* A los pies del Pokémon: así queda pegada a él sea cual sea el tamaño de su sprite */
+.raid-party-hp {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  z-index: 1;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 54px;
+  min-height: 12px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  background: #fbfbf2dd;
+  color: #333;
+  box-shadow: 0 1px 0 #0003;
+}
+.raid-party-hp .bar {
+  flex: 1;
+  height: 5px;
+}
+.raid-party-mon.mine .raid-party-hp {
+  outline: 2px solid var(--accent);
+}
+.raid-mine-tag {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.raid-party-mon .raid-revive {
+  font-size: 10px;
+}
+/* Debilitado: tumbado y en gris hasta que vuelve */
+.raid-party-mon.down .sprite {
+  filter: grayscale(1) brightness(0.75);
+  opacity: 0.6;
+  rotate: 14deg;
+  translate: 0 6px;
+}
+
+/* En reposo se balancean un poco (cada uno con su desfase) y el jefe respira: la escena nunca está quieta */
+.raid-idle {
+  animation: party-idle 1.6s ease-in-out infinite var(--idle-delay, 0s);
+}
+.raid-idle.boss {
+  transform-origin: bottom center;
+  animation: boss-breathe 2.4s ease-in-out infinite;
+}
+
+/* Golpes: dos clases iguales que se alternan golpe a golpe para que la animación vuelva a empezar */
+.raid-lunge-0 {
+  animation: party-lunge-0 0.35s ease;
+}
+.raid-lunge-1 {
+  animation: party-lunge-1 0.35s ease;
+}
+.raid-boss-lunge-0 {
+  animation: boss-lunge-0 0.4s ease;
+}
+.raid-boss-lunge-1 {
+  animation: boss-lunge-1 0.4s ease;
+}
+.raid-shake-0 {
+  animation: party-shake-0 0.4s ease;
+}
+.raid-shake-1 {
+  animation: party-shake-1 0.4s ease;
+}
+
+@keyframes party-idle {
+  50% {
+    translate: 0 -3px;
+  }
+}
+@keyframes boss-breathe {
+  50% {
+    scale: 1.03 0.97;
+  }
+}
+@keyframes boss-lunge-0 {
+  50% {
+    translate: -28px 0;
+  }
+}
+@keyframes boss-lunge-1 {
+  50% {
+    translate: -28px 0;
+  }
+}
+@keyframes party-enter {
+  from {
+    translate: -60px 0;
+    opacity: 0;
+  }
+}
+@keyframes party-lunge-0 {
+  50% {
+    translate: 20px 0;
+  }
+}
+@keyframes party-lunge-1 {
+  50% {
+    translate: 20px 0;
+  }
+}
+@keyframes party-shake-0 {
+  20%,
+  60% {
+    translate: -6px 0;
+    opacity: 0.5;
+  }
+  40%,
+  80% {
+    translate: 6px 0;
+  }
+}
+@keyframes party-shake-1 {
+  20%,
+  60% {
+    translate: -6px 0;
+    opacity: 0.5;
+  }
+  40%,
+  80% {
+    translate: 6px 0;
+  }
+}

@@ -155,4 +155,9 @@ export const POKEMON = {
   Dragonite: 149,
   Mewtwo: 150,
   Mew: 151,
+  Togepi: 175,
+  Marill: 183,
+  Espeon: 196,
+  Umbreon: 197,
+  Shroomish: 285,
 } as const

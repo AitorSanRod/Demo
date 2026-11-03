@@ -24,7 +24,8 @@ export interface RanchSpot {
   y: number
 }
 
-type RunPhase = 'walking' | 'complete' | 'fainted'
+/** `raid`: luchando contra el jefe comunitario de la parada (ver raid/routeRaid.ts) */
+type RunPhase = 'walking' | 'raid' | 'complete' | 'fainted'
 
 /** Paso del tutorial inicial (ver tutorial.ts); null cuando ya se juega con libertad */
 export const TutorialStep = { Starter: 'starter', Combine: 'combine', Route: 'route' } as const
@@ -43,7 +44,12 @@ export interface Run {
   lastBattle: BattleRecord | null
   /** Milisegundos reales que quedan del combate en curso; mientras sea > 0 no se dan pasos */
   battleMsLeft: number
-  /** Lo ganado en la ruta; `pieces` son las especies de las piezas soltadas (una entrada por pieza) */
+  /** Sala del jefe comunitario de la parada en la que está luchando (fase `raid`) */
+  raid: Raid | null
+  /**
+   * Lo ganado en la ruta; `pieces` son las especies de las piezas soltadas (una entrada por pieza) y `raidBosses`, los
+   * jefes comunitarios derrotados en ella (su premio ya va sumado en lo demás)
+   */
   earned: {
     money: number
     tickets: number
@@ -52,6 +58,7 @@ export interface Run {
     levelsGained: number
     wins: number
     battles: number
+    raidBosses: number[]
   }
 }
 
@@ -92,14 +99,14 @@ export interface GameState {
   expeditions: Expedition[]
   /** Jefe comunitario activo y la sala del jugador; null hasta acabar el tutorial */
   raid: Raid | null
-  /** Premios de jefes derrotados pendientes de recoger */
+  /** Premios de los jefes de la pestaña Jefes derrotados, pendientes de recoger allí */
   raidPrizes: RaidPrize[]
   /** Multiplicador de tiempo (x1 = tiempo real); solo se puede cambiar en desarrollo, desde la barra superior */
   timeScale: number
   lastTick: number
 }
 
-export const SAVE_VERSION = 19
+export const SAVE_VERSION = 22
 
 export function initialState(): GameState {
   return {

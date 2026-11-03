@@ -1,53 +1,71 @@
-import { route } from '../../data/maps'
+import { Biome, route } from '../../data/maps'
 import { species } from '../../data/species'
-import { BOSS_ID, type Raid } from '../../game/raid/raidRoom'
-import { Bar, Sprite } from '../shared/common'
+import type { PokeType } from '../../data/types'
+import type { GameState } from '../../game/core/state'
+import { raidMinutesLeft } from '../../game/raid/raidEstimate'
+import type { Raid } from '../../game/raid/raidRoom'
+import { Bar } from '../shared/common'
 import { formatMinutes } from '../shared/format'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
-import { HeroLayout } from '../shared/sheet/HeroLayout'
-import { TYPE_SCENERY } from '../shared/sheet/scenery'
-import { roundClass } from './roundClass'
+import { RaidBattleScene } from './RaidBattleScene'
+import { shownBossHp } from './roundReplay'
+import './raid.css'
+
+/** Paisaje de la pelea del jefe de la pestaña Jefes (que no está en ninguna ruta), según su primer tipo */
+const TYPE_BIOME: Record<PokeType, Biome> = {
+  normal: Biome.Meadow,
+  fire: Biome.Cave,
+  water: Biome.Sea,
+  electric: Biome.Meadow,
+  grass: Biome.Forest,
+  ice: Biome.Sea,
+  fighting: Biome.Cave,
+  poison: Biome.Forest,
+  ground: Biome.Cave,
+  flying: Biome.Meadow,
+  psychic: Biome.Meadow,
+  bug: Biome.Forest,
+  rock: Biome.Cave,
+  ghost: Biome.Cave,
+  dragon: Biome.Sea,
+  dark: Biome.Cave,
+  steel: Biome.Cave,
+  fairy: Biome.Forest,
+}
 
 /**
- * Cabecera del jefe: su paisaje, dónde vive, el jefe en grande con el daño de la última ronda, la vida que le queda
- * y cuánto tardará en caer al ritmo de la sala (`minutesLeft`, en minutos reales; null si nadie le hace daño)
+ * El jefe comunitario: la pelea en su paisaje (el de su ruta o, sin ruta, el de su tipo) y debajo la vida que le queda
+ * y cuánto tardará en caer al ritmo de la sala, en tiempo real
  */
-export function RaidScene({ raid, minutesLeft }: { raid: Raid; minutesLeft: number | null }) {
+export function RaidScene({ game, raid }: { game: GameState; raid: Raid }) {
   const sp = species(raid.boss.speciesId)
-  const dealt = raid.lastRound.filter((h) => h.to === BOSS_ID).reduce((sum, h) => sum + h.dealt, 0)
-  const percent = Math.ceil((raid.hp / raid.maxHp) * 100)
+  const biome = raid.place ? route(raid.place.routeId).biome : TYPE_BIOME[sp.types[0]]
+  const gameMinutesLeft = raidMinutesLeft(game, raid)
+  // La vida baja golpe a golpe, al ritmo de la escena (ver roundReplay.ts)
+  const hp = shownBossHp(raid)
+  const percent = Math.ceil((hp / raid.maxHp) * 100)
 
   return (
-    <HeroLayout
-      scenery={TYPE_SCENERY[sp.types[0]]}
-      name={sp.name}
-      subtitle={
-        <>
-          <ItemIcon item={ICON.Raid} size={22} /> Jefe comunitario · Nv. {raid.boss.level}
-          {raid.boss.routeId && ` · ${route(raid.boss.routeId).name}`}
-        </>
-      }
-      footer={
-        <div className="raid-boss-hp">
-          <Bar value={raid.hp} max={raid.maxHp} kind="hp" />
-          <span className="small">
-            {percent}% · {raid.hp} / {raid.maxHp} PS
-          </span>
-          <span className="small raid-eta">
-            {minutesLeft === null ? 'Nadie le está haciendo daño' : `Caerá en ≈ ${formatMinutes(minutesLeft)} al ritmo de la sala`}
+    <>
+      <RaidBattleScene raid={raid} biome={biome} timeScale={game.timeScale} />
+      <div className="raid-summary">
+        <div className="row between">
+          <strong>{sp.name}</strong>
+          <span className="small muted with-icon">
+            <ItemIcon item={ICON.Raid} size={18} /> Jefe comunitario{raid.place && ` · ${route(raid.place.routeId).name}`}
           </span>
         </div>
-      }
-    >
-      <div className={`raid-boss ${dealt > 0 ? roundClass(raid.round, 'shake') : ''}`}>
-        <Sprite id={sp.id} size={180} />
+        <Bar value={hp} max={raid.maxHp} kind="hp" />
+        <div className="row between small">
+          <span>
+            {percent}% · {hp} / {raid.maxHp} PS
+          </span>
+          <span className="raid-eta">
+            {gameMinutesLeft === null ? 'Nadie le hace daño' : `Caerá en ≈ ${formatMinutes(gameMinutesLeft / game.timeScale)}`}
+          </span>
+        </div>
       </div>
-      {dealt > 0 && (
-        <span key={raid.round} className="raid-float boss">
-          −{dealt}
-        </span>
-      )}
-    </HeroLayout>
+    </>
   )
 }

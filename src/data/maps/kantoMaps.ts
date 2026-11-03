@@ -24,7 +24,7 @@ export const KANTO: GameMap = {
         { id: 'a', name: 'Jardín', kind: NodeKind.Wild, steps: 30 },
         { id: 'b', name: 'Plaza', kind: NodeKind.Wild, steps: 35 },
         { id: 'c', name: 'Afueras', kind: NodeKind.Wild, steps: 20 },
-        { id: 'e', name: 'Salida del Pueblo Paleta', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 5) },
+        { id: 'e', name: 'Salida del Pueblo Paleta', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Togepi, 5) },
       ),
     },
     {
@@ -46,7 +46,8 @@ export const KANTO: GameMap = {
         { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 15 },
         { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
         { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
-        //{ id: 'g', name: 'Entrada a Ciudad Verde', kind: NodeKind.Boss, steps: 45, boss: boss(POKEMON.Pidgeotto, 8) },
+        { id: 'g', name: 'Hierba crecida', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 7)},
+        { id: 'h', name: 'Entrada a Ciudad Verde', kind: NodeKind.Raid, steps: 45, boss: boss(POKEMON.Pidgeotto, 12) },
       ),
     },
     {

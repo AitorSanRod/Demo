@@ -25,7 +25,8 @@ function layerStyle(l: SceneLayer, speed: number): CSSProperties {
 /**
  * Escena de caminar: el Pokémon avanza hacia la derecha mientras el paisaje se desplaza en parallax.
  * `speed` multiplica la velocidad del scroll (Pokémon más rápidos = paisaje más rápido). `children` se pinta
- * sobre el suelo (p. ej. el combate) y puede usar `--ground` para colocarse a la altura del Pokémon.
+ * sobre el suelo (p. ej. el combate) y puede usar `--ground` para colocarse a la altura del Pokémon. Sin `speciesId` no
+ * camina nadie (p. ej. en la pelea contra un jefe comunitario, que pinta a los suyos).
  */
 export function WalkScene({
   biome,
@@ -37,7 +38,7 @@ export function WalkScene({
   children,
 }: {
   biome: Biome
-  speciesId: number
+  speciesId?: number
   moving: boolean
   speed: number
   /** Animación del Pokémon (p. ej. al atacar en un combate) */
@@ -68,10 +69,12 @@ export function WalkScene({
       {scene.back.map((l, i) => (
         <div key={i} className="scene-layer" style={layerStyle(l, speed)} />
       ))}
-      <div className={`scene-walker ${walkerClass}`}>
-        <div className="scene-shadow" />
-        <Sprite id={speciesId} size={128} />
-      </div>
+      {speciesId !== undefined && (
+        <div className={`scene-walker ${walkerClass}`}>
+          <div className="scene-shadow" />
+          <Sprite id={speciesId} size={128} />
+        </div>
+      )}
       {scene.front.map((l, i) => (
         <div key={i} className="scene-layer" style={layerStyle(l, speed)} />
       ))}
