@@ -1,16 +1,23 @@
 import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
+import { ICON } from './icons'
+import { ItemIcon } from './ItemIcon'
 
 /** Multiplicadores de tiempo para probar sin esperar; el botón solo existe en desarrollo (npm run dev) */
 const TIME_SCALES = [1, 10, 60]
 
-/** Barra superior: nombre del juego y monedas */
+/** Barra superior: nombre del juego, dinero, tickets y trozos de MissingNo */
 export function TopBar({ game }: { game: GameState }) {
   return (
     <header className="top-bar">
       <span className="logo">Pokérancho</span>
       <span className="currency">₽ {game.money}</span>
-      <span className="currency">🎟 {game.tickets}</span>
+      <span className="currency with-icon">
+        <ItemIcon item={ICON.Ticket} size={20} /> {game.tickets}
+      </span>
+      <span className="currency with-icon" title="Trozos de MissingNo">
+        <ItemIcon item={ICON.Shard} size={20} /> {game.missingnoShards}
+      </span>
       {import.meta.env.DEV && <TimeScaleButton timeScale={game.timeScale} />}
     </header>
   )
@@ -23,7 +30,7 @@ function TimeScaleButton({ timeScale }: { timeScale: number }) {
     })
   return (
     <button className="time-chip" onClick={cycle} title="Velocidad del tiempo (solo en desarrollo)">
-      ⏱ x{timeScale}
+      x{timeScale}
     </button>
   )
 }

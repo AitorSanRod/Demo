@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { Item } from './data/items'
 import { combinableCount } from './game/collection/pieces'
 import { TutorialStep } from './game/core/state'
 import { act, useGame } from './game/core/store'
@@ -13,15 +14,17 @@ import { TopBar } from './ui/shared/TopBar'
 import { TutorialNavHint } from './ui/shared/TutorialHint'
 import { UpgradeShop } from './ui/shop/UpgradeShop'
 import { StarterScreen } from './ui/starter/StarterScreen'
+import { ICON } from './ui/shared/icons'
+import { ItemIcon } from './ui/shared/ItemIcon'
 
 type Tab = 'route' | 'ranch' | 'shop' | 'gacha' | 'dex'
 
-const TABS: { id: Tab; icon: string; label: string }[] = [
-  { id: 'route', icon: '🗺️', label: 'Ruta' },
-  { id: 'ranch', icon: '🏡', label: 'Rancho' },
-  { id: 'shop', icon: '🛒', label: 'Tienda' },
-  { id: 'gacha', icon: '🎰', label: 'Gacha' },
-  { id: 'dex', icon: '📕', label: 'Pokédex' },
+const TABS: { id: Tab; icon: Item; label: string }[] = [
+  { id: 'route', icon: ICON.Route, label: 'Ruta' },
+  { id: 'gacha', icon: ICON.Gacha, label: 'Gacha' },
+  { id: 'ranch', icon: ICON.Ranch, label: 'Rancho' },
+  { id: 'shop', icon: ICON.Shop, label: 'Tienda' },
+  { id: 'dex', icon: ICON.Dex, label: 'Pokédex' },
 ]
 const TICK_MS = 250
 
@@ -70,7 +73,7 @@ export default function App() {
         {TABS.map((t) => (
           <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
             <span className="nav-icon">
-              {t.icon}
+              <ItemIcon item={t.icon} size={30} off={tab !== t.id} />
               {badges[t.id] && <span className="dot" />}
             </span>
             <span className="nav-label">{t.label}</span>

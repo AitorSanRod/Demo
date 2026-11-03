@@ -8,6 +8,11 @@
 .ranch-field {
   position: absolute;
   inset: 0;
+}
+/* El fondo va en su propia capa para que el tono de cada rancho no tiña a los Pokémon */
+.ranch-ground {
+  position: absolute;
+  inset: 0;
   background: url('../../assets/ranch.jpg') center / cover;
   image-rendering: pixelated;
 }
@@ -48,7 +53,17 @@
   padding: 0;
   border: none;
   background: none;
+  touch-action: none;
   animation: wander var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+/* Mientras se arrastra deja de pasear y sigue al dedo */
+.ranch-mon.dragging,
+.ranch-mon.dragging * {
+  animation: none;
+}
+.ranch-mon.dragging {
+  filter: drop-shadow(0 6px 4px #0005);
+  cursor: grabbing;
 }
 /* Solo el activo lleva sombra en el suelo; no salta con el sprite */
 .ranch-mon.active {
@@ -84,30 +99,6 @@
 }
 .idle-bounce {
   animation: idle 2.4s ease-in-out infinite;
-}
-.stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px 12px;
-  color: var(--muted);
-}
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.action-grid .btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-/* Opciones de evolución: una sola ocupa todo el ancho; las de Eevee se reparten */
-.evolve-options {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 8px;
 }
 @keyframes sheet-up {
   from {

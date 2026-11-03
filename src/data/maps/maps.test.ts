@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isValidPath, KANTO, NodeKind, pathFrom, type Route } from './index'
+import { isValidPath, KANTO, node, NodeKind, pathFrom, pathSpecies, type Route } from './index'
 
 function reachableIds(r: Route): Set<string> {
   const byId = new Map(r.nodes.map((n) => [n.id, n]))
@@ -52,6 +52,17 @@ describe.each(KANTO.routes)('ruta $id', (r) => {
 
   it('desbloquea una ruta existente', () => {
     if (r.unlocks) expect(KANTO.routes.map((x) => x.id)).toContain(r.unlocks)
+  })
+
+  it('las especies del camino incluyen sus salvajes y su jefe, sin repetir', () => {
+    const path = pathFrom(r)
+    const species = pathSpecies(r, path)
+    expect(new Set(species).size).toBe(species.length)
+    for (const id of path) {
+      const n = node(r, id)
+      if (n.boss) expect(species).toContain(n.boss.speciesId)
+      else if (n.kind === NodeKind.Wild) for (const e of n.encounters ?? r.encounters) expect(species).toContain(e.speciesId)
+    }
   })
 })
 

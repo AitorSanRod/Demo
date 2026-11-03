@@ -1,9 +1,14 @@
 import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
+import type { Item } from '../../data/items'
 import { buyUpgrade, nextUpgradePrice, UPGRADE_IDS, UPGRADES, upgradeLevel, type UpgradeId } from '../../game/team/upgrades'
 import './shop.css'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
 
 /** Pestaña Tienda: mejoras permanentes que se pagan con pokécuartos */
+const UPGRADE_ICON: Record<UpgradeId, Item> = { expeditionSlots: ICON.Expedition, ranches: ICON.Ranch }
+
 export function UpgradeShop({ game }: { game: GameState }) {
   return (
     <div className="screen scroll">
@@ -22,7 +27,7 @@ function UpgradeCard({ game, id }: { game: GameState; id: UpgradeId }) {
 
   return (
     <div className="card upgrade-card">
-      <span className="upgrade-icon">{info.icon}</span>
+      <ItemIcon item={UPGRADE_ICON[id]} size={48} />
       <div className="grow">
         <strong>{info.name}</strong>
         <p className="small muted">{info.description}</p>

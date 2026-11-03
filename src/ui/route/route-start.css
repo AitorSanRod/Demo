@@ -1,0 +1,22 @@
+/* Diálogo de comenzar una ruta (RouteStartDialog): cabecera con el paisaje de la ruta y el Pokémon que sale */
+
+.route-start {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  animation: reward-in 0.3s ease-out;
+}
+.route-start-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+}
+/* Pokémon que pueden aparecer: los vistos con su sprite y los demás como ¿ pixelada */
+.route-start-species {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}

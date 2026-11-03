@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { KANTO, route } from '../../data/maps'
+import { EXP_LEVEL_GAP } from '../../game/battle/rewards'
 import type { GameState, OwnedMon } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import {
@@ -40,9 +41,9 @@ export function ExpeditionForm({ game, mon }: { game: GameState; mon: OwnedMon }
         ))}
       </div>
       <p className="small muted">
-        ~{expeditionBattles(duration)} combates · {winPct}% de victorias · premios ×{mult}. Al volver gana{' '}
-        {route(routeId).reward.exp * mult} EXP (los combates solo dan ₽, tickets y piezas), sin riesgo. Puede descubrir
-        Pokémon nuevos.
+        ~{expeditionBattles(duration)} combates · {winPct}% de victorias · premios ×{mult}. Cada victoria da EXP, ₽ y a veces
+        tickets (sin EXP si los rivales tienen más de {EXP_LEVEL_GAP} niveles menos), sin riesgo. Puede descubrir Pokémon nuevos.
+        Se puede cancelar, pero entonces no gana nada.
       </p>
       {blocker && <p className="notice small">{blocker}</p>}
       <button

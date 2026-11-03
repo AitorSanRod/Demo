@@ -3,15 +3,18 @@ import { route } from '../../data/maps'
 import { species } from '../../data/species'
 import { findMon, type GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
-import { collectExpedition, isExpeditionDone } from '../../game/team/expedition'
+import { cancelExpedition, collectExpedition, isExpeditionDone } from '../../game/team/expedition'
 import { Bar, Sprite } from '../shared/common'
+import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { formatMinutes } from '../shared/format'
 import { discoveryReward, earningsRewards, levelUpReward } from '../shared/rewardItems'
 import { RewardOverlay, type RewardItem } from '../shared/RewardOverlay'
 
-/** Pokémon de expedición: lo que les queda y, a los que han vuelto, el botón para recoger su premio */
+/** Pokémon de expedición: lo que les queda (con opción de cancelar) y, a los que han vuelto, el botón para recoger su premio */
 export function ExpeditionList({ game }: { game: GameState }) {
   const [report, setReport] = useState<{ name: string; items: RewardItem[] } | null>(null)
+  const [cancellingUid, setCancellingUid] = useState<string | null>(null)
+  const cancelling = cancellingUid ? findMon(game, cancellingUid) : undefined
 
   const collect = (uid: string, name: string) => {
     const collected = act((s) => {
@@ -46,14 +49,38 @@ export function ExpeditionList({ game }: { game: GameState }) {
               </span>
               {!done && <Bar value={e.elapsedMin} max={e.durationMin} kind="steps" />}
             </span>
-            {done && (
+            {done ? (
               <button className="btn primary small" onClick={() => collect(e.uid, name)}>
                 Recoger
+              </button>
+            ) : (
+              <button className="btn small" onClick={() => setCancellingUid(e.uid)}>
+                Cancelar
               </button>
             )}
           </div>
         )
       })}
+      {cancelling && (
+        <ConfirmDialog
+          title="¿Cancelar la expedición?"
+          confirmLabel="Cancelar expedición"
+          cancelLabel="Que siga"
+          onConfirm={() => {
+            act((s) => cancelExpedition(s, cancelling.uid))
+            setCancellingUid(null)
+          }}
+          onCancel={() => setCancellingUid(null)}
+        >
+          <div className="row gap">
+            <Sprite id={cancelling.speciesId} size={64} animated={false} />
+            <p className="small confirm-text">
+              {species(cancelling.speciesId).name} volverá al rancho ahora y <strong>no ganará nada</strong> de esta expedición: ni EXP, ni
+              ₽, ni tickets.
+            </p>
+          </div>
+        </ConfirmDialog>
+      )}
     </div>
   )
 }

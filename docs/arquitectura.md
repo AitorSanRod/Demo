@@ -26,18 +26,22 @@ src/
                       test-utils, test-map
     battle/           battle (simulación por turnos), rewards (₽, tickets y piezas por victoria)
     run/              run (salida, avance por tiempo, toques), runBattle (combates de la ruta y premio final)
-    team/             mons (alta), stats, ranch, evolution, expedition, upgrades, tutorial
+    team/             mons (alta), stats, ranch, ranches (espacios, Caja, traslados), evolution, expedition, upgrades,
+                      tutorial
     collection/       dex (vistos, capturados, favoritos), pieces, gacha, shredder
   ui/
-    shared/           Sprite y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
+    shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
                       barra superior, bocadillos del tutorial, ErrorBoundary
+      sheet/          Ficha del Pokémon (PokemonSheet): un solo componente que abren rancho y Pokédex, con sus
+                      secciones (MonOverview = Datos, CareSection, TicketsSection, EvolvePanel, MovePanel)
+                      y la animación de aparición/evolución
     starter/          Elección del inicial (primer paso del tutorial)
-    ranch/            Rancho y ficha del Pokémon
+    ranch/            Rancho (varios ranchos, arrastre, Caja); al tocar un Pokémon abre PokemonSheet
     settings/         Menú ⚙️ y notificaciones
-    route/            Pestaña Ruta: mapa, planificador, ruta en curso, combate, escena (scenery/ por bioma)
+    route/            Pestaña Ruta: lista de rutas y diálogo de comenzar, ruta en curso, combate, escena (scenery/ por bioma)
     expeditions/      Enviar, seguir y recoger expediciones
     gacha/            Tiradas, apertura de la Pokéball, trituradora y tienda de MissingNo
-    dex/              Pokédex y combinación de piezas
+    dex/              Pokédex; al tocar una casilla abre PokemonSheet, la misma ficha que el rancho
     shop/             Mejoras
 ```
 
@@ -66,6 +70,7 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/team/mons.ts` | Alta de un Pokémon (`createMon`) |
 | `game/team/stats.ts` | Fórmulas de stats, EXP y velocidad de paso |
 | `game/team/ranch.ts` | Acciones del rancho y descanso |
+| `game/team/ranches.ts` | Espacios de cada rancho, la Caja, traslados entre ellos y sitio arrastrado (`moveMon`, `placeMon`) |
 | `game/team/evolution.ts` | Evolucionar un Pokémon de 5 ★ (`evolve`, `evolveBlocker`) |
 | `game/team/expedition.ts` | Expediciones por tiempo |
 | `game/team/upgrades.ts` | Mejoras de la pestaña Tienda (precios por nivel y compra) |
@@ -100,13 +105,14 @@ En los tests se pasa un rng determinista. Una función nueva con azar **debe** s
 - Si coincide, `restoreState` rellena con su valor inicial los campos que falten en la partida guardada.
 - Cualquier cambio en la forma de `GameState`, `OwnedMon`, `Run` o `Expedition` obliga a subir la versión.
 - **El equipo se conserva entre versiones** (provisional, mientras la partida viva en el navegador). Cada guardado
-  escribe también `pokerancho-team`: especie, nivel, EXP y estrellas de cada Pokémon y cuál es el activo, con un
+  escribe también `pokerancho-team`: especie, nivel, EXP, estrellas y rancho (o Caja) de cada Pokémon y cuál es el activo, con un
   formato propio (`TEAM_BACKUP_FORMAT`) que no depende de `SAVE_VERSION`. Si la partida es de otra versión, se
   empieza una nueva y `restoreTeam` rehace el equipo (PS al máximo, capturados y sin tutorial); dinero, piezas,
   rutas y lo demás empiezan de cero. Reiniciar desde ⚙️ guarda la copia vacía y se empieza de verdad desde el
   tutorial.
 - Si cambia la forma de `TeamBackup`, sube `TEAM_BACKUP_FORMAT` y haz que `parseTeamBackup` siga leyendo el
-  formato anterior: es lo único que debe sobrevivir a cualquier actualización.
+  formato anterior: es lo único que debe sobrevivir a cualquier actualización. Excepción: el formato 1 (sin
+  ranchos ni Caja) se descartó a propósito con `SAVE_VERSION` 16, y esas partidas empiezan de cero.
 - Con servidor y base de datos, la copia del equipo desaparece: la partida completa vivirá allí.
 
 ## Bucle de tiempo
@@ -122,7 +128,7 @@ progreso offline), lo multiplica por `timeScale` (x1 en producción; el botón �
 ## Ciclo de una run
 
 ```
-RoutePlanner elige el camino → startRun(routeId, path) → 'walking'
+RouteStartDialog (camino principal, pathFrom) → startRun(routeId, path) → 'walking'
   → (pasos) → llegada a parada → startStopBattle: combate simulado → lastBattle, battleMsLeft
       → (pasa battleMsLeft; no hay pasos) → settleBattle aplica PS y premio
           → derrota: 'fainted'
@@ -142,7 +148,8 @@ cerrada el tiempo de los combates se consume igual y no se reproducen.
 
 `sendExpedition` guarda `{ uid, routeId, durationMin, elapsedMin }`. El tiempo avanza en `tick` y, al terminar,
 `collectExpedition` simula los combates de forma resumida (probabilidad de victoria, sin turnos) y entrega el
-premio. Un Pokémon en ruta o de expedición no se puede gestionar en el rancho (`monPlace`).
+premio. Un Pokémon en ruta, de expedición o en la Caja no se puede gestionar en el rancho (`monPlace`); los dos
+primeros siguen ocupando su hueco en su rancho (`OwnedMon.ranch`).
 
 ## Notificaciones
 

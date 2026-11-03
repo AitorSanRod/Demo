@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { legSteps, pathFrom, route, RouteId } from '../../data/maps'
 import { POKEMON } from '../../data/pokemon'
-import { moneyReward } from '../battle/rewards'
+import { EXP_LEVEL_GAP, expReward, moneyReward } from '../battle/rewards'
 import { activeMon, initialState } from '../core/state'
 import { chooseStarter } from '../core/test-utils'
 import { maxHp, stepsPerMinute } from '../team/stats'
@@ -86,12 +86,24 @@ describe('walk', () => {
     expect(s.run!.earned.wins).toBe(1)
   })
 
-  it('los combates no dan EXP', () => {
+  it('ganar da EXP según el nivel del rival, y se suma al acabar el combate', () => {
+    const s = stateOnRoute(route(ROUTE).levels[0])
+    const mon = activeMon(s)!
+    walk(s, firstLeg(s))
+    const { rewards, outcome, enemy, player } = s.run!.lastBattle!
+    expect(rewards.exp).toBe(outcome === 'win' ? expReward(enemy.level, player.level) : 0)
+    expect(mon.exp).toBe(0)
+    advanceRun(s, s.run!.battleMsLeft)
+    expect(s.run!.earned.exp).toBe(rewards.exp)
+  })
+
+  it(`un rival con más de ${EXP_LEVEL_GAP} niveles menos no da EXP`, () => {
     const s = stateOnRoute(50)
     const mon = activeMon(s)!
     walk(s, firstLeg(s))
+    advanceRun(s, s.run!.battleMsLeft)
+    expect(s.run!.lastBattle!.rewards.exp).toBe(0)
     expect(mon.exp).toBe(0)
-    expect(mon.level).toBe(50)
   })
 })
 
@@ -146,16 +158,22 @@ describe('advanceRun', () => {
     expect(s.unlockedRoutes).toContain(route(ROUTE).unlocks)
   })
 
-  it('los tickets de primera vez solo se dan la primera vez que se completa', () => {
-    // Con rng alto ningún salvaje suelta ticket: la diferencia entre ambas vueltas son los de primera vez
+  it('el premio final solo se da la primera vez que se completa', () => {
+    // Con rng alto ningún salvaje suelta ticket: la diferencia entre ambas vueltas es el premio final
     const noDrops = () => 0.99
     const s = stateOnRoute(50)
+    const mon = activeMon(s)!
     advanceRun(s, PLENTY_MS, noDrops)
-    const firstTickets = s.run!.earned.tickets
+    const first = { ...s.run!.earned }
     endRun(s)
+    const expAfterFirst = mon.exp
     startRun(s, ROUTE)
     advanceRun(s, PLENTY_MS, noDrops)
-    expect(firstTickets - s.run!.earned.tickets).toBe(route(ROUTE).reward.firstClearTickets)
+    const { reward } = route(ROUTE)
+    expect(s.run!.phase).toBe('complete')
+    expect(first.tickets - s.run!.earned.tickets).toBe(reward.tickets)
+    expect(s.run!.earned.exp).toBe(0)
+    expect(mon.exp).toBe(expAfterFirst)
   })
 
   it('las piezas que sueltan los salvajes se suman al acabar cada combate', () => {

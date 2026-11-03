@@ -15,6 +15,9 @@ import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { Sprite } from '../shared/common'
 import { ShardBalance } from './ShardBalance'
+import { ICON } from '../shared/icons'
+import { HeartIcon } from '../shared/HeartIcon'
+import { ItemIcon } from '../shared/ItemIcon'
 
 const RATES = (Object.keys(SHARDS_PER_PIECE) as Rarity[])
   .map((r) => `${RARITY_INFO[r].name} ${SHARDS_PER_PIECE[r]}`)
@@ -35,24 +38,24 @@ export function Shredder({ game }: { game: GameState }) {
   const confirm = () => {
     const gained = act((s) => shredSelection(s, selection))
     setSelection({})
-    setMessage(`Trituradas ${selectedPieces} piezas: +👾 ${gained}`)
+    setMessage(`Triturados ${selectedPieces} tickets: +${gained} trozos de MissingNo`)
   }
 
   return (
     <>
       <ShardBalance game={game} />
       <p className="small muted">
-        Marca las piezas que quieras triturar y confirma. Trozos por pieza: {RATES}. Úsalos en la pestaña MissingNo para
-        comprar piezas del Pokémon que quieras.
+        Marca los tickets de Pokémon que quieras triturar y confirma. Trozos por ticket: {RATES}. Úsalos en la pestaña
+        MissingNo para comprar tickets del Pokémon que quieras.
       </p>
       {protectedCount > 0 && (
         <p className="small muted">
-          ❤️ {protectedCount} {protectedCount === 1 ? 'favorito no aparece' : 'favoritos no aparecen'} aquí: sus piezas
-          están protegidas. Cámbialo en la Pokédex.
+          <HeartIcon size={16} /> {protectedCount} {protectedCount === 1 ? 'favorito no aparece' : 'favoritos no aparecen'} aquí: sus tickets
+          están protegidos. Cámbialo en la Pokédex.
         </p>
       )}
       {message && <p className="highlight small">{message}</p>}
-      {stock.length === 0 && <p className="card small muted">No tienes piezas para triturar. Consíguelas en el gacha.</p>}
+      {stock.length === 0 && <p className="card small muted">No tienes tickets de Pokémon para triturar. Consíguelos en el gacha.</p>}
       {stock.length > 0 && <RarityButtons game={game} onSelect={selectRarity} />}
       {stock.map(({ speciesId, count }) => {
         const sp = species(speciesId)
@@ -68,7 +71,7 @@ export function Shredder({ game }: { game: GameState }) {
             <div className="grow small">
               <strong>{name}</strong>
               <span className="muted">
-                🧩 {count} · 👾 {shardsPerPiece(speciesId)} por pieza
+                <ItemIcon item={ICON.Piece} size={14} /> {count} · <ItemIcon item={ICON.Shard} size={14} /> {shardsPerPiece(speciesId)} por ticket
                 {canCombine(game, speciesId) && ' · se pueden combinar'}
               </span>
               {marked > 0 && <span className="shred-marked">Para triturar: {marked}</span>}
@@ -90,7 +93,7 @@ export function Shredder({ game }: { game: GameState }) {
       {selectedPieces > 0 && (
         <div className="card shred-confirm">
           <span className="small grow">
-            {selectedPieces} {selectedPieces === 1 ? 'pieza' : 'piezas'} → <strong>👾 {shards}</strong>
+            {selectedPieces} {selectedPieces === 1 ? 'ticket' : 'tickets'} → <strong className="with-icon"><ItemIcon item={ICON.Shard} size={16} /> {shards}</strong>
           </span>
           <button className="btn small" onClick={() => setSelection({})}>
             Cancelar

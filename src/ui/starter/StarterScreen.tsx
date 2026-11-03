@@ -52,7 +52,7 @@ export function StarterScreen() {
           <div className="row gap">
             <Sprite id={chosen} size={72} silhouette />
             <p className="small confirm-text">
-              Recibirás {STARTER_PIECES} piezas de este Pokémon. No podrás cambiarlo después.
+              Recibirás {STARTER_PIECES} tickets de este Pokémon. No podrás cambiarlo después.
             </p>
           </div>
         </ConfirmDialog>

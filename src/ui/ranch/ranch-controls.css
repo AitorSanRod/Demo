@@ -1,0 +1,110 @@
+/* Controles del rancho: espacios, flechas entre ranchos, Caja y traslados */
+
+/* Contador de espacios (arriba a la izquierda; el engranaje está a la derecha) */
+.ranch-slots {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  max-width: calc(100% - 72px);
+}
+.ranch-slots-button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 22px;
+  background: #0007;
+  color: #fff;
+}
+.ranch-away {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* Flechas amarillas a los lados para pasar de un rancho a otro */
+.ranch-arrow {
+  position: absolute;
+  top: 45%;
+  z-index: 90;
+  width: 44px;
+  height: 64px;
+  border: none;
+  background: var(--yellow);
+  filter: drop-shadow(0 2px 0 var(--yellow-dark)) drop-shadow(0 3px 4px #0006);
+  animation: arrow-nudge 1.6s ease-in-out infinite;
+}
+.ranch-arrow.left {
+  left: 4px;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+  --nudge: -4px;
+}
+.ranch-arrow.right {
+  right: 4px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  --nudge: 4px;
+}
+/* Botón de la Caja en la esquina inferior; también es donde se suelta un Pokémon para guardarlo */
+.ranch-box-button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 100;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 14px;
+  background: #0007;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.ranch-notice {
+  position: absolute;
+  left: 50%;
+  bottom: 80px;
+  z-index: 100;
+  max-width: 80%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #000a;
+  color: #fff;
+  text-align: center;
+  animation: fade-in 0.2s ease-out;
+}
+.box-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.box-slot {
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+}
+.box-slot.empty {
+  border-style: dashed;
+  background: none;
+}
+.box-slot.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+@keyframes arrow-nudge {
+  50% {
+    translate: var(--nudge) 0;
+  }
+}

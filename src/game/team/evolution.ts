@@ -2,16 +2,17 @@ import { evolutionsOf } from '../../data/evolutions'
 import { species } from '../../data/species'
 import { markCaught } from '../collection/dex'
 import { findMon, MonPlace, monPlace, type GameState } from '../core/state'
-import { createMon } from './mons'
+import { createMon, NEW_MON_LEVEL } from './mons'
+import { fitsInRanch, slotsOf } from './ranches'
 import { MAX_STARS } from './stats'
 
 /** Estrellas que necesita un Pokémon para poder evolucionar (las máximas) */
 export const EVOLUTION_STARS = MAX_STARS
-/** Nivel con el que llega la evolución si no la tenías ya en el equipo */
-export const EVOLVED_LEVEL = 5
+/** ₽ que cuesta evolucionar */
+export const EVOLVE_PRICE = 1000
 
 /**
- * New: la evolución llega nueva al equipo (Nv. 5, sin ★).
+ * New: la evolución llega nueva al equipo (al nivel de los Pokémon nuevos, sin ★) y ocupa el hueco del que evoluciona.
  * Star: ya la tenías y gana una ★; lo demás de ella no cambia.
  */
 export const EvolveKind = { New: 'new', Star: 'star' } as const
@@ -33,6 +34,8 @@ export function evolveBlocker(s: GameState, uid: string, intoId: number): string
   if (mon.stars < EVOLUTION_STARS) return `Necesita ${EVOLUTION_STARS} ★ (tiene ${mon.stars}).`
   const owned = s.owned.find((m) => m.speciesId === intoId)
   if (owned && owned.stars >= MAX_STARS) return `Tu ${species(intoId).name} ya tiene las ★ al máximo.`
+  if (s.money < EVOLVE_PRICE) return `Necesitas ₽ ${EVOLVE_PRICE}.`
+  if (!owned && !fitsInRanch(s, mon.ranch!, intoId, slotsOf(mon.speciesId))) return `${species(intoId).name} no cabe en este rancho.`
   return null
 }
 
@@ -41,13 +44,15 @@ export function evolve(s: GameState, uid: string, intoId: number): EvolveResult 
   if (evolveBlocker(s, uid, intoId)) return null
   const mon = findMon(s, uid)!
   const wasActive = s.activeUid === uid
+  s.money -= EVOLVE_PRICE
   s.owned = s.owned.filter((m) => m.uid !== uid)
 
   let target = s.owned.find((m) => m.speciesId === intoId)
   const kind = target ? EvolveKind.Star : EvolveKind.New
   if (target) target.stars++
   else {
-    target = createMon(intoId, EVOLVED_LEVEL)
+    target = createMon(intoId, NEW_MON_LEVEL, mon.ranch)
+    target.spot = mon.spot
     s.owned.push(target)
     markCaught(s, intoId)
   }

@@ -16,7 +16,7 @@ export const KANTO: GameMap = {
       biome: Biome.Meadow,
       levels: [2, 3],
       encounters: enc([POKEMON.Pidgey, 100]),
-      reward: { tickets: 1, money: 10, exp: 100, firstClearTickets: 3 },
+      reward: { tickets: 4, money: 10, exp: 100 },
       unlocks: RouteId.Ruta1,
       nodes: chain(
         { id: 's', name: 'Inicio', kind: NodeKind.Start, steps: 0 },

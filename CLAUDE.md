@@ -32,7 +32,7 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 
 | Quiero cambiar… | Dónde (`src/`) |
 |---|---|
-| Rutas, paradas, encuentros, jefes, premio de ruta | `data/maps/kantoMaps.ts` (un fichero por región) |
+| Rutas, paradas, encuentros, jefes, premio de ruta, imagen de la lista (`backdrop`) | `data/maps/kantoMaps.ts` (un fichero por región) |
 | Tipos de parada y biomas, ids de ruta, atajos y consultas de caminos | `data/maps/mapCommon.ts` |
 | Lista de regiones y `route(id)` | `data/maps/index.ts` |
 | Especies, rarezas, iniciales, evoluciones | `data/species.ts`, `data/evolutions.ts` |
@@ -43,19 +43,23 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Combate (turnos, daño) y sus premios | `game/battle/battle.ts`, `game/battle/rewards.ts` |
 | Avance por la ruta / combates dentro de la ruta | `game/run/run.ts` / `game/run/runBattle.ts` |
 | Stats, EXP, niveles, ★, pasos | `game/team/stats.ts` |
-| Curar, entrenar, elegir activo, descanso | `game/team/ranch.ts` + `ui/ranch/MonDetail.tsx` |
-| Evolución | `game/team/evolution.ts` + `ui/ranch/EvolvePanel.tsx` |
+| Curar, entrenar, elegir activo, descanso | `game/team/ranch.ts` + `ui/shared/sheet/CareSection.tsx`, `TrainControl.tsx` |
+| Ficha del Pokémon, un solo componente para rancho y Pokédex: paisaje por tipo, arco de EXP, PS, secciones | `ui/shared/sheet/` (`PokemonSheet` (la ficha), `MonSheet` + `MonSection`, `SpeciesHero`, `CareSection`, `MovePanel`, `MonOverview` (Datos), `TicketsSection`, `FavoriteButton` (corazón de la cabecera), `CombineResultAnimation`, `HeroLayout`, `MonHero`, `LevelUpBurst`, `StepperAction` (− / + de entrenar y crear tickets), `scenery.ts`) |
+| Animación de crear y evolucionar | `ui/shared/sheet/EvolutionAnimation.tsx` |
+| Espacios, varios ranchos, Caja, arrastrar | `game/team/ranches.ts` + `ui/ranch/RanchMon`, `RanchSlots`, `BoxSheet`, `ranchLooks.ts` + `ui/shared/sheet/MovePanel` |
+| Evolución | `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` |
 | Expediciones | `game/team/expedition.ts` + `ui/expeditions/` |
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
-| Piezas y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` |
-| Gacha, trituradora, MissingNo, descubrir con trozos | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
+| Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (la ficha es `PokemonSheet`, la misma que el rancho) |
+| Gacha, trituradora, MissingNo | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
 | Rancho | `ui/ranch/RanchScreen.tsx` |
-| Pantalla de ruta: mapa / planificador / en curso / combate | `ui/route/RouteMap`, `RoutePlanner`, `RunView`, `RouteBattle` |
+| Pantalla de ruta: lista / diálogo de comenzar / en curso / combate | `ui/route/RouteMap`, `RouteStartDialog`, `RunView`, `RouteBattle` |
 | Escena de paseo y biomas / efectos de golpe | `ui/route/WalkScene.tsx`, `scenery/` / `HitEffect.tsx` |
 | Menú inferior y pestañas | `App.tsx` |
 | Barra superior / ajustes y notificaciones | `ui/shared/TopBar.tsx` / `ui/settings/` |
 | Sprite, barras, chips de tipo y de ataque | `ui/shared/common.tsx` |
+| Iconos (objetos de PokeAPI, sin emojis) | `ui/shared/icons.ts` (qué objeto es cada cosa), `ItemIcon.tsx`, `data/items.ts` |
 | Premios a pantalla completa, aparición, confirmación | `ui/shared/RewardOverlay`, `RevealOverlay`, `ConfirmDialog` |
 | Colores y variables / estructura / piezas comunes | `styles/tokens.css` / `layout.css` / `components.css` |
 | Números de balance | tabla «Sistemas» de `docs/diseno.md` (dice la constante y el fichero) |

@@ -6,9 +6,7 @@ import { markSeen, toggleFavorite } from './dex'
 import { addPieces, piecesOf } from './pieces'
 import {
   buyPiece,
-  DISCOVER_SHARD_PRICE,
-  discoverableSpecies,
-  discoverSpecies,
+  maxPiecesToBuy,
   PIECE_SHARD_PRICE,
   pieceShardPrice,
   raritySelection,
@@ -89,49 +87,6 @@ describe('shredSelection', () => {
   })
 })
 
-describe('discoverSpecies', () => {
-  it('solo ofrece especies no vistas con piezas', () => {
-    const s = initialState()
-    addPieces(s, LEGENDARY, 1)
-    addPieces(s, COMMON, 1)
-    addPieces(s, OTHER_COMMON, 1)
-    markSeen(s, OTHER_COMMON)
-    expect(discoverableSpecies(s)).toEqual([COMMON, LEGENDARY].sort((a, b) => a - b))
-    shred(s, COMMON, 1)
-    expect(discoverableSpecies(s)).toEqual([LEGENDARY])
-  })
-
-  it('cobra según la rareza, marca la especie como vista y conserva sus piezas', () => {
-    const s = initialState()
-    addPieces(s, LEGENDARY, 2)
-    s.missingnoShards = DISCOVER_SHARD_PRICE[Rarity.Legendary]
-    expect(discoverSpecies(s, LEGENDARY)).toBe(true)
-    expect(s.missingnoShards).toBe(0)
-    expect(s.seen).toContain(LEGENDARY)
-    expect(s.caught).not.toContain(LEGENDARY)
-    expect(piecesOf(s, LEGENDARY)).toBe(2)
-  })
-
-  it('no descubre sin trozos suficientes', () => {
-    const s = initialState()
-    addPieces(s, COMMON, 1)
-    s.missingnoShards = DISCOVER_SHARD_PRICE[Rarity.Common] - 1
-    expect(discoverSpecies(s, COMMON)).toBe(false)
-    expect(s.missingnoShards).toBe(DISCOVER_SHARD_PRICE[Rarity.Common] - 1)
-    expect(s.seen).not.toContain(COMMON)
-  })
-
-  it('no descubre sin piezas ni cobra dos veces la misma especie', () => {
-    const s = initialState()
-    s.missingnoShards = DISCOVER_SHARD_PRICE[Rarity.Common] * 2
-    expect(discoverSpecies(s, COMMON)).toBe(false)
-    addPieces(s, COMMON, 1)
-    expect(discoverSpecies(s, COMMON)).toBe(true)
-    expect(discoverSpecies(s, COMMON)).toBe(false)
-    expect(s.missingnoShards).toBe(DISCOVER_SHARD_PRICE[Rarity.Common])
-  })
-})
-
 describe('buyPiece', () => {
   it('el precio depende de la rareza', () => {
     expect(pieceShardPrice(COMMON)).toBe(PIECE_SHARD_PRICE[Rarity.Common])
@@ -151,5 +106,23 @@ describe('buyPiece', () => {
     s.missingnoShards = PIECE_SHARD_PRICE[Rarity.Common] - 1
     expect(buyPiece(s, COMMON)).toBe(false)
     expect(piecesOf(s, COMMON)).toBe(0)
+  })
+
+  it('compra varias de una vez si llegan los trozos para todas', () => {
+    const s = initialState()
+    s.missingnoShards = PIECE_SHARD_PRICE[Rarity.Common] * 3 + 1
+    expect(maxPiecesToBuy(s, COMMON)).toBe(3)
+    expect(buyPiece(s, COMMON, 4)).toBe(false)
+    expect(piecesOf(s, COMMON)).toBe(0)
+    expect(buyPiece(s, COMMON, 3)).toBe(true)
+    expect(piecesOf(s, COMMON)).toBe(3)
+    expect(s.missingnoShards).toBe(1)
+  })
+
+  it('no compra cantidades sin sentido', () => {
+    const s = initialState()
+    s.missingnoShards = PIECE_SHARD_PRICE[Rarity.Common] * 3
+    expect(buyPiece(s, COMMON, 0)).toBe(false)
+    expect(s.missingnoShards).toBe(PIECE_SHARD_PRICE[Rarity.Common] * 3)
   })
 })

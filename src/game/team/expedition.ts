@@ -1,6 +1,6 @@
 import { route, type Route } from '../../data/maps'
 import { rarityOf, species, type Rarity } from '../../data/species'
-import { moneyReward, pieceReward, ticketReward } from '../battle/rewards'
+import { expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { isSeen, markSeen } from '../collection/dex'
 import { addPieces } from '../collection/pieces'
 import { pickEncounter, randInt, type Rng } from '../core/random'
@@ -13,7 +13,7 @@ export const EXPEDITION_DURATIONS = [15, 60, 240]
 /** Multiplicador de EXP, ₽, tickets y piezas según la duración en minutos, sobre lo que ya den sus combates */
 const DURATION_REWARD_MULT: Record<number, number> = { 15: 1, 60: 2, 240: 4 }
 /** Probabilidad, por combate, de descubrir (marcar como vista) una especie no vista, según su rareza */
-export const DISCOVERY_CHANCE: Record<Rarity, number> = { common: 0.15, rare: 0.1, epic: 0.075, legendary: 0.05 }
+const DISCOVERY_CHANCE: Record<Rarity, number> = { common: 0.15, rare: 0.1, epic: 0.075, legendary: 0.05 }
 /** Pokémon que pueden estar de expedición a la vez sin mejoras (cada mejora de la tienda suma 1) */
 const BASE_EXPEDITION_SLOTS = 1
 /** Combates por hora de expedición (en una ruta normal se libran unos 15) */
@@ -41,6 +41,7 @@ export function expeditionBlocker(s: GameState, uid: string): string | null {
   const place = monPlace(s, uid)
   if (place === 'run') return 'Está explorando una ruta.'
   if (place === MonPlace.Expedition) return 'Ya está de expedición.'
+  if (place === MonPlace.Box) return 'Está guardado en la Caja.'
   if (s.expeditions.length >= expeditionSlots(s)) return 'No quedan huecos de expedición. Amplíalos en la Tienda.'
   if (mon.hp < 1) return `${species(mon.speciesId).name} está debilitado.`
   return null
@@ -57,6 +58,14 @@ export function advanceExpeditions(s: GameState, minutes: number) {
 }
 
 export const isExpeditionDone = (e: Expedition): boolean => e.elapsedMin >= e.durationMin
+
+/** Hace volver al Pokémon antes de tiempo, sin ningún premio; una expedición que ya ha vuelto se recoge, no se cancela */
+export function cancelExpedition(s: GameState, uid: string): boolean {
+  const e = s.expeditions.find((x) => x.uid === uid)
+  if (!e || isExpeditionDone(e)) return false
+  s.expeditions = s.expeditions.filter((x) => x !== e)
+  return true
+}
 
 export const expeditionBattles = (durationMin: number): number =>
   Math.max(1, Math.round((durationMin / 60) * BATTLES_PER_HOUR))
@@ -76,7 +85,10 @@ export function expeditionWinRate(mon: OwnedMon, r: Route): number {
   return Math.min(1, Math.max(MIN_WIN_RATE, mon.level / routeLevel))
 }
 
-/** Recoge una expedición terminada: simula sus combates de forma resumida y entrega el premio, multiplicado según la duración. La EXP base es la de completar la ruta. */
+/**
+ * Recoge una expedición terminada: simula sus combates de forma resumida y entrega el premio, multiplicado según la
+ * duración. La EXP sale de las victorias, como en las rutas (sin EXP de rivales muy inferiores al Pokémon).
+ */
 export function collectExpedition(s: GameState, uid: string, rng: Rng = Math.random): ExpeditionResult | null {
   const e = s.expeditions.find((x) => x.uid === uid)
   const mon = findMon(s, uid)
@@ -87,7 +99,7 @@ export function collectExpedition(s: GameState, uid: string, rng: Rng = Math.ran
   const result = {
     battles: expeditionBattles(e.durationMin),
     wins: 0,
-    exp: r.reward.exp * mult,
+    exp: 0,
     money: 0,
     tickets: 0,
     pieces: [] as number[],
@@ -100,6 +112,7 @@ export function collectExpedition(s: GameState, uid: string, rng: Rng = Math.ran
     if (rollDiscovery(s, enemyId, rng)) result.discovered.push(enemyId)
     if (rng() >= winRate) continue
     result.wins++
+    result.exp += expReward(level, mon.level) * mult
     result.money += moneyReward(level, rng) * mult
     result.tickets += ticketReward(enemyId, rng) * mult
     if (pieceReward(enemyId, rng)) result.pieces.push(...Array<number>(mult).fill(enemyId))

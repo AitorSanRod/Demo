@@ -49,20 +49,28 @@ export interface RouteNode {
   boss?: Boss
 }
 
+/** Imagen de ambientación de la ruta en la lista de rutas (se ve difuminada detrás de su línea) */
+export interface RouteBackdrop {
+  image: string
+  /** Qué franja de la imagen se ve, en % de su alto: 0 enseña la parte de arriba y 100 la de abajo */
+  focusY: number
+}
+
 export interface Route {
   id: RouteId
   name: string
   description: string
   /** Fondo animado que se ve mientras el Pokémon camina */
   biome: Biome
+  backdrop?: RouteBackdrop
   levels: [number, number]
   encounters: Encounter[]
   nodes: RouteNode[]
   /**
-   * Premio al completar la ruta; `exp` es la única forma de ganar EXP además de entrenar.
-   * `firstClearTickets` se suma solo la primera vez que se completa.
+   * Premio por completar la ruta, solo la primera vez (al repetirla se gana solo lo de sus combates).
+   * `exp` es también la base de la EXP de sus expediciones.
    */
-  reward: { tickets: number; money: number; exp: number; firstClearTickets?: number }
+  reward: { tickets: number; money: number; exp: number }
   unlocks?: RouteId
 }
 
@@ -110,6 +118,16 @@ export function isValidPath(r: Route, path: string[]): boolean {
   if (path[0] !== startNode(r).id || !path.every((id) => r.nodes.some((n) => n.id === id))) return false
   const linked = path.every((id, i) => i === 0 || node(r, path[i - 1]).next.some((e) => e.to === id))
   return linked && node(r, path[path.length - 1]).next.length === 0
+}
+
+/** Especies que pueden salir en un camino, sin repetir y por orden de aparición: los salvajes de cada parada y los jefes */
+export function pathSpecies(r: Route, path: string[]): number[] {
+  const ids = path.flatMap((id) => {
+    const n = node(r, id)
+    if (n.boss) return [n.boss.speciesId]
+    return n.kind === NodeKind.Wild ? (n.encounters ?? r.encounters).map((e) => e.speciesId) : []
+  })
+  return [...new Set(ids)]
 }
 
 /** Pasos del tramo que llega al nodo `path[i]` */

@@ -3,6 +3,8 @@ import { resetGame } from '../../game/core/store'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { disableNotifications, enableNotifications, notifyStatus, type NotifyStatus } from './notifications'
 import './settings.css'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
 
 const NOTIFY_LABEL: Record<NotifyStatus, string> = {
   on: 'Activados',
@@ -27,7 +29,7 @@ export function SettingsMenu() {
   return (
     <>
       <button className="settings-button" onClick={() => setOpen((o) => !o)} aria-label="Ajustes" aria-expanded={open}>
-        ⚙️
+        <ItemIcon item={ICON.Settings} size={30} />
       </button>
       {open && (
         <div className="settings-backdrop" onClick={() => setOpen(false)}>
@@ -40,7 +42,7 @@ export function SettingsMenu() {
               disabled={notify === 'denied' || notify === 'unsupported'}
               onClick={toggleNotify}
             >
-              {notify === 'on' ? '🔔' : '🔕'} Avisar al volver de expedición
+              <ItemIcon item={ICON.Notify} size={22} off={notify !== 'on'} /> Avisar al volver de expedición
               <span className="tiny muted settings-hint">{NOTIFY_LABEL[notify]}</span>
             </button>
             <button className="settings-item danger" role="menuitem" onClick={askReset}>

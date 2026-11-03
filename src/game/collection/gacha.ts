@@ -41,10 +41,16 @@ export function pull(s: GameState, count = 1, rng: Rng = Math.random): PieceDrop
   return drops
 }
 
+/** ₽ que cuesta cada ticket de gacha */
 export const TICKET_PRICE = 250
 
-export function buyTicket(s: GameState) {
-  if (s.money < TICKET_PRICE) return
-  s.money -= TICKET_PRICE
-  s.tickets++
+/** Cuántos tickets de gacha se pueden comprar ahora con el dinero que hay */
+export const maxTicketsToBuy = (s: GameState): number => Math.floor(s.money / TICKET_PRICE)
+
+/** Compra `count` tickets de gacha de una vez; si no llega el dinero para todos, no compra ninguno */
+export function buyTicket(s: GameState, count = 1): boolean {
+  if (count < 1 || count > maxTicketsToBuy(s)) return false
+  s.money -= count * TICKET_PRICE
+  s.tickets += count
+  return true
 }

@@ -1,3 +1,6 @@
+import palletTown from '../../assets/routes/pallet-town.webp'
+import route1 from '../../assets/routes/route-1.webp'
+import viridianForest from '../../assets/routes/viridian-forest.webp'
 import { POKEMON } from '../pokemon'
 import { Biome, boss, chain, enc, NodeKind, RouteId, type GameMap } from './mapCommon'
 
@@ -11,9 +14,10 @@ export const KANTO: GameMap = {
       name: 'Pueblo Paleta',
       description: 'Tu primer paseo: da una vuelta por el pueblo antes de salir a la Ruta 1.',
       biome: Biome.Meadow,
+      backdrop: { image: palletTown, focusY: 45 },
       levels: [2, 3],
       encounters: enc([POKEMON.Pidgey, 40], [POKEMON.Rattata, 40], [POKEMON.Caterpie, 20]),
-      reward: { tickets: 0, money: 50, exp: 100, firstClearTickets: 3 },
+      reward: { tickets: 2, money: 250, exp: 100 },
       unlocks: RouteId.Ruta1,
       nodes: chain(
         { id: 's', name: 'Casa', kind: NodeKind.Start, steps: 0 },
@@ -29,44 +33,47 @@ export const KANTO: GameMap = {
       name: 'Ruta 1',
       description: 'El camino a Ciudad Verde. Más largo y peligroso de lo que parece.',
       biome: Biome.Meadow,
+      backdrop: { image: route1, focusY: 40 },
       levels: [5, 8],
       encounters: enc([POKEMON.Pidgey, 30], [POKEMON.Rattata, 30], [POKEMON.Caterpie, 13], [POKEMON.Weedle, 13], [POKEMON.NidoranF, 7], [POKEMON.NidoranM, 7]),
       reward: { tickets: 2, money: 200, exp: 250 },
-      // unlocks: RouteId.BosqueVerde, (reactivar junto con Bosque Verde)
+      unlocks: RouteId.BosqueVerde,
       nodes: chain(
         { id: 's', name: 'Salida del pueblo', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Prado', kind: NodeKind.Wild, steps: 16 },
-        { id: 'b', name: 'Hierba alta', kind: NodeKind.Wild, steps: 16, levelBonus: 1 },
-        { id: 'c', name: 'Arboleda', kind: NodeKind.Wild, steps: 16, encounters: enc([POKEMON.Caterpie, 40], [POKEMON.Weedle, 40], [POKEMON.Pidgey, 20]) },
-        { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 16 },
-        { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 16, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
-        { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 16, levelBonus: 2 },
-        { id: 'g', name: 'Entrada a Ciudad Verde', kind: NodeKind.Boss, steps: 16, boss: boss(POKEMON.Pidgeotto, 8) },
+        { id: 'a', name: 'Prado', kind: NodeKind.Wild, steps: 25 },
+        { id: 'b', name: 'Hierba alta', kind: NodeKind.Wild, steps: 25, levelBonus: 1 },
+        { id: 'c', name: 'Arboleda', kind: NodeKind.Wild, steps: 20, encounters: enc([POKEMON.Caterpie, 40], [POKEMON.Weedle, 40], [POKEMON.Pidgey, 20]) },
+        { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 15 },
+        { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
+        { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
+        { id: 'g', name: 'Entrada a Ciudad Verde', kind: NodeKind.Boss, steps: 45, boss: boss(POKEMON.Pidgeotto, 8) },
       ),
     },
-    // {
-    //   id: RouteId.BosqueVerde,
-    //   name: 'Bosque Verde',
-    //   description: 'Un bosque frondoso lleno de Pokémon bicho.',
-    //   biome: Biome.Forest,
-    //   levels: [4, 7],
-    //   encounters: enc([POKEMON.Caterpie, 20], [POKEMON.Weedle, 20], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Pidgey, 8], [POKEMON.Oddish, 8], [POKEMON.Bellsprout, 8], [POKEMON.Pikachu, 6]),
-    //   reward: { tickets: 4, money: 180, exp: 350 },
-    //   unlocks: RouteId.MonteMoon,
-    //   nodes: chain(
-    //     { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
-    //     { id: 'a', name: 'Sotobosque', kind: NodeKind.Wild, steps: 80 },
-    //     { id: 'b', name: 'Matorral', kind: NodeKind.Wild, steps: 90, encounters: enc([POKEMON.Oddish, 40], [POKEMON.Bellsprout, 40], [POKEMON.Caterpie, 20]) },
-    //     { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
-    //     { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
-    //     { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
-    //   ),
-    // },
+    {
+      id: RouteId.BosqueVerde,
+      name: 'Bosque Verde',
+      description: 'Un bosque frondoso lleno de Pokémon bicho.',
+      biome: Biome.Forest,
+      backdrop: { image: viridianForest, focusY: 50 },
+      levels: [6, 9],
+      encounters: enc([POKEMON.Caterpie, 20], [POKEMON.Weedle, 20], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Pidgey, 8], [POKEMON.Oddish, 8], [POKEMON.Bellsprout, 8], [POKEMON.Pikachu, 6]),
+      reward: { tickets: 4, money: 180, exp: 350 },
+      //unlocks: RouteId.MonteMoon,
+      nodes: chain(
+        { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
+        { id: 'a', name: 'Sotobosque', kind: NodeKind.Wild, steps: 80 },
+        { id: 'b', name: 'Matorral', kind: NodeKind.Wild, steps: 90, encounters: enc([POKEMON.Oddish, 40], [POKEMON.Bellsprout, 40], [POKEMON.Caterpie, 20]) },
+        { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
+        { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
+        { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
+      ),
+    }
     // {
     //   id: RouteId.MonteMoon,
     //   name: 'Monte Moon',
     //   description: 'Cuevas oscuras donde dicen que caen meteoritos.',
     //   biome: Biome.Cave,
+    //   backdrop: { image: mtMoon, focusY: 50 }, (importar '../../assets/routes/mt-moon.webp')
     //   levels: [7, 11],
     //   encounters: enc([POKEMON.Zubat, 25], [POKEMON.Geodude, 20], [POKEMON.Paras, 15], [POKEMON.Sandshrew, 10], [POKEMON.Ekans, 10], [POKEMON.Machop, 10], [POKEMON.Clefairy, 5], [POKEMON.Jigglypuff, 5]),
     //   reward: { tickets: 5, money: 300, exp: 800 },
@@ -85,6 +92,7 @@ export const KANTO: GameMap = {
     //   name: 'Ruta Marina',
     //   description: 'Islotes y corrientes. Hay que nadar mucho.',
     //   biome: Biome.Sea,
+    //   backdrop: { image: route19, focusY: 15 }, (importar '../../assets/routes/route-19.webp')
     //   levels: [13, 18],
     //   encounters: enc([POKEMON.Tentacool, 22], [POKEMON.Magikarp, 17], [POKEMON.Psyduck, 13], [POKEMON.Poliwag, 13], [POKEMON.Horsea, 9], [POKEMON.Krabby, 9], [POKEMON.Staryu, 9], [POKEMON.Shellder, 8]),
     //   reward: { tickets: 6, money: 450, exp: 1800 },

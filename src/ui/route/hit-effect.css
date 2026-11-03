@@ -24,7 +24,8 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  font-size: 26px;
+  width: 30px;
+  height: 30px;
   font-style: normal;
   translate: -50% -50%;
   opacity: 0;
@@ -119,4 +120,9 @@
     opacity: 0;
     transform: rotate(360deg) translate(var(--dx), var(--dy)) scale(1.1);
   }
+}
+.hit-fx img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
 }

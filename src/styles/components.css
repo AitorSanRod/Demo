@@ -93,6 +93,19 @@
   font-size: 14px;
   transition: transform 0.08s;
 }
+/* Botón redondo pequeño (− / + de las cantidades): siempre un círculo, sea cual sea el alto de lo que acompaña */
+.btn.round-btn {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
 .btn:active:not(:disabled) {
   transform: scale(0.96);
 }
@@ -243,6 +256,33 @@
   background: var(--card);
   color: var(--accent);
   box-shadow: 0 1px 3px #0002;
+}
+/* Iconos con sprites de objetos: pixel nítido y alineados con el texto */
+.item-icon {
+  image-rendering: pixelated;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.item-icon.off {
+  filter: grayscale(1) opacity(0.6);
+}
+/* Interrogación pixelada de una especie sin descubrir (PixelQuestion) */
+.pixel-question {
+  fill: var(--line);
+}
+/* Corazón de favorito (HeartIcon) */
+.heart-icon {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.heart-icon path {
+  fill: var(--favorite);
+}
+/* Texto con icono delante */
+.with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 @keyframes fade-in {
   from {

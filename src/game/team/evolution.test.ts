@@ -4,8 +4,9 @@ import { RouteId } from '../../data/maps'
 import { SPECIES } from '../../data/species'
 import { initialState } from '../core/state'
 import { chooseStarter } from '../core/test-utils'
-import { EVOLUTION_STARS, EVOLVED_LEVEL, EvolveKind, evolve, evolveBlocker } from './evolution'
-import { createMon } from './mons'
+import { EVOLUTION_STARS, EVOLVE_PRICE, EvolveKind, evolve, evolveBlocker } from './evolution'
+import { createMon, NEW_MON_LEVEL } from './mons'
+import { RANCH_SLOTS, slotsOf, usedSlots } from './ranches'
 import { MAX_STARS } from './stats'
 
 const FROM = EVOLVING_SPECIES[0]
@@ -18,8 +19,9 @@ function stateReady() {
   const s = initialState()
   chooseStarter(s, FROM)
   const mon = s.owned[0]
-  mon.level = EVOLVED_LEVEL + 15
+  mon.level = NEW_MON_LEVEL + 15
   mon.stars = EVOLUTION_STARS
+  s.money = EVOLVE_PRICE
   return { s, mon }
 }
 
@@ -27,7 +29,7 @@ describe('evolve', () => {
   it('sin la evolución en el equipo: desaparece y llega la evolución al nivel previsto y sin ★', () => {
     const { s, mon } = stateReady()
     expect(evolve(s, mon.uid, INTO)).toMatchObject({ kind: EvolveKind.New, fromId: FROM, intoId: INTO, stars: 0 })
-    expect(s.owned.map((m) => [m.speciesId, m.level, m.stars])).toEqual([[INTO, EVOLVED_LEVEL, 0]])
+    expect(s.owned.map((m) => [m.speciesId, m.level, m.stars])).toEqual([[INTO, NEW_MON_LEVEL, 0]])
     expect(s.caught).toContain(INTO)
   })
 
@@ -74,8 +76,31 @@ describe('evolve', () => {
     const mon = createMon(BRANCHING!, 10)
     mon.stars = EVOLUTION_STARS
     s.owned.push(mon)
+    s.money = EVOLVE_PRICE
     const last = evolutionsOf(BRANCHING!).at(-1)!
     expect(evolve(s, mon.uid, last)?.intoId).toBe(last)
     expect(s.owned[0].speciesId).toBe(last)
+  })
+
+  it('cobra su precio y no evoluciona sin dinero suficiente', () => {
+    const { s, mon } = stateReady()
+    s.money = EVOLVE_PRICE - 1
+    expect(evolveBlocker(s, mon.uid, INTO)).toMatch(/₽/)
+    s.money = EVOLVE_PRICE
+    evolve(s, mon.uid, INTO)
+    expect(s.money).toBe(0)
+  })
+
+  it('la evolución ocupa el hueco del que evoluciona y necesita caber en su rancho', () => {
+    const { s, mon } = stateReady()
+    // Relleno que no sea la evolución (si no, contaría como «ya la tienes»)
+    const filler = SPECIES.find((sp) => sp.id !== INTO && slotsOf(sp.id) === 1)!.id
+    while (usedSlots(s, mon.ranch!) < RANCH_SLOTS) s.owned.push(createMon(filler, NEW_MON_LEVEL))
+    const extra = slotsOf(INTO) - slotsOf(FROM)
+    expect(evolveBlocker(s, mon.uid, INTO) === null).toBe(extra <= 0)
+    s.owned.splice(1, Math.max(0, extra))
+    expect(evolveBlocker(s, mon.uid, INTO)).toBeNull()
+    evolve(s, mon.uid, INTO)
+    expect(s.owned.find((m) => m.speciesId === INTO)?.ranch).toBe(mon.ranch)
   })
 })

@@ -1,13 +1,17 @@
 import { findMon, MonPlace, monPlace, type GameState, type OwnedMon } from '../core/state'
-import { expToNext, gainExp, maxHp, type LevelUpResult } from './stats'
+import { expToNext, gainExp, MAX_LEVEL, maxHp, type LevelUpResult } from './stats'
 
 /** Fracción de PS máximos que se recupera por minuto descansando en el rancho */
 export const REGEN_PER_MIN = 0.1
-/** Fracción de la EXP del nivel actual que da una sesión de entrenamiento */
-const TRAIN_EXP_FRACTION = 0.4
+/** Fracción de la EXP del nivel actual que da una sesión de entrenamiento (0.25: 4 sesiones por nivel) */
+const TRAIN_EXP_FRACTION = 0.25
+/** ₽ fijos de cada sesión de entrenamiento */
+const TRAIN_BASE_COST = 20
+/** ₽ por nivel² de cada sesión: el precio crece con el cuadrado del nivel, como la EXP que hace falta */
+const TRAIN_COST_PER_LEVEL_SQ = 2
 
 export const healCost = (m: OwnedMon) => 5 + m.level * 3
-export const trainCost = (m: OwnedMon) => 20 + m.level * 8
+export const trainCost = (m: OwnedMon) => TRAIN_BASE_COST + TRAIN_COST_PER_LEVEL_SQ * m.level ** 2
 
 /** El Pokémon solo se puede gestionar si está en el rancho (no en ruta ni de expedición) */
 function ranchMon(s: GameState, uid: string): OwnedMon | null {
@@ -30,11 +34,51 @@ export function healInstant(s: GameState, uid: string): boolean {
   return true
 }
 
-export function train(s: GameState, uid: string): LevelUpResult | null {
+/** Resultado de entrenar varias sesiones seguidas, para enseñarlo antes de aceptar */
+export interface TrainPlan {
+  sessions: number
+  /** ₽ en total: cada sesión cuesta según el nivel que tenga al empezarla */
+  cost: number
+  level: number
+  exp: number
+  levelsGained: number
+}
+
+/** Una sesión: cobra y da EXP según su nivel actual */
+function trainOnce(m: OwnedMon): number {
+  const cost = trainCost(m)
+  gainExp(m, Math.ceil(expToNext(m.level) * TRAIN_EXP_FRACTION))
+  return cost
+}
+
+/** Qué pasaría al entrenar `sessions` veces seguidas, sin tocar al Pokémon */
+export function trainPlan(m: OwnedMon, sessions: number): TrainPlan {
+  const preview = structuredClone(m)
+  let cost = 0
+  for (let i = 0; i < sessions; i++) cost += trainOnce(preview)
+  return { sessions, cost, level: preview.level, exp: preview.exp, levelsGained: preview.level - m.level }
+}
+
+/** Sesiones seguidas que se pueden pagar ahora sin pasar del nivel máximo (0 si no puede entrenar) */
+export function maxTrainSessions(s: GameState, uid: string): number {
   const m = ranchMon(s, uid)
-  if (!m || s.money < trainCost(m)) return null
-  s.money -= trainCost(m)
-  return gainExp(m, Math.ceil(expToNext(m.level) * TRAIN_EXP_FRACTION))
+  if (!m) return 0
+  const preview = structuredClone(m)
+  let sessions = 0
+  let cost = 0
+  while (preview.level < MAX_LEVEL && cost + trainCost(preview) <= s.money) {
+    cost += trainOnce(preview)
+    sessions++
+  }
+  return sessions
+}
+
+export function train(s: GameState, uid: string, sessions = 1): LevelUpResult | null {
+  const m = ranchMon(s, uid)
+  if (!m || sessions < 1 || sessions > maxTrainSessions(s, uid)) return null
+  const startLevel = m.level
+  for (let i = 0; i < sessions; i++) s.money -= trainOnce(m)
+  return { levelsGained: m.level - startLevel }
 }
 
 export function setActive(s: GameState, uid: string) {

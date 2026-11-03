@@ -1,28 +1,53 @@
-import { useState, type CSSProperties } from 'react'
-import { RARITY_INFO, rarityOf, species } from '../../data/species'
-import { findMon, MonPlace, monPlace, type GameState, type OwnedMon } from '../../game/core/state'
-import { EvolveKind, type EvolveResult } from '../../game/team/evolution'
+import { useRef, useState } from 'react'
+import { findMon, MonPlace, monPlace, type GameState } from '../../game/core/state'
+import { act } from '../../game/core/store'
+import { moveBlocker, moveMon, placeMon, ranchCount } from '../../game/team/ranches'
 import { SettingsMenu } from '../settings/SettingsMenu'
-import { Sprite } from '../shared/common'
-import { RevealOverlay } from '../shared/RevealOverlay'
-import { MonDetail } from './MonDetail'
+import { PokemonSheet } from '../shared/sheet/PokemonSheet'
+import { BoxSheet } from './BoxSheet'
+import { RanchMon, type RanchDrop } from './RanchMon'
+import { RanchSlots } from './RanchSlots'
+import { ranchFilter } from './ranchLooks'
 import './ranch.css'
+import './ranch-controls.css'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
 
-/** El rancho ocupa toda la pantalla; tocar un Pokémon abre su ficha en una hoja que sube desde abajo */
+/** Milisegundos que se ve el aviso de por qué no se ha podido soltar un Pokémon */
+const NOTICE_MS = 2500
+
+/** El rancho ocupa toda la pantalla; tocar un Pokémon abre su ficha a pantalla completa y la Caja sube desde abajo */
 export function RanchScreen({ game }: { game: GameState }) {
+  const [view, setView] = useState(0)
   const [selectedUid, setSelectedUid] = useState<string | null>(null)
-  const home = game.owned.filter((m) => monPlace(game, m.uid) === MonPlace.Ranch)
+  const [boxOpen, setBoxOpen] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const noticeTimer = useRef<number | undefined>(undefined)
+  const count = ranchCount(game)
+  const ranch = Math.min(view, count - 1)
+  const home = game.owned.filter((m) => m.ranch === ranch && monPlace(game, m.uid) === MonPlace.Ranch)
   const mon = selectedUid ? findMon(game, selectedUid) : undefined
-  const [evolution, setEvolution] = useState<EvolveResult | null>(null)
-  const close = () => setSelectedUid(null)
-  const onEvolved = (result: EvolveResult) => {
-    close()
-    setEvolution(result)
+  const close = () => {
+    setSelectedUid(null)
+    setBoxOpen(false)
   }
+  const showNotice = (text: string) => {
+    setNotice(text)
+    window.clearTimeout(noticeTimer.current)
+    noticeTimer.current = window.setTimeout(() => setNotice(null), NOTICE_MS)
+  }
+  const onDrop = (uid: string, drop: RanchDrop) => {
+    if (drop.kind === 'spot') return act((s) => placeMon(s, uid, drop.spot))
+    const blocker = moveBlocker(game, uid, null)
+    if (blocker) return showNotice(blocker)
+    act((s) => moveMon(s, uid, null))
+  }
+  const turn = (step: number) => setView((ranch + step + count) % count)
 
   return (
     <div className="screen ranch">
       <div className="ranch-field">
+        <div className="ranch-ground" style={{ filter: ranchFilter(ranch) }} />
         {home.map((m) => (
           <RanchMon
             key={m.uid}
@@ -30,81 +55,38 @@ export function RanchScreen({ game }: { game: GameState }) {
             selected={m.uid === selectedUid}
             active={m.uid === game.activeUid}
             onClick={() => setSelectedUid(m.uid)}
+            onDrop={(drop) => onDrop(m.uid, drop)}
           />
         ))}
         {home.length === 0 && (
-          <p className="ranch-empty small">{game.owned.length === 0 ? 'Aún no tienes Pokémon.' : 'Todos tus Pokémon están fuera.'}</p>
+          <p className="ranch-empty small">{game.owned.length === 0 ? 'Aún no tienes Pokémon.' : 'No hay ningún Pokémon en este rancho.'}</p>
         )}
+        <RanchSlots game={game} ranch={ranch} />
+        {count > 1 && (
+          <>
+            <button className="ranch-arrow left" onClick={() => turn(-1)} aria-label="Rancho anterior" />
+            <button className="ranch-arrow right" onClick={() => turn(1)} aria-label="Rancho siguiente" />
+          </>
+        )}
+        {notice && <p className="ranch-notice small">{notice}</p>}
+        <button className="ranch-box-button" onClick={() => setBoxOpen(true)} aria-label="Abrir la Caja">
+          <ItemIcon item={ICON.Box} size={34} />
+          <span className="tiny">Caja</span>
+        </button>
         <SettingsMenu />
       </div>
 
-      {mon && (
+      {mon && <PokemonSheet key={mon.uid} game={game} speciesId={mon.speciesId} onClose={close} />}
+      {boxOpen && (
         <div className="ranch-sheet-backdrop" onClick={close}>
           <div className="ranch-sheet" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <MonDetail key={mon.uid} game={game} mon={mon} onEvolved={onEvolved} />
+            <BoxSheet game={game} />
             <button className="btn primary wide" onClick={close}>
               Aceptar
             </button>
           </div>
         </div>
       )}
-      {evolution && <EvolutionReveal result={evolution} onClose={() => setEvolution(null)} />}
     </div>
   )
-}
-
-function EvolutionReveal({ result, onClose }: { result: EvolveResult; onClose: () => void }) {
-  const into = species(result.intoId)
-  const detail =
-    result.kind === EvolveKind.New ? `${species(result.fromId).name} ha evolucionado` : `Tu ${into.name} gana una ★ · ${'★'.repeat(result.stars)}`
-  return (
-    <RevealOverlay
-      title="¡Evolución!"
-      speciesId={result.intoId}
-      name={into.name}
-      detail={detail}
-      color={RARITY_INFO[rarityOf(into)].color}
-      onClose={onClose}
-    />
-  )
-}
-
-/** Franja de hierba de la imagen, en % de su altura: entre los árboles de arriba y la valla de abajo */
-const GRASS_TOP = 12
-const GRASS_HEIGHT = 54
-
-/** Cada Pokémon pasea por el rancho: su posición y su ritmo salen de su uid, así no saltan al refrescar */
-function RanchMon({ mon, selected, active, onClick }: { mon: OwnedMon; selected: boolean; active: boolean; onClick: () => void }) {
-  const h = hash(mon.uid)
-  const top = GRASS_TOP + (h % GRASS_HEIGHT)
-  const style = {
-    left: `${2 + ((h >>> 6) % 72)}%`,
-    top: `${top}%`,
-    zIndex: top,
-    '--dx': `${24 + ((h >>> 12) % 40)}px`,
-    '--dur': `${4 + ((h >>> 18) % 5)}s`,
-    '--delay': `-${(h >>> 22) % 8}s`,
-  } as CSSProperties
-
-  return (
-    <button
-      className={`ranch-mon ${active ? 'active' : ''} ${selected ? 'selected' : ''} ${mon.hp < 1 ? 'fainted' : ''}`}
-      style={style}
-      onClick={onClick}
-      aria-label={`${species(mon.speciesId).name} Nv. ${mon.level}`}
-    >
-      <span className="ranch-face">
-        <span className="ranch-hop">
-          {active && <span className="ranch-badge">⭐</span>}
-          <Sprite id={mon.speciesId} size={64} animated={false} />
-        </span>
-      </span>
-    </button>
-  )
-}
-
-function hash(text: string): number {
-  let h = 2166136261
-  for (const c of text) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0
-  return h
 }

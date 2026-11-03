@@ -1,0 +1,82 @@
+/* Evolución (EvolutionAnimation con fromId): el de antes se ilumina y alterna con la evolución */
+
+/* Al evolucionar, el de antes empieza en color y se ilumina */
+.evolving .evo-glow.from img {
+  animation:
+    evo-whiten 0.9s ease-in,
+    evo-throb 0.45s ease-in-out infinite alternate;
+}
+/* …y su silueta alterna con la de la evolución, cada vez más rápido, como en los juegos */
+.evolving .evo-glow.from {
+  animation: evo-swap-from var(--morph-ms) linear forwards;
+}
+.evolving .evo-glow.into {
+  opacity: 0;
+  animation: evo-swap-into var(--morph-ms) linear forwards;
+}
+@keyframes evo-whiten {
+  from {
+    filter: none;
+  }
+}
+/* Alternancia entre las dos siluetas: tramos cada vez más cortos */
+@keyframes evo-swap-from {
+  0%,
+  30%,
+  42%,
+  52%,
+  60%,
+  67%,
+  73%,
+  78%,
+  83%,
+  87%,
+  91%,
+  94% {
+    opacity: 1;
+  }
+  36%,
+  47%,
+  56%,
+  64%,
+  70%,
+  76%,
+  81%,
+  85%,
+  89%,
+  93%,
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes evo-swap-into {
+  0%,
+  30%,
+  42%,
+  52%,
+  60%,
+  67%,
+  73%,
+  78%,
+  83%,
+  87%,
+  91%,
+  94% {
+    opacity: 0;
+  }
+  36%,
+  47%,
+  56%,
+  64%,
+  70%,
+  76%,
+  81%,
+  85%,
+  89%,
+  93%,
+  96%,
+  100% {
+    opacity: 1;
+  }
+}

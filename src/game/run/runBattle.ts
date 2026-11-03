@@ -1,6 +1,6 @@
 import { NodeKind, type Boss, type Route, type RouteNode } from '../../data/maps'
 import { makeFighter, simulateBattle, type BattleRecord } from '../battle/battle'
-import { moneyReward, pieceReward, ticketReward } from '../battle/rewards'
+import { expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
 import { addPieces } from '../collection/pieces'
 import { pickEncounter, randInt, type Rng } from '../core/random'
@@ -16,6 +16,8 @@ const POST_WIN_HEAL = 0.25
 const WILD_STAT_MULT = 0.8
 /** Multiplicador de los pokécuartos por derrotar a un jefe (respecto a un salvaje de su nivel) */
 export const BOSS_MONEY_MULT = 3
+/** Multiplicador de la EXP por derrotar a un jefe (respecto a un salvaje de su nivel) */
+export const BOSS_EXP_MULT = 2
 /** Tickets que da siempre derrotar a un jefe (en lugar de la probabilidad de un salvaje) */
 export const BOSS_TICKETS = 1
 /** Fracción del dinero ganado en la ruta que se pierde al ser derrotado */
@@ -62,6 +64,7 @@ export function startStopBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) 
     rewards: {
       money: win ? moneyReward(level, rng) * (isBoss ? BOSS_MONEY_MULT : 1) : 0,
       tickets: win ? (isBoss ? BOSS_TICKETS : ticketReward(enemyId, rng)) : 0,
+      exp: win ? expReward(level, mon.level) * (isBoss ? BOSS_EXP_MULT : 1) : 0,
       piece: win && pieceReward(enemyId, rng),
       moneyLost: 0,
     },
@@ -93,6 +96,7 @@ function settleBattle(s: GameState, r: Route) {
     s.tickets += record.rewards.tickets
     run.earned.money += record.rewards.money
     run.earned.tickets += record.rewards.tickets
+    gainRunExp(s, record.rewards.exp)
     if (record.rewards.piece) {
       addPieces(s, record.enemy.speciesId, 1)
       run.earned.pieces.push(record.enemy.speciesId)
@@ -100,6 +104,13 @@ function settleBattle(s: GameState, r: Route) {
     run.earned.wins++
   }
   if (run.stop === run.path.length - 1) completeRoute(s, r)
+}
+
+/** El Pokémon de la ruta gana EXP y se apunta en lo ganado en ella */
+function gainRunExp(s: GameState, exp: number) {
+  const run = s.run!
+  run.earned.exp += exp
+  run.earned.levelsGained += gainExp(activeMon(s)!, exp).levelsGained
 }
 
 /** Derrota: la ruta termina y se pierde parte de lo ganado en ella. Devuelve lo perdido. */
@@ -112,18 +123,16 @@ function faint(s: GameState): number {
   return lost
 }
 
-/** Premio final de la ruta; la EXP solo llega aquí (los combates dan dinero y tickets) */
+/** Completa la ruta. Su premio final solo se gana la primera vez; al repetirla quedan los combates */
 export function completeRoute(s: GameState, r: Route) {
   const run = s.run!
-  const firstClear = !s.completedRoutes.includes(r.id)
-  const tickets = r.reward.tickets + (firstClear ? (r.reward.firstClearTickets ?? 0) : 0)
-  s.tickets += tickets
-  s.money += r.reward.money
-  run.earned.tickets += tickets
-  run.earned.money += r.reward.money
-  run.earned.exp = r.reward.exp
-  run.earned.levelsGained = gainExp(activeMon(s)!, r.reward.exp).levelsGained
-  if (firstClear) s.completedRoutes.push(r.id)
-  if (r.unlocks && !s.unlockedRoutes.includes(r.unlocks)) s.unlockedRoutes.push(r.unlocks)
   run.phase = 'complete'
+  if (s.completedRoutes.includes(r.id)) return
+  s.completedRoutes.push(r.id)
+  s.tickets += r.reward.tickets
+  s.money += r.reward.money
+  run.earned.tickets += r.reward.tickets
+  run.earned.money += r.reward.money
+  gainRunExp(s, r.reward.exp)
+  if (r.unlocks && !s.unlockedRoutes.includes(r.unlocks)) s.unlockedRoutes.push(r.unlocks)
 }

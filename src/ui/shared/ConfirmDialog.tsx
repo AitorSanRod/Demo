@@ -10,12 +10,15 @@ export function ConfirmDialog({
   title,
   children,
   confirmLabel,
+  cancelLabel = 'Cancelar',
   onConfirm,
   onCancel,
 }: {
   title: string
   children: ReactNode
   confirmLabel: string
+  /** Texto del botón de no hacer nada; cambiarlo cuando la propia acción sea «cancelar» algo */
+  cancelLabel?: string
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -26,7 +29,7 @@ export function ConfirmDialog({
         {children}
         <div className="row gap confirm-actions">
           <button className="btn grow" onClick={onCancel}>
-            Cancelar
+            {cancelLabel}
           </button>
           <button className="btn primary grow" onClick={onConfirm}>
             {confirmLabel}

@@ -1,6 +1,8 @@
 import { species } from '../../data/species'
 import { Sprite } from './common'
 import type { RewardItem } from './RewardOverlay'
+import { ICON } from './icons'
+import { ItemIcon } from './ItemIcon'
 
 interface Earnings {
   wins: number
@@ -17,19 +19,19 @@ interface Earnings {
  */
 export function earningsRewards({ wins, battles, exp, money, tickets, pieces }: Earnings, seen?: number[]): RewardItem[] {
   const items: RewardItem[] = [
-    { key: 'wins', icon: '⚔️', title: battles ? `${wins}/${battles} victorias` : `${wins} victorias` },
+    { key: 'wins', icon: <ItemIcon item={ICON.Wins} size={96} />, title: battles ? `${wins}/${battles} victorias` : `${wins} victorias` },
   ]
-  if (exp > 0) items.push({ key: 'exp', icon: '✨', title: `+${exp} EXP`, color: '#3a8fd8' })
-  if (money > 0) items.push({ key: 'money', icon: '💰', title: `+₽ ${money}`, color: '#d8a020' })
-  if (tickets > 0) items.push({ key: 'tickets', icon: '🎟', title: `+${tickets} ticket${tickets > 1 ? 's' : ''}`, color: '#c04040' })
+  if (exp > 0) items.push({ key: 'exp', icon: <ItemIcon item={ICON.Exp} size={96} />, title: `+${exp} EXP`, color: '#3a8fd8' })
+  if (money > 0) items.push({ key: 'money', icon: <ItemIcon item={ICON.Money} size={96} />, title: `+₽ ${money}`, color: '#d8a020' })
+  if (tickets > 0) items.push({ key: 'tickets', icon: <ItemIcon item={ICON.Ticket} size={96} />, title: `+${tickets} ticket${tickets > 1 ? 's' : ''} de gacha`, color: '#c04040' })
   for (const id of new Set(pieces)) {
     const count = pieces.filter((p) => p === id).length
     const known = !seen || seen.includes(id)
     items.push({
       key: `piece-${id}`,
       icon: <Sprite id={id} size={160} silhouette={!known} />,
-      title: `🧩 ${known ? species(id).name : '???'} ×${count}`,
-      detail: 'Pieza soltada en combate',
+      title: `Ticket de ${known ? species(id).name : '???'} ×${count}`,
+      detail: 'Soltado en combate',
       color: '#8a5ab0',
     })
   }

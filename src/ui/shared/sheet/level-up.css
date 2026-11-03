@@ -1,0 +1,106 @@
+/* Subida de nivel en la cabecera de la ficha (LevelUpBurst): todo dura ~1 s y queda invisible al acabar */
+
+.level-up {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.level-up-flash {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 180px;
+  height: 180px;
+  margin-left: -90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6c0 0 15%, color-mix(in srgb, var(--yellow) 70%, transparent) 35%, transparent 70%);
+  opacity: 0;
+  animation: level-up-flash 0.7s ease-out;
+}
+.level-up-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  width: 60px;
+  height: 60px;
+  margin-left: -30px;
+  border: 4px solid var(--yellow);
+  border-radius: 50%;
+  opacity: 0;
+  animation: level-up-ring 0.8s ease-out;
+}
+/* Flecha dorada con borde blanco que sube y se desvanece */
+.level-up-arrow {
+  position: absolute;
+  left: calc(50% + var(--x));
+  bottom: 10px;
+  width: 16px;
+  height: 22px;
+  background: linear-gradient(var(--yellow), #ffb000);
+  clip-path: polygon(50% 0, 100% 45%, 68% 45%, 68% 100%, 32% 100%, 32% 45%, 0 45%);
+  filter: drop-shadow(0 0 3px #fff);
+  opacity: 0;
+  animation: level-up-arrow 0.9s ease-out both;
+}
+.level-up-label {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  translate: -50% 0;
+  color: var(--yellow);
+  font-size: 22px;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #0009,
+    0 0 8px #fff8;
+  opacity: 0;
+  animation: level-up-label 1.1s ease-out;
+}
+/* Envoltorio del Pokémon al que MonHero aplica el salto */
+.level-up-jump {
+  display: inline-block;
+}
+@keyframes level-up-flash {
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+@keyframes level-up-ring {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+@keyframes level-up-arrow {
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-90px);
+  }
+}
+@keyframes level-up-label {
+  15%,
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.15);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .level-up {
+    display: none;
+  }
+}

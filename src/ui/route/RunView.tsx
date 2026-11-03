@@ -14,6 +14,8 @@ import { battleFrame, fighterClass } from './battleFrame'
 import { RouteBattle } from './RouteBattle'
 import { WalkScene } from './WalkScene'
 import './run.css'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
 
 /** La ruta avanza sola: el Pokémon camina, se para a combatir en cada parada y sigue hasta el final */
 export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: OwnedMon }) {
@@ -118,10 +120,10 @@ function RunSummary({ run, mon }: { run: Run; mon: OwnedMon }) {
   const items = earningsRewards(run.earned)
   if (run.earned.levelsGained > 0) items.push(levelUpReward(mon.speciesId, mon.level))
   if (complete && r.unlocks) {
-    items.push({ key: 'unlock', icon: '🗺️', title: 'Nueva ruta', detail: route(r.unlocks).name, color: '#2f9e8f' })
+    items.push({ key: 'unlock', icon: <ItemIcon item={ICON.Route} size={96} />, title: 'Nueva ruta', detail: route(r.unlocks).name, color: '#2f9e8f' })
   }
   if (!complete) {
-    items.push({ key: 'rest', icon: '💤', title: 'A descansar', detail: 'Se recuperará en el rancho', color: '#6a6a80' })
+    items.push({ key: 'rest', icon: <ItemIcon item={ICON.Rest} size={96} />, title: 'A descansar', detail: 'Se recuperará en el rancho', color: '#6a6a80' })
   }
   return (
     <RewardOverlay

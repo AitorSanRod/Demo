@@ -4,19 +4,24 @@ import { SPECIES } from '../../data/species'
 import { markCaught } from '../collection/dex'
 import { createMon } from '../team/mons'
 import { expToNext, MAX_LEVEL, MAX_STARS } from '../team/stats'
+import { UPGRADES } from '../team/upgrades'
 import type { GameState } from './state'
 
 /**
  * Versión del formato de la copia. Es independiente de SAVE_VERSION y solo debe subir si cambia la forma de
- * TeamBackup; entonces parseTeamBackup tiene que seguir leyendo los formatos anteriores.
+ * TeamBackup. El formato 1 (sin ranchos ni Caja) se descarta a propósito: esas partidas empiezan de cero.
  */
-const TEAM_BACKUP_FORMAT = 1
+const TEAM_BACKUP_FORMAT = 2
+/** Ranchos que puede llegar a tener el jugador: el primero más todos los de la tienda */
+const MAX_RANCHES = 1 + UPGRADES.ranches.prices.length
 
 interface BackedUpMon {
   speciesId: number
   level: number
   exp: number
   stars: number
+  /** Rancho al que pertenece, o null si está en la Caja */
+  ranch: number | null
 }
 
 export interface TeamBackup {
@@ -26,13 +31,13 @@ export interface TeamBackup {
   mons: BackedUpMon[]
 }
 
-/** Lo mínimo para rehacer el equipo: especie, nivel, EXP, estrellas y quién es el activo */
+/** Lo mínimo para rehacer el equipo: especie, nivel, EXP, estrellas, dónde vive y quién es el activo */
 export function backupTeam(s: GameState): TeamBackup {
   const active = s.owned.findIndex((m) => m.uid === s.activeUid)
   return {
     format: TEAM_BACKUP_FORMAT,
     activeIndex: active >= 0 ? active : null,
-    mons: s.owned.map(({ speciesId, level, exp, stars }) => ({ speciesId, level, exp, stars })),
+    mons: s.owned.map(({ speciesId, level, exp, stars, ranch }) => ({ speciesId, level, exp, stars, ranch })),
   }
 }
 
@@ -51,7 +56,8 @@ export function parseTeamBackup(raw: unknown): TeamBackup | null {
       SPECIES_IDS.has(m.speciesId) &&
       isInt(m.level, 1, MAX_LEVEL) &&
       isInt(m.exp, 0, Number.MAX_SAFE_INTEGER) &&
-      isInt(m.stars, 0, MAX_STARS),
+      isInt(m.stars, 0, MAX_STARS) &&
+      (m.ranch === null || isInt(m.ranch, 0, MAX_RANCHES - 1)),
   )
   // Si se descartó alguno, el índice del activo ya no es fiable
   const keepActive = valid.length === mons.length && isInt(activeIndex, 0, valid.length - 1)
@@ -60,17 +66,21 @@ export function parseTeamBackup(raw: unknown): TeamBackup | null {
 
 /**
  * Rehace el equipo en una partida nueva (solo si aún no tiene Pokémon). Llegan con los PS al máximo, cuentan como
- * capturados y, como el jugador ya tenía equipo, se salta el tutorial.
+ * capturados y, como el jugador ya tenía equipo, se salta el tutorial. Se recuperan los ranchos que usaban.
  */
 export function restoreTeam(s: GameState, backup: TeamBackup) {
   if (s.owned.length > 0 || backup.mons.length === 0) return
   for (const saved of backup.mons) {
-    const mon = createMon(saved.speciesId, saved.level)
+    const mon = createMon(saved.speciesId, saved.level, saved.ranch)
     mon.exp = Math.min(saved.exp, expToNext(saved.level) - 1)
     mon.stars = saved.stars
     s.owned.push(mon)
     markCaught(s, saved.speciesId)
   }
-  s.activeUid = s.owned[backup.activeIndex ?? 0].uid
+  const lastRanch = Math.max(0, ...backup.mons.map((m) => m.ranch ?? 0))
+  if (lastRanch > 0) s.upgrades.ranches = lastRanch
+  // Sin activo fiable, el primero que no esté en la Caja
+  const active = backup.activeIndex !== null ? s.owned[backup.activeIndex] : s.owned.find((m) => m.ranch !== null)
+  s.activeUid = (active ?? s.owned[0]).uid
   s.tutorial = null
 }

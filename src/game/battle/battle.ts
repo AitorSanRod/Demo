@@ -38,7 +38,7 @@ export interface BattleRecord {
   /** Combate contra el jefe de la parada (se ve distinto y da más premio) */
   boss: boolean
   /** `piece`: si el salvaje soltó 1 pieza de su especie */
-  rewards: { money: number; tickets: number; piece: boolean; moneyLost: number }
+  rewards: { money: number; tickets: number; exp: number; piece: boolean; moneyLost: number }
 }
 
 /** Turnos tras los que el salvaje huye y el combate acaba sin ganador */

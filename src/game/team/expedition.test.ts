@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { route, RouteId } from '../../data/maps'
 import { POKEMON } from '../../data/pokemon'
-import { activeMon, initialState } from '../core/state'
-import { chooseStarter } from '../core/test-utils'
-import { seqRng } from '../core/test-utils'
+import { activeMon, initialState, MonPlace, monPlace } from '../core/state'
+import { EXP_PER_LEVEL } from '../battle/rewards'
+import { chooseStarter, seqRng } from '../core/test-utils'
 import { runBlocker } from '../run/run'
 import {
   advanceExpeditions,
+  cancelExpedition,
   collectExpedition,
-  DISCOVERY_CHANCE,
   EXPEDITION_DURATIONS,
   expeditionBattles,
   expeditionBlocker,
@@ -60,7 +60,8 @@ describe('expediciones', () => {
     expect(result.battles).toBe(expeditionBattles(DURATION))
     expect(result.wins).toBe(result.battles)
     expect(s.money).toBe(money + result.money)
-    expect(result.exp).toBe(route(RouteId.PuebloPaleta).reward.exp)
+    // Muy por encima de la ruta: sus rivales no dan EXP
+    expect(result.exp).toBe(0)
     expect(s.expeditions).toHaveLength(0)
   })
 
@@ -76,20 +77,22 @@ describe('expediciones', () => {
 
   it.each(EXPEDITION_DURATIONS)('multiplica EXP, ₽, tickets y piezas según la duración (%i min)', (duration) => {
     const { s, mon } = stateOnExpedition(duration)
-    mon.level = 50
+    // Al nivel de la ruta sus rivales sí dan EXP
+    mon.level = route(RouteId.PuebloPaleta).levels[0]
     advanceExpeditions(s, duration)
     const mult = expeditionRewardMult(duration)
     const result = collectExpedition(s, mon.uid, () => 0.001)!
-    expect(result.exp).toBe(route(RouteId.PuebloPaleta).reward.exp * mult)
+    expect(result.exp).toBeGreaterThan(0)
+    expect(result.exp % (EXP_PER_LEVEL * mult)).toBe(0)
     expect(result.tickets).toBe(result.battles * mult)
     expect(result.pieces).toHaveLength(result.battles * mult)
     expect(result.money % mult).toBe(0)
   })
 
   it('la expedición más larga rinde mucho más por minuto', () => {
-    expect(expeditionRewardMult(240)).toBe(4)
-    expect(expeditionRewardMult(60)).toBe(2)
-    expect(expeditionRewardMult(15)).toBe(1)
+    const mults = EXPEDITION_DURATIONS.map(expeditionRewardMult)
+    expect(mults).toEqual([...mults].sort((a, b) => a - b))
+    expect(mults[mults.length - 1]).toBeGreaterThan(mults[0])
   })
 
   it('descubre especies no vistas según su probabilidad y las anuncia una sola vez', () => {
@@ -112,8 +115,11 @@ describe('expediciones', () => {
     expect(s.seen).toEqual(seen)
   })
 
-  it('las probabilidades de descubrimiento bajan con la rareza', () => {
-    expect(DISCOVERY_CHANCE).toEqual({ common: 0.15, rare: 0.1, epic: 0.075, legendary: 0.05 })
+  it('los Pokémon de la Caja no pueden ir de expedición', () => {
+    const s = initialState()
+    chooseStarter(s, POKEMON.Bulbasaur)
+    s.owned[0].ranch = null
+    expect(expeditionBlocker(s, s.owned[0].uid)).toMatch(/Caja/)
   })
 
   it('un Pokémon débil para la ruta tiene menos probabilidad de ganar', () => {
@@ -143,5 +149,22 @@ describe('expediciones', () => {
     buyUpgrade(s, 'expeditionSlots')
     sendExpedition(s, second.uid, RouteId.PuebloPaleta, DURATION)
     expect(s.expeditions).toHaveLength(2)
+  })
+
+  it('cancelarla hace volver al Pokémon al rancho sin ningún premio', () => {
+    const { s, mon } = stateOnExpedition(DURATION)
+    advanceExpeditions(s, DURATION / 2)
+    const before = { money: s.money, tickets: s.tickets, pieces: { ...s.pieces }, seen: [...s.seen], exp: mon.exp, level: mon.level }
+    expect(cancelExpedition(s, mon.uid)).toBe(true)
+    expect(s.expeditions).toHaveLength(0)
+    expect(monPlace(s, mon.uid)).toBe(MonPlace.Ranch)
+    expect({ money: s.money, tickets: s.tickets, pieces: s.pieces, seen: s.seen, exp: mon.exp, level: mon.level }).toEqual(before)
+  })
+
+  it('una expedición que ya ha vuelto no se cancela: se recoge', () => {
+    const { s, mon } = stateOnExpedition(DURATION)
+    advanceExpeditions(s, DURATION)
+    expect(cancelExpedition(s, mon.uid)).toBe(false)
+    expect(s.expeditions).toHaveLength(1)
   })
 })

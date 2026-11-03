@@ -1,10 +1,9 @@
 import type { GameState } from '../core/state'
 
-export type UpgradeId = 'expeditionSlots'
+export type UpgradeId = 'expeditionSlots' | 'ranches'
 
 interface UpgradeInfo {
   name: string
-  icon: string
   description: string
   /** Precio en ₽ de cada nivel; la longitud de la lista es el nivel máximo */
   prices: number[]
@@ -13,9 +12,13 @@ interface UpgradeInfo {
 export const UPGRADES: Record<UpgradeId, UpgradeInfo> = {
   expeditionSlots: {
     name: 'Espacio de expedición',
-    icon: '🧭',
     description: '+1 Pokémon de expedición a la vez',
     prices: [500],
+  },
+  ranches: {
+    name: 'Rancho nuevo',
+    description: '+1 rancho con su propio prado para más Pokémon',
+    prices: [5000, 15000, 40000],
   },
 }
 

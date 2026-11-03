@@ -1,6 +1,6 @@
 import { rarityOf, SPECIES, type Rarity } from '../../data/species'
 import { markCaught } from '../collection/dex'
-import { createMon } from '../team/mons'
+import { createMon, NEW_MON_LEVEL } from '../team/mons'
 import type { Rng } from './random'
 import type { GameState } from './state'
 
@@ -17,7 +17,7 @@ export function speciesOfRarity(rarity: Rarity, index = 0): number {
 
 /** Da el inicial directamente (Nv. 5, activo) y salta el tutorial */
 export function chooseStarter(s: GameState, speciesId: number) {
-  const mon = createMon(speciesId, 5)
+  const mon = createMon(speciesId, NEW_MON_LEVEL)
   s.owned.push(mon)
   s.activeUid = mon.uid
   s.tutorial = null

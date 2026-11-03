@@ -1,18 +1,19 @@
 import { useState } from 'react'
+import type { Item } from '../../data/items'
 import type { GameState } from '../../game/core/state'
-import { DiscoverPanel } from './DiscoverPanel'
 import { GachaMachine } from './GachaMachine'
 import { MissingnoShop } from './MissingnoShop'
 import { Shredder } from './Shredder'
 import './gacha.css'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
 
-type GachaTab = 'pull' | 'shredder' | 'shop' | 'discover'
+type GachaTab = 'pull' | 'shredder' | 'shop'
 
-const TABS: { id: GachaTab; label: string }[] = [
-  { id: 'pull', label: '🎰 Tirar' },
-  { id: 'shredder', label: '⚙️ Trituradora' },
-  { id: 'shop', label: '👾 MissingNo' },
-  { id: 'discover', label: '🔍 Descubrir' },
+const TABS: { id: GachaTab; icon: Item; label: string }[] = [
+  { id: 'pull', icon: ICON.Gacha, label: 'Tirar' },
+  { id: 'shredder', icon: ICON.Shredder, label: 'Trituradora' },
+  { id: 'shop', icon: ICON.Shard, label: 'MissingNo' },
 ]
 
 export function GachaScreen({ game }: { game: GameState }) {
@@ -23,14 +24,13 @@ export function GachaScreen({ game }: { game: GameState }) {
       <div className="segmented">
         {TABS.map((t) => (
           <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
-            {t.label}
+            <ItemIcon item={t.icon} size={20} /> {t.label}
           </button>
         ))}
       </div>
       {tab === 'pull' && <GachaMachine game={game} />}
       {tab === 'shredder' && <Shredder game={game} />}
       {tab === 'shop' && <MissingnoShop game={game} />}
-      {tab === 'discover' && <DiscoverPanel game={game} />}
     </div>
   )
 }

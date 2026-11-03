@@ -1,6 +1,9 @@
 import { signatureMove } from '../../data/moves'
 import type { BattleRecord, Side } from '../../game/battle/battle'
+import type { ReactNode } from 'react'
 import { Bar, Sprite } from '../shared/common'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
 import type { BattleFrame } from './battleFrame'
 import { fighterClass } from './battleFrame'
 import { HitEffect } from './HitEffect'
@@ -77,10 +80,17 @@ function Pop({ record, frame, side }: { record: BattleRecord; frame: BattleFrame
   )
 }
 
-function popText(record: BattleRecord, frame: BattleFrame, side: Side): string {
+function popText(record: BattleRecord, frame: BattleFrame, side: Side): ReactNode {
   if (frame.ended) {
     if (side !== 'enemy' || record.outcome !== 'win') return ''
-    return `+₽ ${record.rewards.money}${record.rewards.tickets > 0 ? ' 🎟' : ''}${record.rewards.piece ? ' 🧩' : ''}`
+    return (
+      <>
+        +₽ {record.rewards.money}
+        {record.rewards.exp > 0 && ` · +${record.rewards.exp} EXP`}
+        {record.rewards.tickets > 0 && <ItemIcon item={ICON.Ticket} size={20} />}
+        {record.rewards.piece && <ItemIcon item={ICON.Piece} size={20} />}
+      </>
+    )
   }
   const { event, index } = frame
   if (event.side !== side) return ''

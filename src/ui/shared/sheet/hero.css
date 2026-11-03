@@ -1,0 +1,153 @@
+/* Cabecera de la ficha (HeroLayout, ExpArc): paisaje, nombre, nivel, ★, arco de EXP y PS */
+
+/* Paisaje de su tipo con el Pokémon en el centro; se funde con la tarjeta de abajo */
+.mon-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 16px 44px;
+  background: center bottom / cover no-repeat;
+  image-rendering: pixelated;
+  color: #fff;
+}
+/* Especie sin descubrir: sin paisaje, un fondo oscuro neutro */
+.mon-hero.unknown {
+  background: radial-gradient(circle at 50% 60%, #4a4a5a, #1c1c26);
+}
+.mon-hero .pixel-question {
+  fill: #fff8;
+}
+/* Versión de diálogo: menos alta y sin fundido con el fondo de la pantalla */
+.mon-hero.compact {
+  padding: 12px 12px 10px;
+}
+.mon-hero.compact::after {
+  display: none;
+}
+.mon-hero.compact h1 {
+  font-size: 24px;
+}
+.mon-hero.compact .mon-hero-stage {
+  width: auto;
+  height: 104px;
+  margin-top: 0;
+}
+.mon-hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 40px;
+  background: linear-gradient(transparent, var(--bg));
+  pointer-events: none;
+}
+.mon-hero-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-shadow: 0 2px 3px #000a;
+}
+.mon-hero-title h1 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.1;
+}
+.mon-hero-level {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+/* Cada vez que sube de nivel, el número da un salto */
+.level-pop {
+  display: inline-block;
+  animation: level-pop 0.4s ease-out;
+}
+/* Niveles que subiría con el entrenamiento elegido */
+.level-gain {
+  padding: 0 8px;
+  border-radius: 10px;
+  background: var(--yellow);
+  color: #333;
+  text-shadow: none;
+  animation: gain-pulse 1s ease-in-out infinite;
+}
+.mon-hero-stars {
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #fff6;
+}
+.mon-hero-stars .on {
+  color: var(--yellow);
+}
+/* El arco de EXP rodea al Pokémon por arriba; el sprite se apoya en su base */
+.mon-hero-stage {
+  position: relative;
+  width: 240px;
+  height: 140px;
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+.mon-exp-arc {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.mon-exp-arc path {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.mon-exp-arc .track {
+  stroke: #fff6;
+}
+.mon-exp-arc .fill {
+  stroke: #fff;
+}
+/* Hasta dónde llegaría con el entrenamiento elegido, parpadeando */
+.mon-exp-arc .preview {
+  stroke: var(--yellow);
+  animation: gain-pulse 1s ease-in-out infinite;
+}
+.mon-exp-arc .tip {
+  fill: #fff;
+  filter: drop-shadow(0 0 4px #fff);
+}
+.mon-exp-arc .tip.preview {
+  fill: var(--yellow);
+  filter: drop-shadow(0 0 4px var(--yellow));
+}
+.mon-hero-sprite {
+  position: relative;
+  filter: drop-shadow(0 6px 4px #0006);
+}
+.mon-hero-hp {
+  position: relative;
+  z-index: 1;
+  width: min(220px, 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+  text-shadow: 0 1px 2px #000a;
+}
+.mon-hero-hp .bar {
+  width: 100%;
+}
+@keyframes level-pop {
+  40% {
+    transform: scale(1.4);
+    color: var(--yellow);
+  }
+}
+@keyframes gain-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

@@ -11,6 +11,15 @@ export interface OwnedMon {
   hp: number
   /** Estrellas conseguidas combinando piezas en la Pokédex */
   stars: number
+  /** Índice del rancho al que pertenece (aunque esté fuera, su hueco sigue ocupado); null si está en la Caja */
+  ranch: number | null
+  /** Posición en la hierba elegida arrastrándolo, en % del prado; null para la que sale de su uid */
+  spot: RanchSpot | null
+}
+
+export interface RanchSpot {
+  x: number
+  y: number
 }
 
 type RunPhase = 'walking' | 'complete' | 'fainted'
@@ -59,7 +68,7 @@ export interface GameState {
   tickets: number
   owned: OwnedMon[]
   activeUid: string | null
-  /** Especies vistas en una ruta o descubiertas en una expedición o con trozos (más el inicial y las capturadas) */
+  /** Especies vistas en una ruta o descubiertas en una expedición (más el inicial y las capturadas) */
   seen: number[]
   caught: number[]
   /** Piezas de gacha por especie (speciesId → cantidad) */
@@ -80,7 +89,7 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 15
+export const SAVE_VERSION = 17
 
 export function initialState(): GameState {
   return {
@@ -113,13 +122,14 @@ export function activeMon(s: GameState): OwnedMon | null {
   return (s.activeUid && findMon(s, s.activeUid)) || null
 }
 
-export const MonPlace = { Ranch: 'ranch', Run: 'run', Expedition: 'expedition' } as const
+export const MonPlace = { Ranch: 'ranch', Run: 'run', Expedition: 'expedition', Box: 'box' } as const
 export type MonPlace = (typeof MonPlace)[keyof typeof MonPlace]
 
 /** Dónde está un Pokémon: solo los que están en el rancho se pueden curar, entrenar o enviar */
 export function monPlace(s: GameState, uid: string): MonPlace {
   if (s.run && uid === s.activeUid) return MonPlace.Run
   if (s.expeditions.some((e) => e.uid === uid)) return MonPlace.Expedition
+  if (findMon(s, uid)?.ranch === null) return MonPlace.Box
   return MonPlace.Ranch
 }
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Rarity } from '../../data/species'
 import { initialState } from '../core/state'
 import { seqRng } from '../core/test-utils'
-import { buyTicket, PIECES_PER_PULL, pull, TICKET_PRICE } from './gacha'
+import { buyTicket, maxTicketsToBuy, PIECES_PER_PULL, pull, TICKET_PRICE } from './gacha'
 import { piecesOf } from './pieces'
 
 // rng = 0 siempre cae en la primera especie legendaria; 0.99 cae en común
@@ -56,7 +56,19 @@ describe('buyTicket', () => {
   it('no hace nada si no hay dinero suficiente', () => {
     const s = initialState()
     s.money = TICKET_PRICE - 1
-    buyTicket(s)
+    expect(buyTicket(s)).toBe(false)
     expect(s.money).toBe(TICKET_PRICE - 1)
+  })
+
+  it('compra varios de una vez si llega el dinero para todos', () => {
+    const s = initialState()
+    const tickets = s.tickets
+    s.money = TICKET_PRICE * 3 + 1
+    expect(maxTicketsToBuy(s)).toBe(3)
+    expect(buyTicket(s, 4)).toBe(false)
+    expect(s.tickets).toBe(tickets)
+    expect(buyTicket(s, 3)).toBe(true)
+    expect(s.tickets).toBe(tickets + 3)
+    expect(s.money).toBe(1)
   })
 })

@@ -14,7 +14,7 @@ export function TutorialHint({ children, arrowX = '50%' }: { children: ReactNode
 }
 
 const NAV_STEPS: Record<Exclude<TutorialStep, typeof TutorialStep.Starter>, { tab: string; text: (name: string) => string }> = {
-  [TutorialStep.Combine]: { tab: 'dex', text: (name) => `Tus ${STARTER_PIECES} piezas de ${name} están en la Pokédex. ¡Ábrela!` },
+  [TutorialStep.Combine]: { tab: 'dex', text: (name) => `Tus ${STARTER_PIECES} tickets de ${name} están en la Pokédex. ¡Ábrela!` },
   [TutorialStep.Route]: { tab: 'route', text: (name) => `¡${name} ya es tu compañero! Ve a Ruta para salir por primera vez.` },
 }
 
