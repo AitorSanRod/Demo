@@ -2,10 +2,10 @@ import { rarityOf, species, type Rarity } from '../../data/species'
 import { randInt, type Rng } from '../core/random'
 
 /** Probabilidad de que un salvaje derrotado suelte un ticket del gacha, según su rareza */
-export const TICKET_DROP_CHANCE: Record<Rarity, number> = { common: 0.05, rare: 0.05, epic: 0.65, legendary: 0.075 }
+export const TICKET_DROP_CHANCE: Record<Rarity, number> = { common: 0.05, rare: 0.05, epic: 0.5, legendary: 0.75 }
 
 /** Probabilidad de que un salvaje derrotado suelte 1 pieza de su especie, según su rareza */
-export const PIECE_DROP_CHANCE: Record<Rarity, number> = { common: 0.075, rare: 0.075, epic: 0.08, legendary: 0.1 }
+export const PIECE_DROP_CHANCE: Record<Rarity, number> = { common: 0.05, rare: 0.05, epic: 0.05, legendary: 0.5 }
 
 /** Pokécuartos por victoria por cada nivel del rival (se redondea hacia arriba) */
 export const MONEY_PER_LEVEL = 0.5
