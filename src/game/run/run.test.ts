@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { legSteps, pathFrom, route, RouteId } from '../../data/maps'
+import { PASSIVE_THRESHOLDS } from '../../data/passives'
 import { POKEMON } from '../../data/pokemon'
+import { makeFighter } from '../battle/battle'
 import { EXP_LEVEL_GAP, expReward, moneyReward } from '../battle/rewards'
 import { activeMon, initialState } from '../core/state'
 import { chooseStarter } from '../core/test-utils'
+import { createMon } from '../team/mons'
+import { ranchPassives } from '../team/ranchPassives'
 import { maxHp, stepsPerMinute } from '../team/stats'
 import { advanceRun, endRun, runBlocker, startRun, tapRun, walk } from './run'
 import { battleDuration, BOSS_MONEY_MULT, BOSS_TICKETS } from './runBattle'
@@ -104,6 +108,34 @@ describe('walk', () => {
     advanceRun(s, s.run!.battleMsLeft)
     expect(s.run!.lastBattle!.rewards.exp).toBe(0)
     expect(mon.exp).toBe(0)
+  })
+})
+
+describe('pasivas del rancho', () => {
+  it('el Pokémon de la ruta lleva las pasivas de su rancho', () => {
+    const s = initialState()
+    chooseStarter(s, POKEMON.Charmander)
+    const mon = activeMon(s)!
+    for (let i = 1; i < PASSIVE_THRESHOLDS[0]; i++) s.owned.push(createMon(POKEMON.Charmander, mon.level))
+    expect(ranchPassives(s, mon.ranch!).length).toBeGreaterThan(0)
+    startRun(s, ROUTE)
+    walk(s, firstLeg(s))
+    const plain = makeFighter('player', mon.speciesId, mon.level, { stars: mon.stars })
+    expect(s.run!.lastBattle!.player.maxHp).toBeGreaterThanOrEqual(plain.maxHp)
+    expect(s.run!.lastBattle!.events.length).toBeGreaterThan(0)
+  })
+
+  it('al acabar el combate los PS vuelven a la escala del Pokémon, sin pasar de su máximo', () => {
+    const s = initialState()
+    chooseStarter(s, POKEMON.Charmander)
+    const mon = activeMon(s)!
+    mon.level = 50
+    for (let i = 1; i < PASSIVE_THRESHOLDS[1]; i++) s.owned.push(createMon(POKEMON.Charmander, mon.level))
+    mon.hp = maxHp(mon)
+    startRun(s, ROUTE)
+    walk(s, firstLeg(s))
+    advanceRun(s, s.run!.battleMsLeft)
+    expect(mon.hp).toBeLessThanOrEqual(maxHp(mon))
   })
 })
 

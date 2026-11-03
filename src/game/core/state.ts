@@ -1,5 +1,7 @@
 import { RouteId } from '../../data/maps'
+import type { RanchTypeId } from '../../data/ranchTypes'
 import type { BattleRecord } from '../battle/battle'
+import type { Raid, RaidPrize } from '../raid/raidRoom'
 import type { UpgradeId } from '../team/upgrades'
 
 export interface OwnedMon {
@@ -79,17 +81,25 @@ export interface GameState {
   favorites: number[]
   /** Nivel comprado de cada mejora de la tienda */
   upgrades: Partial<Record<UpgradeId, number>>
+  /** Objetos de tipo de rancho comprados (cuentan también los colocados) */
+  ranchTypeItems: Partial<Record<RanchTypeId, number>>
+  /** Tipo de rancho colocado en cada rancho, por su índice; sin entrada, rancho normal */
+  ranchTypeOf: Partial<Record<number, RanchTypeId>>
   tutorial: TutorialStep | null
   unlockedRoutes: string[]
   completedRoutes: string[]
   run: Run | null
   expeditions: Expedition[]
+  /** Jefe comunitario activo y la sala del jugador; null hasta acabar el tutorial */
+  raid: Raid | null
+  /** Premios de jefes derrotados pendientes de recoger */
+  raidPrizes: RaidPrize[]
   /** Multiplicador de tiempo (x1 = tiempo real); solo se puede cambiar en desarrollo, desde la barra superior */
   timeScale: number
   lastTick: number
 }
 
-export const SAVE_VERSION = 17
+export const SAVE_VERSION = 19
 
 export function initialState(): GameState {
   return {
@@ -104,11 +114,15 @@ export function initialState(): GameState {
     missingnoShards: 0,
     favorites: [],
     upgrades: {},
+    ranchTypeItems: {},
+    ranchTypeOf: {},
     tutorial: TutorialStep.Starter,
     unlockedRoutes: [RouteId.PuebloPaleta],
     completedRoutes: [],
     run: null,
     expeditions: [],
+    raid: null,
+    raidPrizes: [],
     timeScale: 1,
     lastTick: Date.now(),
   }
@@ -122,13 +136,14 @@ export function activeMon(s: GameState): OwnedMon | null {
   return (s.activeUid && findMon(s, s.activeUid)) || null
 }
 
-export const MonPlace = { Ranch: 'ranch', Run: 'run', Expedition: 'expedition', Box: 'box' } as const
+export const MonPlace = { Ranch: 'ranch', Run: 'run', Expedition: 'expedition', Raid: 'raid', Box: 'box' } as const
 export type MonPlace = (typeof MonPlace)[keyof typeof MonPlace]
 
 /** Dónde está un Pokémon: solo los que están en el rancho se pueden curar, entrenar o enviar */
 export function monPlace(s: GameState, uid: string): MonPlace {
   if (s.run && uid === s.activeUid) return MonPlace.Run
   if (s.expeditions.some((e) => e.uid === uid)) return MonPlace.Expedition
+  if (s.raid?.members.some((m) => m.id === uid && !m.left)) return MonPlace.Raid
   if (findMon(s, uid)?.ranch === null) return MonPlace.Box
   return MonPlace.Ranch
 }

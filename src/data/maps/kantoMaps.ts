@@ -46,7 +46,7 @@ export const KANTO: GameMap = {
         { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 15 },
         { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
         { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
-        { id: 'g', name: 'Entrada a Ciudad Verde', kind: NodeKind.Boss, steps: 45, boss: boss(POKEMON.Pidgeotto, 8) },
+        //{ id: 'g', name: 'Entrada a Ciudad Verde', kind: NodeKind.Boss, steps: 45, boss: boss(POKEMON.Pidgeotto, 8) },
       ),
     },
     {

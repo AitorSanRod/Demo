@@ -60,6 +60,34 @@
 .dex-cell.ready .dex-pieces {
   color: var(--accent);
 }
+/* Aviso de los listos para combinar: toca para filtrar; con el filtro puesto, el aspa lo quita */
+.dex-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+button.dex-filter {
+  cursor: pointer;
+}
+.dex-filter-clear {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #0001;
+  color: inherit;
+  font-size: 16px;
+  font-weight: 800;
+}
 .dex-favorite {
   position: absolute;
   top: 4px;

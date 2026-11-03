@@ -1,3 +1,5 @@
+import type { PassiveRef } from '../passives'
+
 export interface Encounter {
   speciesId: number
   /** Probabilidad de que salga, en %. Los de una misma lista suman 100 */
@@ -22,10 +24,11 @@ export const RouteId = {
 } as const
 export type RouteId = (typeof RouteId)[keyof typeof RouteId]
 
-/** Rival fijo de una parada de jefe */
+/** Rival fijo de una parada de jefe; `passives` son sus pasivas de tipo, escritas a mano (sin ellas no tiene) */
 export interface Boss {
   speciesId: number
   level: number
+  passives?: PassiveRef[]
 }
 
 interface RouteEdge {
@@ -85,7 +88,7 @@ export const enc = (...chances: [speciesId: number, chance: number][]): Encounte
   chances.map(([speciesId, chance]) => ({ speciesId, chance }))
 
 /** Jefe de una parada: `boss(POKEMON.Pidgeotto, 7)` */
-export const boss = (speciesId: number, level: number): Boss => ({ speciesId, level })
+export const boss = (speciesId: number, level: number, passives?: PassiveRef[]): Boss => ({ speciesId, level, passives })
 
 /** Atajo para un camino sin bifurcar: cada nodo enlaza con el siguiente de la lista */
 type Stop = Omit<RouteNode, 'next'> & { steps: number }

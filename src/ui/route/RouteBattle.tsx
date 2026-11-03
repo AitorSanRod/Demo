@@ -1,4 +1,5 @@
 import { signatureMove } from '../../data/moves'
+import { STATUS_INFO } from '../../data/passives'
 import type { BattleRecord, Side } from '../../game/battle/battle'
 import type { ReactNode } from 'react'
 import { Bar, Sprite } from '../shared/common'
@@ -74,11 +75,17 @@ function Pop({ record, frame, side }: { record: BattleRecord; frame: BattleFrame
   const text = popText(record, frame, side)
   if (!text) return null
   return (
-    <span key={frame.ended ? 'end' : frame.index} className={`battle-pop ${frame.ended ? 'reward' : ''}`}>
+    <span key={frame.ended ? 'end' : frame.index} className={`battle-pop ${frame.ended ? 'reward' : frame.event.kind}`}>
       {text}
     </span>
   )
 }
+
+/** Texto corto de cada fallo, según cómo empieza el del registro del combate */
+const MISS_POP: [start: string, pop: string][] = [
+  ['No afecta', 'No afecta'],
+  ['¡Lo esquivó', '¡Esquivado!'],
+]
 
 function popText(record: BattleRecord, frame: BattleFrame, side: Side): ReactNode {
   if (frame.ended) {
@@ -94,7 +101,9 @@ function popText(record: BattleRecord, frame: BattleFrame, side: Side): ReactNod
   }
   const { event, index } = frame
   if (event.side !== side) return ''
-  if (event.kind === 'miss') return event.text.startsWith('No afecta') ? 'No afecta' : '¡Fallo!'
+  if (event.kind === 'miss') return MISS_POP.find(([start]) => event.text.startsWith(start))?.[1] ?? '¡Fallo!'
+  if (event.kind === 'heal') return event.text
+  if (event.kind === 'status') return `¡${STATUS_INFO[event.status!].name}!`
   if (event.kind !== 'hit') return ''
   const before = record.events[index - 1]
   const lost = side === 'player' ? before.playerHp - event.playerHp : before.enemyHp - event.enemyHp

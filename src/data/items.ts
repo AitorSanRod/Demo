@@ -24,6 +24,7 @@ export const ITEM = {
   Protein: 'protein',
   ExpShare: 'exp-share',
   LockCapsule: 'lock-capsule',
+  DynamaxBand: 'dynamax-band',
 } as const
 export type Item = (typeof ITEM)[keyof typeof ITEM]
 

@@ -1,0 +1,157 @@
+/* Jefes comunitarios: el jefe en su paisaje y la sala luchando */
+
+.raid-screen {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.raid-boss {
+  filter: drop-shadow(0 6px 6px #0006);
+}
+.raid-boss-hp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: min(280px, 100%);
+  text-shadow: 0 1px 2px #000a;
+}
+.raid-eta {
+  font-weight: 700;
+}
+.raid-boss-hp .bar {
+  width: 100%;
+  height: 12px;
+}
+
+/* Daño de la última ronda, flotando hacia arriba */
+.raid-float {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-weight: 900;
+  color: #fff;
+  pointer-events: none;
+  text-shadow:
+    0 0 3px #c02020,
+    0 2px 2px #000;
+  animation: raid-float 1.2s ease-out forwards;
+}
+.raid-float.boss {
+  top: 10px;
+  font-size: 28px;
+}
+.raid-float.member {
+  top: -6px;
+  font-size: 15px;
+}
+
+/* La sala: hasta 10 Pokémon en una rejilla */
+.raid-roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+.raid-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  animation: raid-enter 0.4s ease-out;
+}
+.raid-member.mine {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--card));
+}
+.raid-member .bar {
+  width: 100%;
+}
+.raid-member-sprite {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.raid-member-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.raid-member.down .raid-member-sprite {
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.6;
+}
+.raid-revive {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Golpes: dos clases iguales que se alternan cada ronda para que la animación vuelva a empezar */
+.lunge-0,
+.lunge-1 {
+  animation: raid-lunge-0 0.35s ease-out;
+}
+.lunge-1 {
+  animation-name: raid-lunge-1;
+}
+.shake-0,
+.shake-1 {
+  animation: raid-shake-0 0.4s ease-in-out;
+}
+.shake-1 {
+  animation-name: raid-shake-1;
+}
+
+@keyframes raid-float {
+  from {
+    transform: translateY(8px) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0) scale(1.1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-32px);
+    opacity: 0;
+  }
+}
+@keyframes raid-enter {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+@keyframes raid-lunge-0 {
+  40% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes raid-lunge-1 {
+  40% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes raid-shake-0 {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+@keyframes raid-shake-1 {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}

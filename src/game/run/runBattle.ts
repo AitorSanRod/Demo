@@ -1,10 +1,12 @@
 import { NodeKind, type Boss, type Route, type RouteNode } from '../../data/maps'
 import { makeFighter, simulateBattle, type BattleRecord } from '../battle/battle'
+import { combineBonus } from '../battle/combatBonus'
 import { expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
 import { addPieces } from '../collection/pieces'
 import { pickEncounter, randInt, type Rng } from '../core/random'
 import { activeMon, type GameState } from '../core/state'
+import { ranchPassives } from '../team/ranchPassives'
 import { gainExp, maxHp } from '../team/stats'
 
 /** PS (fracción del máximo) que se recuperan tras ganar un combate */
@@ -39,17 +41,19 @@ function rivalOf(r: Route, n: RouteNode, rng: Rng): Boss {
 /**
  * Resuelve el combate de la parada pero no lo aplica: PS, premio y derrota se aplican en `settleBattle` cuando
  * termina su tiempo, para que el estado no se adelante a lo que ve el jugador. Los jefes luchan con sus stats
- * completas (sin WILD_STAT_MULT) y dan más premio.
+ * completas (sin WILD_STAT_MULT), con sus pasivas del mapa, y dan más premio. El Pokémon del jugador lleva las pasivas
+ * de su rancho.
  */
 export function startStopBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) {
   const run = s.run!
   const mon = activeMon(s)!
   const isBoss = n.kind === NodeKind.Boss
-  const { speciesId: enemyId, level } = rivalOf(r, n, rng)
-  const enemy = makeFighter('enemy', enemyId, level, { statMult: isBoss ? 1 : WILD_STAT_MULT })
+  const { speciesId: enemyId, level, passives } = rivalOf(r, n, rng)
+  const enemy = makeFighter('enemy', enemyId, level, { statMult: isBoss ? 1 : WILD_STAT_MULT, passives })
   const player = makeFighter('player', mon.speciesId, mon.level, {
     hp: Math.floor(mon.hp),
     stars: mon.stars,
+    passives: ranchPassives(s, mon.ranch!),
   })
   const result = simulateBattle(player, enemy, rng)
   const win = result.outcome === 'win'
@@ -85,13 +89,15 @@ function settleBattle(s: GameState, r: Route) {
   const run = s.run!
   const record = run.lastBattle!
   const mon = activeMon(s)!
-  mon.hp = record.events[record.events.length - 1].playerHp
+  // En combate los PS iban escalados por la pasiva de PS: se vuelven a la escala del Pokémon
+  mon.hp = Math.min(maxHp(mon), Math.round((record.events[record.events.length - 1].playerHp * maxHp(mon)) / record.player.maxHp))
   if (record.outcome === 'lose') {
     record.rewards.moneyLost = faint(s)
     return
   }
   if (record.outcome === 'win') {
-    mon.hp = Math.min(maxHp(mon), mon.hp + Math.ceil(maxHp(mon) * POST_WIN_HEAL))
+    const winHeal = POST_WIN_HEAL + combineBonus(ranchPassives(s, mon.ranch!)).winHeal
+    mon.hp = Math.min(maxHp(mon), mon.hp + Math.ceil(maxHp(mon) * winHeal))
     s.money += record.rewards.money
     s.tickets += record.rewards.tickets
     run.earned.money += record.rewards.money

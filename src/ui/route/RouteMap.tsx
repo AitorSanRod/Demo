@@ -4,7 +4,9 @@ import { activeMon, TutorialStep, type GameState } from '../../game/core/state'
 import { runBlocker } from '../../game/run/run'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
+import { RewardOverlay, type RewardItem } from '../shared/RewardOverlay'
 import { TutorialHint } from '../shared/TutorialHint'
+import { RouteRaidMark } from './RouteRaidMark'
 import { RouteStartDialog } from './RouteStartDialog'
 
 /**
@@ -15,9 +17,11 @@ export function RouteMap({ game }: { game: GameState }) {
   const [starting, setStarting] = useState<Route | null>(null)
   const blocker = runBlocker(game)
   const mon = activeMon(game)
+  const [report, setReport] = useState<RewardItem[] | null>(null)
 
   return (
     <div className="screen scroll">
+      {report && <RewardOverlay title="¡Premio del jefe!" items={report} onClose={() => setReport(null)} />}
       <h2 className="section-title">Mapa de {KANTO.name}</h2>
       {blocker && <p className="notice">{blocker}</p>}
       <div className="route-list">
@@ -39,6 +43,7 @@ export function RouteMap({ game }: { game: GameState }) {
                   />
                 )}
                 <strong className="grow">{r.name}</strong>
+                <RouteRaidMark game={game} routeId={r.id} onCollect={setReport} />
                 <span className="small route-levels">
                   Nv. {r.levels[0]}–{r.levels[1]}
                 </span>

@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { species } from '../../data/species'
 import { MonPlace, monPlace, type GameState } from '../../game/core/state'
 import { expeditionSlots } from '../../game/team/expedition'
-import { Sprite } from '../shared/common'
+import { MonPicker } from '../shared/MonPicker'
 import { ExpeditionForm } from './ExpeditionForm'
 import { ExpeditionList } from './ExpeditionList'
 import './expeditions.css'
@@ -25,19 +24,7 @@ export function ExpeditionScreen({ game }: { game: GameState }) {
       <h2 className="section-title">Enviar de expedición</h2>
       <div className="card">
         {home.length === 0 && <p className="small muted">No queda ningún Pokémon en el rancho.</p>}
-        <div className="expedition-picker">
-          {home.map((m) => (
-            <button
-              key={m.uid}
-              className={`expedition-pick ${m.uid === mon?.uid ? 'selected' : ''}`}
-              onClick={() => setSelectedUid(m.uid)}
-              aria-label={`${species(m.speciesId).name} Nv. ${m.level}`}
-            >
-              <Sprite id={m.speciesId} size={48} animated={false} />
-              <span className="tiny">Nv. {m.level}</span>
-            </button>
-          ))}
-        </div>
+        <MonPicker mons={home} selectedUid={mon?.uid} onSelect={setSelectedUid} />
         {mon && <ExpeditionForm key={mon.uid} game={game} mon={mon} />}
       </div>
     </div>

@@ -16,12 +16,6 @@
   background: #0007;
   color: #fff;
 }
-.ranch-away {
-  margin-top: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
 /* Flechas amarillas a los lados para pasar de un rancho a otro */
 .ranch-arrow {
   position: absolute;

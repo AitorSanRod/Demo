@@ -42,20 +42,32 @@ cupón) y los tickets que se gastan en el gacha, «tickets de gacha». En el có
    Se puede usar también con la ruta del activo en marcha.
    Opcionalmente avisa con una notificación del sistema al volver (menú ⚙️ del rancho; solo con la app en
    segundo plano, no cerrada).
-6. **Gacha**: cada ticket abre una Pokéball (animación de captura; tocarla la abre antes) con 5 piezas.
-7. **Trituradora y MissingNo** (pestañas del gacha): las piezas que sobran se trituran en trozos de MissingNo, que
+6. **Jefes comunitarios** (pestaña Ruta › Jefes): siempre hay un jefe grande activo; al caer sale el siguiente de
+   la lista sin esperar. Se manda a un Pokémon concreto del rancho, con su propio hueco (no quita el de expedición
+   ni bloquea al activo), y lucha solo, también con la app cerrada. Se ve el jefe en su paisaje con su barra de vida
+   y debajo la sala (hasta 10) con todos los Pokémon luchando: el daño flota sobre cada uno y los debilitados se ven
+   en gris con la cuenta atrás para volver. Mientras no haya servidor, 2–5 bots entran y salen de la sala. Al caer el
+   jefe cobra quien haya estado dentro al menos el 10% de la pelea o siga dentro al final, y tu Pokémon vuelve al
+   rancho (no se queda para el siguiente). El premio se recoge en la misma pestaña o, si el jefe vivía en una ruta,
+   también desde la línea de esa ruta («Premio»). Se puede retirar al Pokémon cuando se quiera (con confirmación; avisa si aún no cobraría).
+   Bajo la vida del jefe se ve cuánto tardará en caer al ritmo de los que hay en la sala. Hay jefes opcionales y
+   jefes que viven en una ruta (una ruta normal con él dentro o una ruta solo para él, por diseñar): el jefe activo
+   se ve en la línea de su ruta y, para luchar contra él, hay que tenerla desbloqueada.
+7. **Gacha**: cada ticket abre una Pokéball (animación de captura; tocarla la abre antes) con 5 piezas.
+8. **Trituradora y MissingNo** (pestañas del gacha): las piezas que sobran se trituran en trozos de MissingNo, que
    se cambian por piezas del Pokémon que se quiera.
-8. **Pokédex**: combinar 5 piezas iguales y pagar para crear el Pokémon o, si ya lo tienes, darle una ★. Solo se
+9. **Pokédex**: combinar 5 piezas iguales y pagar para crear el Pokémon o, si ya lo tienes, darle una ★. Solo se
    puede combinar una especie vista: en un combate de ruta, descubierta en una expedición o elegida como inicial.
    Las especies no vistas se muestran con una interrogación pixelada, tengan piezas o no (las que tienen piezas
    enseñan el contador y se pueden abrir); sus piezas se guardan y salen como ??? en gacha, trituradora y MissingNo.
    Las casillas listas para combinar brillan con un destello y la etiqueta «¡Crear!» (o «+1 ★»).
+   El aviso de cuántas hay se puede tocar para ver solo esas; el aspa del aviso quita el filtro.
    Tocar una casilla abre exactamente la misma ficha que en el rancho (es el mismo componente), con todas sus
    secciones si lo tienes. Si no lo tienes, su paisaje con la silueta, tipos, rareza y
    ataque (sin stats) y «Crear Pokémon» en Tickets; sin descubrir, fondo oscuro con la ¿ pixelada y solo la rareza. Crear un Pokémon (y evolucionar, desde la Pokédex o el rancho) se ve como en los juegos: fondo oscuro,
    haces de luz y destellos, el Pokémon brillando en blanco (alternando con su evolución), un fogonazo y la
    revelación en color.
-9. **Evolución** (ficha del rancho o de la Pokédex): un Pokémon con 5 ★ que tenga evolución puede evolucionar pagando. Se pierde y
+10. **Evolución** (ficha del rancho o de la Pokédex): un Pokémon con 5 ★ que tenga evolución puede evolucionar pagando. Se pierde y
    llega su evolución a Nv. 5 y sin ★, en su mismo rancho (tiene que caber); si ya la tenías, esa gana una ★ y
    conserva todo lo demás. Eevee elige entre sus tres.
 
@@ -84,10 +96,13 @@ At. Esp. La defensa es la media de ambas defensas.
 | Jefes | Parada `boss`: siempre el mismo Pokémon a nivel fijo, con stats completas (sin el ×0.8). Da ₽ ×3, EXP ×2 y 1 ticket seguro; se ve más grande, con «JEFE» y un aviso al aparecer | `mapCommon.ts › boss()`, `runBattle.ts › BOSS_MONEY_MULT, BOSS_EXP_MULT, BOSS_TICKETS` |
 | Derrota | Fin de la ruta y pérdida del 50% del dinero ganado en ella | `runBattle.ts › DEFEAT_MONEY_LOSS` |
 | Expediciones | 15 min, 1 h o 4 h; 8 combates/h; victoria con probabilidad `nivel / nivel medio de la ruta` (mín. 20%). Sin derrota. Se puede cancelar antes de que vuelva, sin ningún premio (`cancelExpedition`). La EXP sale de las victorias (misma regla que en ruta). EXP, ₽, tickets y piezas ×1 / ×2 / ×4 según la duración. Cada combate puede descubrir una especie no vista: 15 / 10 / 7,5 / 5% (común / raro / épico / legendario). 1 Pokémon a la vez (+1 por mejora) | `expedition.ts › DURATION_REWARD_MULT, DISCOVERY_CHANCE, BASE_EXPEDITION_SLOTS` |
-| Rancho | Regenera 10% PS/min (no en ruta, de expedición ni en la Caja); curar `5 + nivel × 3` ₽; entrenar `20 + 2 × nivel²` ₽ por sesión (25% de un nivel: 4 sesiones por nivel), varias seguidas de una vez (cada una cobra según el nivel al empezarla; no pasa del nivel máximo) | `ranch.ts › TRAIN_EXP_FRACTION, TRAIN_BASE_COST, TRAIN_COST_PER_LEVEL_SQ` |
+| Jefes comunitarios | Jefes en orden de la lista (`RAID_BOSSES`), con su Ataque ×0.35 (y nunca quita más del 40% de los PS máximos de un golpe) y una vida tal que un Pokémon neutral de su nivel tardaría ≈3 h solo (con tipos a favor o en contra, de 30 min a 6 h; con 2–5 bots, 30–75 min). Rondas de 10 s de juego: cada uno en pie pega al jefe con la fórmula de siempre (tipos, STAB, pasivas de su rancho) y el jefe pega a uno al azar. Debilitado, vuelve a los 30 s con todos sus PS. EXP: `nivel del jefe × 1` por minuto en pie. Sala de 10; 1 Pokémon del jugador. Bots: 2–5, se quedan 15–90 min, llegan 0–6 niveles por debajo del jefe, especies comunes o raras. Cobra quien estuvo ≥10% de la pelea o sigue dentro al caer; premio igual para todos: cada línea de la tabla se tira por separado. Tiempo estimado: se simulan 60 rondas con los que hay ahora en la sala (sin que entre ni salga nadie) y se divide la vida que queda entre su daño medio. Un jefe con `routeId` vive en esa ruta (sale en la lista de rutas) y hace falta tenerla desbloqueada; sin ella es opcional | `data/raidBosses.ts › RAID_BOSSES, RAID_PRIZE_TABLE`, `raid.ts › RAID_SOLO_MINUTES, RAID_PLAYER_SLOTS, RAID_EXP_PER_MINUTE_PER_LEVEL`, `raidCombat.ts › RAID_ROUND_MS, RAID_REVIVE_MS, RAID_BOSS_ATK_MULT, RAID_BOSS_MAX_HIT`, `raidEstimate.ts › ESTIMATE_ROUNDS`, `raidRoom.ts › RAID_ROOM_SIZE`, `raidBots.ts › RAID_BOTS_*`, `raidPrizes.ts › RAID_MIN_PRESENCE` |
+| Rancho | Regenera 10% PS/min (no en ruta, de expedición, contra el jefe ni en la Caja); curar `5 + nivel × 3` ₽; entrenar `20 + 2 × nivel²` ₽ por sesión (25% de un nivel: 4 sesiones por nivel), varias seguidas de una vez (cada una cobra según el nivel al empezarla; no pasa del nivel máximo) | `ranch.ts › TRAIN_EXP_FRACTION, TRAIN_BASE_COST, TRAIN_COST_PER_LEVEL_SQ` |
+| Pasivas de rancho | Con 3 Pokémon de un tipo en el rancho del activo (cuentan todos los que pertenecen a él, estén donde estén, el activo incluido; los de dos tipos, en ambos), el activo gana el nivel 1 de la pasiva de ese tipo en las rutas; con 5, el nivel 2. Se suman todas. Dan stats, estados alterados (quemar, envenenar, paralizar, congelar, confundir), regeneración, robo de vida, reducción de daño, esquiva, crítico, cura al ganar o daño extra por tipo. Los jefes pueden llevar pasivas escritas en el mapa. Se ven en el botón de arriba a la izquierda del rancho. No cuentan en expediciones | `data/passives.ts` (umbrales, efectos y estados, para editar a mano), `team/ranchPassives.ts`, `battle/combatBonus.ts`, `battle/status.ts` |
+| Tipos de rancho | Objetos que se compran en la Tienda (10000 ₽ los de un tipo, 25000 ₽ los de dos; como mucho 3 de cada uno, contando los colocados) y se ponen y quitan en un rancho desde su panel. En ese rancho hace falta un Pokémon menos de sus tipos para cada nivel de pasiva, y cambia el fondo (provisional: el prado con otro tono) | `data/ranchTypes.ts` (lista para editar a mano), `team/ranchTypes.ts`, `ui/ranch/ranchLooks.ts` |
 | Espacios | Cada rancho tiene 10 espacios; un Pokémon ocupa 1 / 2 / 3 / 5 (común / raro / épico / legendario), también mientras está en ruta o de expedición. Lo que no cabe no se puede crear ni evolucionar. Los nuevos van al primer rancho con hueco | `ranches.ts › RANCH_SLOTS`, `RARITY_INFO.ranchSlots` |
 | Caja | 8 Pokémon, 1 sitio cada uno sea cual sea su rareza. Solo guarda: no descansan, ni se gestionan, ni salen. Si se guarda el activo, pasa a serlo otro del rancho al azar (si no hay otro, no se puede) | `ranches.ts › BOX_SLOTS` |
-| Tienda | Pestaña Tienda del menú inferior. Espacio de expedición: +1 hueco, 1 nivel, 500 ₽. Rancho nuevo: 3 niveles, 5000 / 15000 / 40000 ₽ (provisional, con el mismo fondo en otro tono: `ui/ranch/ranchLooks.ts`) | `upgrades.ts › UPGRADES` |
+| Tienda | Pestaña Tienda del menú inferior. Tipos de rancho (ver arriba). Espacio de expedición: +1 hueco, 1 nivel, 500 ₽. Rancho nuevo: 3 niveles, 5000 / 15000 / 40000 ₽ (provisional, con el mismo fondo en otro tono: `ui/ranch/ranchLooks.ts`) | `upgrades.ts › UPGRADES` |
 | Trituradora | En el gacha: cada pieza triturada da 1 / 1 / 2 / 3 trozos de MissingNo (común / raro / épico / legendario). Se marcan una a una o todas las de una rareza (botones de su color con el número de piezas) y se confirma. Los favoritos de la Pokédex no aparecen ni se pueden triturar | `shredder.ts › SHARDS_PER_PIECE`, `dex.ts › toggleFavorite` |
 | MissingNo | En el gacha o desde la ficha de la Pokédex: piezas del Pokémon que elijas por 10 / 15 / 20 / 25 trozos cada una (común / raro / épico / legendario). Se eligen cuántas con − / + o «Máx.» (las que se pueden pagar) | `shredder.ts › PIECE_SHARD_PRICE, maxPiecesToBuy` |
 | Gacha | 250 ₽/ticket (se compran varios de golpe con − / + o «Máx.»); 5 piezas por tirada, cada una con rareza 68/24/7/1% (según el total de las 4 stats base) | `gacha.ts › PIECES_PER_PULL, TICKET_PRICE, maxTicketsToBuy`, `species.ts › rarityOf` |

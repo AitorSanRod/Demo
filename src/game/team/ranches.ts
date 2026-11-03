@@ -41,7 +41,7 @@ export function moveBlocker(s: GameState, uid: string, to: MonDestination): stri
   const mon = findMon(s, uid)
   if (!mon) return 'Ese Pokémon no existe.'
   const place = monPlace(s, uid)
-  if (place === MonPlace.Run || place === MonPlace.Expedition) return 'Está fuera del rancho.'
+  if (place === MonPlace.Run || place === MonPlace.Expedition || place === MonPlace.Raid) return 'Está fuera del rancho.'
   if (mon.ranch === to) return to === null ? 'Ya está en la Caja.' : 'Ya está en ese rancho.'
   if (to === null) {
     if (boxedMons(s).length >= BOX_SLOTS) return 'La Caja está llena.'

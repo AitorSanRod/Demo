@@ -7,10 +7,12 @@ import { ItemIcon } from '../shared/ItemIcon'
 
 /** Franja de hierba de la imagen, en % de su altura: entre los árboles de arriba y la valla de abajo */
 const GRASS_TOP = 12
-const GRASS_HEIGHT = 54
+const GRASS_HEIGHT = 50
 /** Píxeles que hay que mover el dedo para que un toque pase a ser un arrastre */
 const DRAG_THRESHOLD_PX = 8
-const SPRITE_PX = 64
+const SPRITE_PX = 96
+/** Hasta dónde (en % del ancho) puede salir un Pokémon colocado al azar, para que el sprite y su paseo quepan */
+const MAX_RANDOM_X = 60
 
 /** Dónde se ha soltado: en un punto del prado (en %) o encima del botón de la Caja */
 export type RanchDrop = { kind: 'spot'; spot: RanchSpot } | { kind: 'box' }
@@ -28,7 +30,7 @@ export function RanchMon({ mon, selected, active, onClick, onDrop }: Props) {
   const drag = useRef<{ x: number; y: number } | null>(null)
   const [offset, setOffset] = useState<{ x: number; y: number } | null>(null)
   const h = hash(mon.uid)
-  const spot = mon.spot ?? { x: 2 + ((h >>> 6) % 72), y: GRASS_TOP + (h % GRASS_HEIGHT) }
+  const spot = mon.spot ?? { x: 2 + ((h >>> 6) % MAX_RANDOM_X), y: GRASS_TOP + (h % GRASS_HEIGHT) }
   const style = {
     left: `${spot.x}%`,
     top: `${spot.y}%`,

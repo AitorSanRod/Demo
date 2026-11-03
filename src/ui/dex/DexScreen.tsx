@@ -22,7 +22,11 @@ const READY_TAG: Record<CombineKind, string> = {
 
 export function DexScreen({ game }: { game: GameState }) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [onlyReady, setOnlyReady] = useState(false)
   const ready = combinableCount(game)
+  // Si ya no queda ninguno listo, el filtro se quita solo
+  const filtering = onlyReady && ready > 0
+  const shown = filtering ? SPECIES.filter((sp) => canCombine(game, sp.id)) : SPECIES
   const starter = game.tutorial === TutorialStep.Combine ? tutorialStarter(game) : undefined
 
   return (
@@ -34,16 +38,30 @@ export function DexScreen({ game }: { game: GameState }) {
             Capturados <strong>{game.caught.length}</strong>/{SPECIES.length} · Vistos {game.seen.length}
           </span>
         </div>
-        {ready > 0 && (
-          <p className="notice small">
-            <ItemIcon item={ICON.Piece} size={18} /> {ready} {ready === 1 ? 'Pokémon listo' : 'Pokémon listos'} para combinar. Toca las casillas que brillan.
-          </p>
-        )}
+        {ready > 0 &&
+          (filtering ? (
+            <div className="notice small dex-filter">
+              <ItemIcon item={ICON.Piece} size={18} />
+              <span className="grow">
+                Solo los listos para combinar ({ready})
+              </span>
+              <button className="dex-filter-clear" onClick={() => setOnlyReady(false)} aria-label="Quitar el filtro">
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button className="notice small dex-filter" onClick={() => setOnlyReady(true)}>
+              <ItemIcon item={ICON.Piece} size={18} />
+              <span className="grow">
+                {ready} {ready === 1 ? 'Pokémon listo' : 'Pokémon listos'} para combinar. Toca aquí para verlos.
+              </span>
+            </button>
+          ))}
         {starter && selectedId !== starter && (
           <TutorialHint>Toca a {species(starter).name} (la casilla que parpadea) para ver sus tickets.</TutorialHint>
         )}
         <div className="dex-grid">
-          {SPECIES.map((sp) => {
+          {shown.map((sp) => {
             const caught = game.caught.includes(sp.id)
             const seen = caught || game.seen.includes(sp.id)
             const pieces = piecesOf(game, sp.id)

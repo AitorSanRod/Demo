@@ -40,7 +40,9 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Forma de la partida, estado inicial, `SAVE_VERSION` | `game/core/state.ts` |
 | Guardado y copia del equipo | `game/core/store.ts`, `game/core/teamBackup.ts` |
 | Paso del tiempo | `game/core/tick.ts`, `App.tsx` |
-| Combate (turnos, daño) y sus premios | `game/battle/battle.ts`, `game/battle/rewards.ts` |
+| Combate (turnos, daño) y sus premios | `game/battle/battle.ts`, `attack.ts`, `status.ts`, `rewards.ts` |
+| Pasivas de rancho y estados alterados (números a mano) | `data/passives.ts` + `game/team/ranchPassives.ts`, `game/battle/combatBonus.ts` + `ui/ranch/PassiveList.tsx` |
+| Tipos de rancho (lista a mano) | `data/ranchTypes.ts` + `game/team/ranchTypes.ts` + `ui/shop/RanchTypeShop.tsx`, `ui/ranch/RanchTypeSection.tsx` |
 | Avance por la ruta / combates dentro de la ruta | `game/run/run.ts` / `game/run/runBattle.ts` |
 | Stats, EXP, niveles, ★, pasos | `game/team/stats.ts` |
 | Curar, entrenar, elegir activo, descanso | `game/team/ranch.ts` + `ui/shared/sheet/CareSection.tsx`, `TrainControl.tsx` |
@@ -48,7 +50,8 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Animación de crear y evolucionar | `ui/shared/sheet/EvolutionAnimation.tsx` |
 | Espacios, varios ranchos, Caja, arrastrar | `game/team/ranches.ts` + `ui/ranch/RanchMon`, `RanchSlots`, `BoxSheet`, `ranchLooks.ts` + `ui/shared/sheet/MovePanel` |
 | Evolución | `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` |
-| Expediciones | `game/team/expedition.ts` + `ui/expeditions/` |
+| Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (el selector de Pokémon es `ui/shared/MonPicker.tsx`) |
+| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raid`, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); la ruta de cada jefe es `routeId` en `raidBosses.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidRoster`, `RaidJoin`) y, en la lista de rutas, `ui/route/RouteRaidMark.tsx` |
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
 | Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (la ficha es `PokemonSheet`, la misma que el rancho) |

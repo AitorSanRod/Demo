@@ -11,6 +11,7 @@ export function runBlocker(s: GameState): string | null {
   if (s.run) return 'Ya hay una ruta en curso.'
   const name = species(mon.speciesId).name
   if (monPlace(s, mon.uid) === MonPlace.Expedition) return `${name} está de expedición.`
+  if (monPlace(s, mon.uid) === MonPlace.Raid) return `${name} está luchando contra el jefe.`
   if (mon.hp < 1) return `${name} está debilitado. Déjalo descansar o cúralo en el rancho.`
   return null
 }

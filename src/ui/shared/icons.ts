@@ -8,6 +8,8 @@ export const ICON = {
   Gacha: ITEM.GreatBall,
   Dex: ITEM.PokeRadar,
   Expedition: ITEM.Bicycle,
+  /** Jefe comunitario */
+  Raid: ITEM.DynamaxBand,
   /** Ticket de gacha */
   Ticket: ITEM.Pass,
   /** Ticket de un Pokémon (las piezas del juego) */

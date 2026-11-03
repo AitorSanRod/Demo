@@ -5,6 +5,7 @@ import { buyUpgrade, nextUpgradePrice, UPGRADE_IDS, UPGRADES, upgradeLevel, type
 import './shop.css'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
+import { RanchTypeShop } from './RanchTypeShop'
 
 /** Pestaña Tienda: mejoras permanentes que se pagan con pokécuartos */
 const UPGRADE_ICON: Record<UpgradeId, Item> = { expeditionSlots: ICON.Expedition, ranches: ICON.Ranch }
@@ -16,6 +17,7 @@ export function UpgradeShop({ game }: { game: GameState }) {
       {UPGRADE_IDS.map((id) => (
         <UpgradeCard key={id} game={game} id={id} />
       ))}
+      <RanchTypeShop game={game} />
     </div>
   )
 }

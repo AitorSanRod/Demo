@@ -1,12 +1,16 @@
 import { signatureMove, type Move } from '../../data/moves'
+import type { PassiveRef, StatusId } from '../../data/passives'
 import { species } from '../../data/species'
-import { effectiveness, type PokeType } from '../../data/types'
+import type { PokeType } from '../../data/types'
 import type { Rng } from '../core/random'
 import { calcStats, type Stats } from '../team/stats'
+import { attack } from './attack'
+import { combineBonus, type CombatBonus } from './combatBonus'
+import { endOfTurn } from './status'
 
 export type Side = 'player' | 'enemy'
 
-interface Fighter {
+export interface Fighter {
   side: Side
   speciesId: number
   name: string
@@ -17,13 +21,21 @@ interface Fighter {
   maxHp: number
   /** Su único ataque (ver signatureMove) */
   move: Move
+  /** Sus pasivas sumadas (las stats ya van aplicadas en `stats`) */
+  bonus: CombatBonus
+  status: StatusId | null
+  /** Turnos que le quedan sin poder moverse por la congelación */
+  frozenTurns: number
 }
 
 export interface BattleEvent {
-  kind: 'info' | 'attack' | 'hit' | 'miss' | 'faint'
+  /** status: recibe un estado o no puede moverse por él; heal: recupera PS */
+  kind: 'info' | 'attack' | 'hit' | 'miss' | 'faint' | 'status' | 'heal'
   text: string
-  /** Quién actúa (attack) o quién recibe (hit/miss/faint) */
+  /** Quién actúa (attack) o a quién le pasa (el resto) */
   side?: Side
+  /** Estado alterado del evento (al recibirlo, al sufrirlo o al hacer daño por él) */
+  status?: StatusId
   playerHp: number
   enemyHp: number
 }
@@ -43,19 +55,18 @@ export interface BattleRecord {
 
 /** Turnos tras los que el salvaje huye y el combate acaba sin ganador */
 const MAX_TURNS = 25
-/** Multiplicador de daño si el movimiento es del mismo tipo que el Pokémon */
-const STAB = 1.5
 
 export function makeFighter(
   side: Side,
   speciesId: number,
   level: number,
-  opts: { hp?: number; stars?: number; statMult?: number } = {},
+  opts: { hp?: number; stars?: number; statMult?: number; passives?: PassiveRef[] } = {},
 ): Fighter {
   const sp = species(speciesId)
+  const bonus = combineBonus(opts.passives ?? [])
   const stats = calcStats(speciesId, level, opts.stars ?? 0)
   for (const k of Object.keys(stats) as (keyof Stats)[]) {
-    stats[k] = Math.max(1, Math.round(stats[k] * (opts.statMult ?? 1)))
+    stats[k] = Math.max(1, Math.round(stats[k] * (opts.statMult ?? 1) * (1 + bonus[k])))
   }
   return {
     side,
@@ -64,19 +75,14 @@ export function makeFighter(
     level,
     types: sp.types,
     stats,
-    hp: opts.hp ?? stats.hp,
+    // Los PS actuales crecen en la misma proporción que los máximos (la pasiva de PS no es una cura)
+    hp: Math.min(stats.hp, Math.round((opts.hp ?? Infinity) * (1 + bonus.hp))),
     maxHp: stats.hp,
     move: signatureMove(speciesId),
+    bonus,
+    status: null,
+    frozenTurns: 0,
   }
-}
-
-/** Fórmula de daño de los juegos con una sola stat de ataque y otra de defensa */
-function damage(atk: Fighter, def: Fighter, mv: Move, rng: Rng): { dealt: number; eff: number } {
-  const eff = effectiveness(mv.type, def.types)
-  const stab = atk.types.includes(mv.type) ? STAB : 1
-  const raw = (((2 * atk.level) / 5 + 2) * mv.power * (atk.stats.atk / def.stats.def)) / 50 + 2
-  const roll = 0.85 + rng() * 0.15
-  return { dealt: eff === 0 ? 0 : Math.max(1, Math.floor(raw * stab * eff * roll)), eff }
 }
 
 interface BattleResult {
@@ -85,39 +91,29 @@ interface BattleResult {
   playerHp: number
 }
 
-/** Combate automático por turnos: actúa primero el más rápido y cada uno ataca con un movimiento. */
+/** Registro de eventos del combate; cada uno guarda los PS de ambos en ese momento */
+export type Push = (e: Omit<BattleEvent, 'playerHp' | 'enemyHp'>) => void
+
+export const label = (f: Fighter) => (f.side === 'enemy' ? `${f.name} salvaje` : f.name)
+
+/** Combate automático por turnos: actúa primero el más rápido; al final de cada turno pesan los estados y la regeneración */
 export function simulateBattle(player: Fighter, enemy: Fighter, rng: Rng = Math.random): BattleResult {
   const events: BattleEvent[] = []
-  const push = (e: Omit<BattleEvent, 'playerHp' | 'enemyHp'>) =>
-    events.push({ ...e, playerHp: player.hp, enemyHp: enemy.hp })
-  const label = (f: Fighter) => (f.side === 'enemy' ? `${f.name} salvaje` : f.name)
+  const push: Push = (e) => events.push({ ...e, playerHp: player.hp, enemyHp: enemy.hp })
+  const outcome = (): BattleOutcome | null => (enemy.hp === 0 ? 'win' : player.hp === 0 ? 'lose' : null)
 
   push({ kind: 'info', text: `¡Un ${enemy.name} salvaje de Nv. ${enemy.level} apareció!` })
-
-  const attack = (atk: Fighter, def: Fighter) => {
-    const mv = atk.move
-    push({ kind: 'attack', side: atk.side, text: `${label(atk)} usó ${mv.name}.` })
-    if (rng() * 100 >= mv.accuracy) {
-      push({ kind: 'miss', side: def.side, text: '¡Pero falló!' })
-      return
-    }
-    const { dealt, eff } = damage(atk, def, mv, rng)
-    if (eff === 0) {
-      push({ kind: 'miss', side: def.side, text: `No afecta a ${label(def)}…` })
-      return
-    }
-    def.hp = Math.max(0, def.hp - dealt)
-    const note = eff > 1 ? '¡Es muy eficaz!' : eff < 1 ? 'No es muy eficaz…' : ''
-    push({ kind: 'hit', side: def.side, text: note })
-    if (def.hp === 0) push({ kind: 'faint', side: def.side, text: `¡${label(def)} se debilitó!` })
-  }
 
   for (let turn = 1; turn <= MAX_TURNS; turn++) {
     const playerFirst = player.stats.spe > enemy.stats.spe || (player.stats.spe === enemy.stats.spe && rng() < 0.5)
     for (const [atk, def] of playerFirst ? [[player, enemy], [enemy, player]] : [[enemy, player], [player, enemy]]) {
-      attack(atk, def)
-      if (def.hp === 0) return { events, outcome: def === enemy ? 'win' : 'lose', playerHp: player.hp }
+      attack(atk, def, push, rng)
+      const ended = outcome()
+      if (ended) return { events, outcome: ended, playerHp: player.hp }
     }
+    endOfTurn([player, enemy], push)
+    const ended = outcome()
+    if (ended) return { events, outcome: ended, playerHp: player.hp }
   }
   push({ kind: 'info', text: `${label(enemy)} huyó.` })
   return { events, outcome: 'flee', playerHp: player.hp }

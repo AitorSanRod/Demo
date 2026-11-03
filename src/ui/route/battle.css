@@ -83,6 +83,13 @@
   color: var(--yellow);
   animation-duration: 1.2s;
 }
+/* Curas (regeneración, robo de vida) en verde y estados alterados en violeta */
+.battle-pop.heal {
+  color: var(--hp-ok);
+}
+.battle-pop.status {
+  color: #e8a0ff;
+}
 /* El rival entra desde la derecha; usa `translate` para no pisar el `transform` que lo centra */
 @keyframes enemy-enter {
   from {

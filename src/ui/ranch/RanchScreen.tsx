@@ -47,7 +47,7 @@ export function RanchScreen({ game }: { game: GameState }) {
   return (
     <div className="screen ranch">
       <div className="ranch-field">
-        <div className="ranch-ground" style={{ filter: ranchFilter(ranch) }} />
+        <div className="ranch-ground" style={{ filter: ranchFilter(ranch, game.ranchTypeOf[ranch]) }} />
         {home.map((m) => (
           <RanchMon
             key={m.uid}

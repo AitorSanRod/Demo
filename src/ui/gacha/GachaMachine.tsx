@@ -62,10 +62,10 @@ export function GachaMachine({ game }: { game: GameState }) {
         </div>
         <div className="row gap center">
           <button className="btn primary" disabled={!canPullOne} onClick={() => roll(1)}>
-            Tirar x1 <span className="tiny with-icon"><ItemIcon item={ICON.Ticket} size={16} /> 1</span>
+            Tirar x1 <ItemIcon item={ICON.Ticket} size={24} />
           </button>
           <button className="btn primary" disabled={phase !== 'idle' || game.tickets < 10} onClick={() => roll(10)}>
-            Tirar x10 <span className="tiny with-icon"><ItemIcon item={ICON.Ticket} size={16} /> 10</span>
+            Tirar x10 <ItemIcon item={ICON.Ticket} size={24} />
           </button>
         </div>
         <StepperAction

@@ -1,0 +1,40 @@
+/* Panel del rancho (RanchSlots): tipo de rancho y pasivas */
+
+/* Etiqueta de pasivas activas en el botón del rancho */
+.ranch-passive-count {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--yellow);
+  color: var(--text);
+  font-weight: 700;
+}
+.ranch-type {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ranch-type-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.passive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* Una fila por tipo: la pasiva activa con fondo; las que faltan, apagadas */
+.passive-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+.passive-row.on {
+  background: color-mix(in srgb, var(--yellow) 25%, var(--card));
+}
+.passive-row .type-badge {
+  flex-shrink: 0;
+}
