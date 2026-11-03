@@ -46,7 +46,7 @@ export const KANTO: GameMap = {
         { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 15 },
         { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
         { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
-        { id: 'g', name: 'Hierba crecida', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 7)},
+        { id: 'g', name: 'Hierba crecida', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 7) },
         { id: 'h', name: 'Entrada a Ciudad Verde', kind: NodeKind.Raid, steps: 45, boss: boss(POKEMON.Pidgeotto, 12) },
       ),
     },
@@ -67,6 +67,7 @@ export const KANTO: GameMap = {
         { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
+        { id: 'f', name: 'Salida', kind: NodeKind.Raid, steps: 45, boss: boss(POKEMON.Pikachu, 25) },
       ),
     }
     // {
