@@ -9,6 +9,8 @@ export interface RaidBoss {
   level: number
   /** Nivel que necesita un Pokémon para entrar en su sala; sin él, puede entrar cualquiera */
   minLevel?: number
+  /** Minutos que tardaría en caer con un solo Pokémon de su nivel, si es jefe comunitario; sin él, RAID_SOLO_MINUTES */
+  soloMinutes?: number
 }
 
 export const RAID_BOSSES: RaidBoss[] = [

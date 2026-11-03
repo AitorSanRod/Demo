@@ -42,22 +42,33 @@ export function MonSection({ title, children }: { title: string; children: React
   )
 }
 
-export function MonStats({ stats, stepsPerMin }: { stats: Stats; stepsPerMin: number }) {
-  const items: [string, number][] = [
-    ['PS', stats.hp],
-    ['Ataque', stats.atk],
-    ['Defensa', stats.def],
-    ['Velocidad', stats.spe],
-    ['Pasos/min', stepsPerMin],
-  ]
+export interface StatLine {
+  stats: Stats
+  stepsPerMin: number
+}
+
+const STAT_ROWS: [string, (l: StatLine) => number][] = [
+  ['PS', (l) => l.stats.hp],
+  ['Ataque', (l) => l.stats.atk],
+  ['Defensa', (l) => l.stats.def],
+  ['Velocidad', (l) => l.stats.spe],
+  ['Pasos/min', (l) => l.stepsPerMin],
+]
+
+/** Stats del Pokémon; con `next` (entrenamiento que sube de nivel, sin aceptar) cada una dice en amarillo cuánto sube */
+export function MonStats({ now, next = null }: { now: StatLine; next?: StatLine | null }) {
   return (
     <div className="mon-stats">
-      {items.map(([label, value]) => (
-        <div key={label} className="mon-stat">
-          <strong>{value}</strong>
-          <span className="tiny muted">{label}</span>
-        </div>
-      ))}
+      {STAT_ROWS.map(([label, value]) => {
+        const gain = next ? value(next) - value(now) : 0
+        return (
+          <div key={label} className="mon-stat">
+            <strong>{value(now)}</strong>
+            {gain > 0 && <span className="level-gain stat-gain tiny">+{gain}</span>}
+            <span className="tiny muted">{label}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }

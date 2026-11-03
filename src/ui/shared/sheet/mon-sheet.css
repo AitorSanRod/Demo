@@ -105,6 +105,12 @@
 .mon-stat strong {
   font-size: 18px;
 }
+/* Lo que subiría con el entrenamiento elegido, con el mismo amarillo que los niveles de la cabecera */
+.stat-gain {
+  margin: 1px 0 2px;
+  padding: 0 6px;
+  font-weight: 800;
+}
 /* Botón ancho de acción: icono a la izquierda, texto y precio a la derecha */
 .big-action {
   display: flex;

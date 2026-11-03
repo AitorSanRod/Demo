@@ -17,7 +17,7 @@ export const KANTO: GameMap = {
       backdrop: { image: palletTown, focusY: 45 },
       levels: [2, 3],
       encounters: enc([POKEMON.Pidgey, 40], [POKEMON.Rattata, 40], [POKEMON.Caterpie, 20]),
-      reward: { tickets: 2, money: 250, exp: 100 },
+      reward: { tickets: 2, money: 350, exp: 150 },
       unlocks: RouteId.Ruta1,
       nodes: chain(
         { id: 's', name: 'Casa', kind: NodeKind.Start, steps: 0 },
@@ -36,7 +36,7 @@ export const KANTO: GameMap = {
       backdrop: { image: route1, focusY: 40 },
       levels: [5, 8],
       encounters: enc([POKEMON.Pidgey, 30], [POKEMON.Rattata, 30], [POKEMON.Caterpie, 13], [POKEMON.Weedle, 13], [POKEMON.NidoranF, 7], [POKEMON.NidoranM, 7]),
-      reward: { tickets: 2, money: 200, exp: 250 },
+      reward: { tickets: 2, money: 400, exp: 250 },
       unlocks: RouteId.BosqueVerde,
       nodes: chain(
         { id: 's', name: 'Salida del pueblo', kind: NodeKind.Start, steps: 0 },
@@ -47,7 +47,7 @@ export const KANTO: GameMap = {
         { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
         { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
         { id: 'g', name: 'Hierba crecida', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 7) },
-        { id: 'h', name: 'Entrada a Ciudad Verde', kind: NodeKind.Raid, steps: 45, boss: boss(POKEMON.Pidgeotto, 12) },
+        { id: 'h', name: 'Entrada a Ciudad Verde', kind: NodeKind.Raid, steps: 45, boss: { ...boss(POKEMON.Pidgeotto, 12), soloMinutes: 10 } },
       ),
     },
     {
@@ -56,9 +56,9 @@ export const KANTO: GameMap = {
       description: 'Un bosque frondoso lleno de Pokémon bicho.',
       biome: Biome.Forest,
       backdrop: { image: viridianForest, focusY: 50 },
-      levels: [6, 9],
+      levels: [9, 15],
       encounters: enc([POKEMON.Caterpie, 20], [POKEMON.Weedle, 20], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Pidgey, 8], [POKEMON.Oddish, 8], [POKEMON.Bellsprout, 8], [POKEMON.Pikachu, 6]),
-      reward: { tickets: 4, money: 180, exp: 350 },
+      reward: { tickets: 3, money: 400, exp: 350 },
       //unlocks: RouteId.MonteMoon,
       nodes: chain(
         { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
@@ -67,7 +67,7 @@ export const KANTO: GameMap = {
         { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
-        { id: 'f', name: 'Salida', kind: NodeKind.Raid, steps: 45, boss: boss(POKEMON.Pikachu, 25) },
+        { id: 'f', name: 'Salida', kind: NodeKind.Raid, steps: 45, boss: boss(POKEMON.Pikachu, 20) },
       ),
     }
     // {

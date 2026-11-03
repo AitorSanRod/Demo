@@ -32,6 +32,8 @@ export interface Boss {
   speciesId: number
   level: number
   passives?: PassiveRef[]
+  /** Minutos que tardaría en caer con un solo Pokémon de su nivel, si es jefe comunitario; sin él, RAID_SOLO_MINUTES */
+  soloMinutes?: number
 }
 
 interface RouteEdge {

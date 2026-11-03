@@ -12,7 +12,7 @@ import { newMember, presentMembers, RaidMemberKind, type Raid, type RaidMember, 
 // Lo común a todas las salas de jefe comunitario (la de la pestaña Jefes y las de las paradas de ruta): crearlas,
 // entrar y salir, y avanzar sus rondas.
 
-/** Minutos de juego que tardaría en caer un jefe con un solo Pokémon de su nivel (sin bots ni más jugadores) */
+/** Minutos de juego que tardaría en caer un jefe con un solo Pokémon de su nivel (sin bots ni más jugadores), si el jefe no dice los suyos */
 export const RAID_SOLO_MINUTES = 180
 /** Potencia del ataque de referencia con el que se calcula la vida del jefe (entre el común y el raro) */
 const REFERENCE_POWER = 60
@@ -24,17 +24,18 @@ export const RAID_EXP_PER_MINUTE_PER_LEVEL = 1
 const PLAYER_TRAINER = 'Tú'
 
 /**
- * Vida del jefe: la que quitaría en RAID_SOLO_MINUTES un Pokémon de su nivel con un ataque de referencia. Así lo que
- * tarda depende de quién luche: uno de nivel mucho más alto lo tira en minutos
+ * Vida del jefe: la que quitaría en `soloMinutes` (o RAID_SOLO_MINUTES) un Pokémon de su nivel con un ataque de
+ * referencia. Así lo que tarda depende de quién luche: uno de nivel mucho más alto lo tira en minutos
  */
-export function raidBossHp(level: number): number {
-  const hit = (((2 * level) / 5 + 2) * REFERENCE_POWER) / 50 + 2
-  return Math.round(hit * REFERENCE_UPTIME * ((RAID_SOLO_MINUTES * 60_000) / RAID_ROUND_MS))
+export function raidBossHp(boss: Pick<RaidBoss, 'level' | 'soloMinutes'>): number {
+  const hit = (((2 * boss.level) / 5 + 2) * REFERENCE_POWER) / 50 + 2
+  const minutes = boss.soloMinutes ?? RAID_SOLO_MINUTES
+  return Math.round(hit * REFERENCE_UPTIME * ((minutes * 60_000) / RAID_ROUND_MS))
 }
 
 /** Sala nueva con el jefe entero; los `stayers` siguen dentro, recuperados y con el contador a cero */
 export function newRaid(boss: RaidBoss, place: RaidPlace | null, opts: { felled?: number; stayers?: RaidMember[]; nextBotId?: number } = {}): Raid {
-  const hp = raidBossHp(boss.level)
+  const hp = raidBossHp(boss)
   const members = (opts.stayers ?? []).map((m) => newMember(m, 1, m.stayMs))
   return { boss, place, hp, maxHp: hp, elapsedMs: 0, roundMsLeft: RAID_ROUND_MS, round: 0, members, lastRound: [], felled: opts.felled ?? 0, nextBotId: opts.nextBotId ?? 0 }
 }

@@ -23,17 +23,18 @@ export function PokemonSheet({ game, speciesId, onClose }: { game: GameState; sp
   const [sessions, setSessions] = useState(0)
   const [evolution, setEvolution] = useState<EvolveResult | null>(null)
   const mon = game.owned.find((m) => m.speciesId === speciesId)
+  const plan = mon && sessions > 0 ? trainPlan(mon, sessions) : null
 
   if (evolution) return <EvolveResultAnimation result={evolution} onClose={onClose} />
 
   const hero = mon ? (
-    <MonHero mon={mon} preview={sessions > 0 ? trainPlan(mon, sessions) : null} />
+    <MonHero mon={mon} preview={plan} />
   ) : (
     <SpeciesHero speciesId={speciesId} seen={isSeen(game, speciesId)} />
   )
   return (
     <MonSheet label={knownName(game, speciesId)} hero={hero} heroCorner={<FavoriteButton game={game} speciesId={speciesId} />} onClose={onClose}>
-      <MonOverview game={game} speciesId={speciesId} mon={mon} />
+      <MonOverview game={game} speciesId={speciesId} mon={mon} previewLevel={plan && plan.levelsGained > 0 ? plan.level : null} />
       {mon && <CareSection game={game} mon={mon} sessions={sessions} onSessionsChange={setSessions} />}
       <TicketsSection game={game} speciesId={speciesId} />
       {mon && <EvolvePanel game={game} mon={mon} onEvolved={setEvolution} />}

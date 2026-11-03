@@ -6,7 +6,7 @@ import { createMon } from '../team/mons'
 import { maxHp } from '../team/stats'
 import { advanceRaid, ensureRaid, joinRaid, leaveRaid, raidBlocker, raidBossAt } from './raid'
 import { RAID_BOTS } from './raidBots'
-import { raidBossHp, raidExpPerRound } from './raidEngine'
+import { RAID_SOLO_MINUTES, raidBossHp, raidExpPerRound } from './raidEngine'
 import { RAID_ROUND_MS } from './raidCombat'
 import { newMember, RaidMemberKind } from './raidRoom'
 import { raidState, sparringSpecies } from './raid-test-utils'
@@ -23,7 +23,14 @@ describe('jefe comunitario', () => {
   it('aparece el primero de la lista con su vida', () => {
     const { raid } = raidState()
     expect(raid.boss).toEqual(raidBossAt(0))
-    expect(raid.hp).toBe(raidBossHp(raid.boss.level))
+    expect(raid.hp).toBe(raidBossHp(raid.boss))
+  })
+
+  it('un jefe con sus propios minutos tiene la vida en proporción', () => {
+    const level = raidBossAt(0).level
+    const quick = raidBossHp({ level, soloMinutes: RAID_SOLO_MINUTES / 2 })
+    expect(quick).toBeCloseTo(raidBossHp({ level }) / 2, -1)
+    expect(raidBossHp({ level, soloMinutes: RAID_SOLO_MINUTES })).toBe(raidBossHp({ level }))
   })
 
   it('el Pokémon enviado está contra el jefe y no puede salir de ruta', () => {
