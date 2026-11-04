@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { NodeKind, route, RouteId } from '../../data/maps'
-import { activeMon, initialState } from '../core/state'
+import { activeMon, initialState, type GameState } from '../core/state'
 import { chooseStarter, seqRng } from '../core/test-utils'
 import { startRun, walk } from '../run/run'
+import { maxHp } from '../team/stats'
 import { RAID_ROUND_MS } from './raidCombat'
 import { RaidMemberKind } from './raidRoom'
 import {
@@ -11,6 +12,7 @@ import {
   retreatRouteRaid,
   ROUTE_RAID_FIRST_BOT_MS,
   ROUTE_RAID_JOIN_MIN_HP,
+  ROUTE_RAID_LIVES,
   ROUTE_RAID_RUNNING_CHANCE,
 } from './routeRaid'
 import { sparringSpecies } from './raid-test-utils'
@@ -30,6 +32,13 @@ function arriveAtRaid(rng = NEW_ROOM) {
   startRun(s, RAID_ROUTE)
   walk(s, Number.MAX_SAFE_INTEGER, rng)
   return { s, mon: activeMon(s)!, raid: currentRouteRaid(s)! }
+}
+
+/** El Pokémon del jugador cae en la próxima ronda y era su última vida */
+function loseLastLife(s: GameState) {
+  const me = currentRouteRaid(s)!.members.find((m) => m.id === activeMon(s)!.uid)!
+  Object.assign(me, { lives: 1, hpFraction: Number.MIN_VALUE })
+  advanceRouteRaid(s, RAID_ROUND_MS, seqRng(0))
 }
 
 describe('jefe comunitario de ruta', () => {
@@ -72,6 +81,54 @@ describe('jefe comunitario de ruta', () => {
     expect(run.earned.money).toBeGreaterThan(0)
     expect(s.money).toBe(money + run.earned.money)
     expect(s.raidPrizes).toHaveLength(0)
+  })
+
+  it('el Pokémon entra con ROUTE_RAID_LIVES vidas y pierde una cada vez que cae', () => {
+    const { s, mon, raid } = arriveAtRaid()
+    const me = raid.members.find((m) => m.id === mon.uid)!
+    expect(me.lives).toBe(ROUTE_RAID_LIVES)
+    me.hpFraction = Number.MIN_VALUE
+    advanceRouteRaid(s, RAID_ROUND_MS, seqRng(0))
+    expect(me.lives).toBe(ROUTE_RAID_LIVES - 1)
+    expect(s.run!.phase).toBe('raid')
+  })
+
+  it('al gastar sus vidas vuelve al principio de la ruta, recuperado y con lo ganado, recordando la vida del jefe', () => {
+    const { s, mon, raid } = arriveAtRaid()
+    raid.hp = Math.round(raid.maxHp / 2)
+    s.run!.earned.money = 1
+    loseLastLife(s)
+    const run = s.run!
+    expect(run).toMatchObject({ phase: 'walking', stop: 0, steps: 0, raid: null, raidRejoinHp: raid.hp / raid.maxHp })
+    expect(run.earned.money).toBe(1)
+    expect(mon.hp).toBe(maxHp(mon))
+    expect(raid.members.find((m) => m.id === mon.uid)!.left).toBe(true)
+  })
+
+  it('al volver a la parada se reengancha a una sala en marcha con el jefe como lo dejó', () => {
+    const { s, raid } = arriveAtRaid()
+    raid.hp = Math.round(raid.maxHp * (ROUTE_RAID_JOIN_MIN_HP + 1) / 2)
+    loseLastLife(s)
+    const rejoin = s.run!.raidRejoinHp!
+    walk(s, Number.MAX_SAFE_INTEGER, NEW_ROOM)
+    const again = currentRouteRaid(s)!
+    expect(again).not.toBe(raid)
+    expect(again.hp).toBe(Math.round(again.maxHp * rejoin))
+    expect(again.members.length).toBeGreaterThan(1)
+    expect(s.run!.raidRejoinHp).toBeNull()
+  })
+
+  it('si el jefe estaba por debajo del mínimo para unirse, entra en la sala más cercana que lo permite', () => {
+    const { s, raid } = arriveAtRaid()
+    raid.hp = 1
+    raid.members.find((m) => m.id === activeMon(s)!.uid)!.lives = 1
+    const me = raid.members.find((m) => m.id === activeMon(s)!.uid)!
+    me.hpFraction = Number.MIN_VALUE
+    // El golpe del jugador no debe tirar al jefe: lo deja sin daño fallando con rng alto en el ataque
+    loseLastLifeBelowMin(s)
+    walk(s, Number.MAX_SAFE_INTEGER, NEW_ROOM)
+    const again = currentRouteRaid(s)!
+    expect(again.hp).toBe(Math.floor(again.maxHp * ROUTE_RAID_JOIN_MIN_HP) + 1)
   })
 
   it('retirarse es una derrota y no da el premio del jefe', () => {

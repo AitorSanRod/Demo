@@ -47,6 +47,11 @@ export interface Run {
   /** Sala del jefe comunitario de la parada en la que está luchando (fase `raid`) */
   raid: Raid | null
   /**
+   * Vida del jefe comunitario (fracción de la total) cuando el Pokémon gastó sus vidas y volvió al principio de la
+   * ruta; al llegar de nuevo a la parada entra en una sala con el jefe lo más cerca posible de ella. null si no
+   */
+  raidRejoinHp: number | null
+  /**
    * Lo ganado en la ruta; `pieces` son las especies de las piezas soltadas (una entrada por pieza) y `raidBosses`, los
    * jefes comunitarios derrotados en ella (su premio ya va sumado en lo demás)
    */
@@ -106,7 +111,7 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 23
+export const SAVE_VERSION = 24
 
 export function initialState(): GameState {
   return {

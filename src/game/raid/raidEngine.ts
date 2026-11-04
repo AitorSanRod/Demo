@@ -7,7 +7,7 @@ import { gainExp, maxHp } from '../team/stats'
 import { elapseRound, playRound, RAID_ROUND_MS, type PassivesOf } from './raidCombat'
 import { updateBots, type BotPolicy } from './raidBots'
 import { earnsPrize, rollPrize } from './raidPrizes'
-import { newMember, presentMembers, RaidMemberKind, type Raid, type RaidMember, type RaidPlace, type RaidPrize } from './raidRoom'
+import { newMember, outOfLives, presentMembers, RaidMemberKind, type Raid, type RaidMember, type RaidPlace, type RaidPrize } from './raidRoom'
 
 // Lo común a todas las salas de jefe comunitario (la de la pestaña Raids y las de las paradas de ruta): crearlas,
 // entrar y salir, y avanzar sus rondas.
@@ -42,14 +42,17 @@ export function newRaid(boss: RaidBoss, place: RaidPlace | null, opts: { felled?
 
 export const playerMembers = (raid: Raid) => presentMembers(raid).filter((m) => m.kind === RaidMemberKind.Player)
 
-/** Mete al Pokémon en la sala con sus PS de ahora; si ya estuvo contra este jefe, conserva su tiempo y su daño */
-export function addPlayer(s: GameState, raid: Raid, mon: OwnedMon) {
+/**
+ * Mete al Pokémon en la sala con sus PS de ahora y `lives` vidas (null, sin límite); si ya estuvo contra este jefe,
+ * conserva su tiempo y su daño
+ */
+export function addPlayer(s: GameState, raid: Raid, mon: OwnedMon, lives: number | null = null) {
   const hpFraction = mon.hp / maxHp(mon)
   const before = raid.members.find((m) => m.id === mon.uid)
-  if (before) Object.assign(before, { left: false, hpFraction, downMs: 0 })
+  if (before) Object.assign(before, { left: false, hpFraction, downMs: 0, lives })
   else {
     const who = { id: mon.uid, kind: RaidMemberKind.Player, trainer: PLAYER_TRAINER, speciesId: mon.speciesId, level: mon.level, stars: mon.stars }
-    raid.members.push(newMember(who, hpFraction))
+    raid.members.push({ ...newMember(who, hpFraction), lives })
   }
   markSeen(s, raid.boss.speciesId)
 }
@@ -86,8 +89,8 @@ function syncPlayers(s: GameState, raid: Raid) {
 }
 
 /**
- * Juega las rondas que caben en `ms` milisegundos de juego. Si el jefe cae se para ahí y devuelve los milisegundos
- * que sobran; si no, null
+ * Juega las rondas que caben en `ms` milisegundos de juego. Si el jefe cae o un Pokémon del jugador gasta sus vidas,
+ * se para ahí y devuelve los milisegundos que sobran; si no, null
  */
 export function advanceRoom(s: GameState, raid: Raid, ms: number, bots: BotPolicy, rng: Rng): number | null {
   let left = ms
@@ -99,7 +102,7 @@ export function advanceRoom(s: GameState, raid: Raid, ms: number, bots: BotPolic
     updateBots(raid, RAID_ROUND_MS, bots, rng)
     syncPlayers(s, raid)
     raid.lastRound = playRound(raid, passivesOf(s), rng)
-    if (raid.hp === 0) return left
+    if (raid.hp === 0 || playerMembers(raid).some(outOfLives)) return left
   }
   raid.roundMsLeft -= left
   return null

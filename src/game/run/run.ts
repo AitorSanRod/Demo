@@ -30,6 +30,7 @@ export function startRun(s: GameState, routeId: string, path = pathFrom(route(ro
     lastBattle: null,
     battleMsLeft: 0,
     raid: null,
+    raidRejoinHp: null,
     earned: { money: 0, tickets: 0, pieces: [], exp: 0, levelsGained: 0, wins: 0, battles: 0, raidBosses: [] },
   }
 }

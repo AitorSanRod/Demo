@@ -31,6 +31,8 @@ export interface RaidMember {
   left: boolean
   /** Bots: milisegundos de juego que le quedan antes de irse; null para los jugadores */
   stayMs: number | null
+  /** Veces que aún puede caer (cada vez que cae, una menos); null si no tiene límite */
+  lives: number | null
 }
 
 /** Un golpe de la última ronda, para que la UI lo pinte; `from`/`to` son ids de participante o BOSS_ID */
@@ -82,8 +84,11 @@ type MemberIdentity = Pick<RaidMember, 'id' | 'kind' | 'trainer' | 'speciesId' |
 
 /** Participante recién llegado: en pie, sin daño ni tiempo dentro */
 export function newMember(who: MemberIdentity, hpFraction = 1, stayMs: number | null = null): RaidMember {
-  return { ...who, hpFraction, downMs: 0, presentMs: 0, damage: 0, left: false, stayMs }
+  return { ...who, hpFraction, downMs: 0, presentMs: 0, damage: 0, left: false, stayMs, lives: null }
 }
+
+/** Ha gastado todas sus vidas: ya no puede seguir en la pelea */
+export const outOfLives = (m: RaidMember): boolean => m.lives === 0
 
 /** Los que siguen en la sala (luchando o esperando a revivir) */
 export const presentMembers = (raid: Raid): RaidMember[] => raid.members.filter((m) => !m.left)

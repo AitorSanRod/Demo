@@ -3,6 +3,7 @@ import type { RaidBoss } from '../../data/raidBosses'
 import { randInt, type Rng } from '../core/random'
 import { activeMon, type GameState } from '../core/state'
 import { completeRoute, faint } from '../run/runBattle'
+import { maxHp } from '../team/stats'
 import { RAID_ROUND_MS } from './raidCombat'
 import { addBot, type BotPolicy } from './raidBots'
 import { addPlayer, advanceRoom, newRaid, passivesOf, playerMembers, removePlayer, settleFall } from './raidEngine'
@@ -11,7 +12,8 @@ import { applyPrize } from './raidPrizes'
 import { RAID_ROOM_SIZE, type Raid, type RaidPlace, type RaidPrize } from './raidRoom'
 
 // Jefes comunitarios de las paradas de ruta (NodeKind.Raid): el Pokémon de la ruta llega, entra en una sala de esa
-// parada y lucha hasta que cae el jefe; los que llegan después se unen hasta llenarla. Su premio es parte del de la
+// parada y lucha hasta que cae el jefe o gasta sus vidas (entonces vuelve al principio de la ruta y, al llegar otra vez,
+// se reengancha a una pelea parecida); los que llegan después se unen hasta llenarla. Su premio es parte del de la
 // ruta (sale en su resumen), no de la pestaña Raids.
 
 /** Bots de una sala de parada: no hay mínimo; van llegando (como si acabaran la ruta), uno cada ≈40 s, hasta llenarla */
@@ -22,6 +24,8 @@ export const ROUTE_RAID_FIRST_BOT_MS = 5_000
 export const ROUTE_RAID_RUNNING_CHANCE = 0.5
 /** Vida mínima del jefe (fracción de la total) para poder entrar en una sala en marcha; si no, se abre otra */
 export const ROUTE_RAID_JOIN_MIN_HP = 0.25
+/** Veces que puede caer el Pokémon contra el jefe de la parada; al gastarlas vuelve al principio de la ruta */
+export const ROUTE_RAID_LIVES = 10
 
 /** Jefe comunitario de la parada; el mapa obliga a que tenga categoría de premios (ver maps.test.ts) */
 function stopBoss(n: RouteNode): RaidBoss {
@@ -30,29 +34,38 @@ function stopBoss(n: RouteNode): RaidBoss {
   return { ...boss, tier: boss.tier }
 }
 
+/** Vida al azar (fracción de la total) del jefe de una sala en marcha; 1 − rng() está en (0, 1]: nunca por debajo del mínimo */
+const randomJoinHp = (rng: Rng) => ROUTE_RAID_JOIN_MIN_HP + (1 - rng()) * (1 - ROUTE_RAID_JOIN_MIN_HP)
+
 /**
- * Sala que lleva un rato en marcha cuando llega el jugador: unos bots dentro y el jefe tocado, con vida por encima del
- * mínimo para unirse. El tiempo que llevan es el que habrían tardado en quitarle esa vida al ritmo de la sala
+ * Sala que lleva un rato en marcha cuando llega el jugador: unos bots dentro y el jefe tocado, con la vida más cercana
+ * a `hpFraction` que permite unirse. El tiempo que llevan es el que habrían tardado en quitarle esa vida al ritmo de la sala
  */
-function runningRoom(s: GameState, n: RouteNode, place: RaidPlace, rng: Rng): Raid {
+function runningRoom(s: GameState, n: RouteNode, place: RaidPlace, hpFraction: number, rng: Rng): Raid {
   const raid = newRaid(stopBoss(n), place)
   const bots = randInt(1, RAID_ROOM_SIZE - 2, rng)
   for (let i = 0; i < bots; i++) addBot(raid, rng)
-  // 1 − rng() está en (0, 1]: la vida queda siempre por encima del mínimo para unirse
-  const hpFraction = ROUTE_RAID_JOIN_MIN_HP + (1 - rng()) * (1 - ROUTE_RAID_JOIN_MIN_HP)
-  raid.hp = Math.max(Math.floor(raid.maxHp * ROUTE_RAID_JOIN_MIN_HP) + 1, Math.round(raid.maxHp * hpFraction))
+  const minHp = Math.floor(raid.maxHp * ROUTE_RAID_JOIN_MIN_HP) + 1
+  raid.hp = Math.min(raid.maxHp, Math.max(minHp, Math.round(raid.maxHp * hpFraction)))
   const perRound = raidDamagePerRound(raid, passivesOf(s))
   raid.elapsedMs = perRound > 0 ? Math.round((raid.maxHp - raid.hp) / perRound) * RAID_ROUND_MS : 0
   for (const m of raid.members) m.presentMs = raid.elapsedMs
   return raid
 }
 
-/** Al llegar a la parada: la ruta se para y el Pokémon entra en una sala ya en marcha o en una nueva */
+/** Sala a la que llega el Pokémon: si vuelve tras gastar sus vidas, una en marcha con el jefe como lo dejó; si no, al azar */
+function arrivalRoom(s: GameState, n: RouteNode, place: RaidPlace, rng: Rng): Raid {
+  const rejoin = s.run!.raidRejoinHp
+  if (rejoin !== null) return runningRoom(s, n, place, rejoin, rng)
+  return rng() < ROUTE_RAID_RUNNING_CHANCE ? runningRoom(s, n, place, randomJoinHp(rng), rng) : newRaid(stopBoss(n), place)
+}
+
+/** Al llegar a la parada: la ruta se para y el Pokémon entra, con ROUTE_RAID_LIVES vidas, en una sala ya en marcha o en una nueva */
 export function enterRouteRaid(s: GameState, r: Route, n: RouteNode, rng: Rng) {
   const run = s.run!
-  const place = { routeId: r.id, nodeId: n.id }
-  run.raid = rng() < ROUTE_RAID_RUNNING_CHANCE ? runningRoom(s, n, place, rng) : newRaid(stopBoss(n), place)
-  addPlayer(s, run.raid, activeMon(s)!)
+  run.raid = arrivalRoom(s, n, { routeId: r.id, nodeId: n.id }, rng)
+  run.raidRejoinHp = null
+  addPlayer(s, run.raid, activeMon(s)!, ROUTE_RAID_LIVES)
   run.phase = 'raid'
 }
 
@@ -87,6 +100,20 @@ function finishRouteRaid(s: GameState, raid: Raid, rng: Rng) {
   else run.phase = 'walking'
 }
 
+/**
+ * Al gastar sus vidas el Pokémon sale de la sala, se recupera y vuelve al principio de la ruta (conserva lo ganado);
+ * se recuerda la vida del jefe para reengancharse a una pelea parecida al llegar otra vez a la parada
+ */
+function startOver(s: GameState, raid: Raid) {
+  for (const m of playerMembers(raid)) removePlayer(s, m)
+  const mon = activeMon(s)!
+  mon.hp = maxHp(mon)
+  Object.assign(s.run!, { raid: null, raidRejoinHp: raid.hp / raid.maxHp, stop: 0, steps: 0, phase: 'walking', lastBattle: null, battleMsLeft: 0 })
+}
+
+/** La pelea se ha parado: o ha caído el jefe o el Pokémon ha gastado sus vidas */
+const endFight = (s: GameState, raid: Raid, rng: Rng) => (raid.hp === 0 ? finishRouteRaid(s, raid, rng) : startOver(s, raid))
+
 /** Milisegundos de juego que lleva la pelea en la sala, contando lo que va de la ronda en curso */
 const fightMs = (raid: Raid) => raid.elapsedMs + RAID_ROUND_MS - raid.roundMsLeft
 
@@ -100,8 +127,8 @@ export function advanceRouteRaid(s: GameState, ms: number, rng: Rng = Math.rando
   const firstBotIn = ROUTE_RAID_FIRST_BOT_MS - fightMs(raid)
   const firstBotNow = raid.nextBotId === 0 && firstBotIn >= 0 && firstBotIn < ms
   if (firstBotNow) {
-    if (advanceRoom(s, raid, firstBotIn, ROUTE_RAID_BOTS, rng) !== null) return finishRouteRaid(s, raid, rng)
+    if (advanceRoom(s, raid, firstBotIn, ROUTE_RAID_BOTS, rng) !== null) return endFight(s, raid, rng)
     addBot(raid, rng)
   }
-  if (advanceRoom(s, raid, firstBotNow ? ms - firstBotIn : ms, ROUTE_RAID_BOTS, rng) !== null) finishRouteRaid(s, raid, rng)
+  if (advanceRoom(s, raid, firstBotNow ? ms - firstBotIn : ms, ROUTE_RAID_BOTS, rng) !== null) endFight(s, raid, rng)
 }

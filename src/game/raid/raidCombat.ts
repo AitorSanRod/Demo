@@ -37,6 +37,7 @@ function bossFighter(raid: Raid): Fighter {
 function knockOut(m: RaidMember) {
   m.hpFraction = 0
   m.downMs = RAID_REVIVE_MS
+  if (m.lives !== null) m.lives = Math.max(0, m.lives - 1)
 }
 
 /** Golpe de `atk` a `def` con la fórmula de siempre; devuelve el daño hecho */
