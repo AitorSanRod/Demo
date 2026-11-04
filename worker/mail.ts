@@ -46,22 +46,8 @@ export async function sendMail(env: Env, to: string, kind: MailKind, link: strin
       body: JSON.stringify({ sender: { email: env.MAIL_FROM.trim(), name: SENDER_NAME }, to: [{ email: to }], subject, htmlContent: body(link) }),
     })
     if (!res.ok) console.error(`Brevo no ha mandado el correo ${kind} a ${to}: ${await describe(res)}`)
-    if (!res.ok) await diagnose(env.BREVO_API_KEY)
   } catch (e) {
     console.error(`No se ha podido hablar con Brevo para el correo ${kind} a ${to}: ${String(e)}`)
-    await diagnose(env.BREVO_API_KEY)
   }
 }
 
-// TEMPORAL (diagnóstico del envío con Brevo): se quita en cuanto lleguen los correos
-async function diagnose(key: string) {
-  const shape = `longitud ${key.length}, empieza por ${key.slice(0, 8)}, espacios o saltos: ${/\s/.test(key)}, comillas: ${/["']/.test(key)}`
-  try {
-    const res = await fetch('https://api.brevo.com/v3/account', { headers: { 'api-key': key.trim(), Accept: 'application/json' } })
-    const text = await res.text()
-    const account = text.slice(0, 400).replace(/"email":"[^"]*"/g, '"email":"…"')
-    console.error(`[diagnóstico Brevo] clave: ${shape} | /v3/account: ${res.status} ${account}`)
-  } catch (e) {
-    console.error(`[diagnóstico Brevo] clave: ${shape} | /v3/account: EXCEPCIÓN ${String(e)}`)
-  }
-}
