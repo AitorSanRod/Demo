@@ -119,6 +119,8 @@ describe('jefe comunitario', () => {
     expect(raidWaiting(next)).toBe(false)
     expect(next.round).toBe(1)
     expect(next.members.length).toBeGreaterThanOrEqual(RAID_BOTS.min)
+    // El siguiente jefe puede pedir más nivel que el primero
+    mon.level = Math.max(mon.level, next.boss.minLevel ?? 0)
     expect(raidBlocker(s, mon.uid)).toBeNull()
   })
 
