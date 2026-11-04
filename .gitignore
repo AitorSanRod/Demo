@@ -26,5 +26,6 @@ dist-ssr
 # Claude Code (ajustes personales)
 .claude/settings.local.json
 
-# Netlify CLI (netlify dev / netlify link)
-.netlify
+# Cloudflare Wrangler (wrangler dev: D1 local y caché)
+.wrangler
+.dev.vars

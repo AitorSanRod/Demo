@@ -19,7 +19,7 @@ const REFERENCE_POWER = 60
 /** Fracción del tiempo que pasa luchando un Pokémon de referencia (el resto, debilitado esperando a revivir) */
 const REFERENCE_UPTIME = 0.5
 /** EXP por minuto de juego luchando (no mientras está debilitado), por cada nivel del jefe */
-export const RAID_EXP_PER_MINUTE_PER_LEVEL = 1
+const RAID_EXP_PER_MINUTE_PER_LEVEL = 1
 /** Nombre con el que sale el jugador en la sala */
 export const PLAYER_TRAINER = 'Tú'
 
@@ -113,7 +113,7 @@ function syncPlayers(s: GameState, raid: Raid) {
 export const localHooks = (s: GameState): RoomHooks => ({ passivesOf: passivesOf(s), beforeRound: (raid) => syncPlayers(s, raid) })
 
 /** La pelea se para: ha caído el jefe o un Pokémon de un jugador ha gastado sus vidas */
-export const roomStopped = (raid: Raid): boolean => raid.hp === 0 || playerMembers(raid).some(outOfLives)
+const roomStopped = (raid: Raid): boolean => raid.hp === 0 || playerMembers(raid).some(outOfLives)
 
 /**
  * Juega las rondas que caben en `ms` milisegundos de juego. Si el jefe cae o un Pokémon del jugador gasta sus vidas,

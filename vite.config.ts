@@ -4,8 +4,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // En GitHub Pages la web vive en /<repositorio>/: el workflow de despliegue pasa BASE_PATH. En local, la raíz.
-  base: process.env.BASE_PATH ?? '/',
   server: { host: true },
   plugins: [
     react(),
@@ -31,9 +29,7 @@ export default defineConfig({
       workbox: {
         // Por defecto solo se precachean js/css/html: se añaden las imágenes propias (fondo del rancho)
         globPatterns: ['**/*.{js,css,html,svg,png,jpg}'],
-        // Las plantillas de los correos de las cuentas las lee Netlify, no la app
-        globIgnores: ['emails/**'],
-        // El servidor de salas (netlify/functions) no es una página de la app: que el service worker no la sirva
+        // La API (worker/) no es una página de la app: que el service worker no la sirva
         navigateFallbackDenylist: [/^\/api\//],
         // Abre la app al tocar una notificación (expediciones terminadas)
         importScripts: ['sw-notifications.js'],

@@ -6,12 +6,12 @@ piezas del gacha.
 
 PWA con Vite + React + TypeScript, pensada para móvil en vertical. La partida se guarda en el navegador
 (`localStorage`). Por servidor van las salas compartidas de los jefes comunitarios y, con una cuenta opcional (email y
-contraseña), la partida en la nube: funciones de Netlify con Netlify Blobs e Identity (ver
-[docs/servidor.md](docs/servidor.md)). Sin servidor, todo se juega en local.
+contraseña), la partida en la nube: un Worker de Cloudflare con base de datos D1 (ver [docs/servidor.md](docs/servidor.md)).
+Sin servidor, todo se juega en local.
 
 ## Arrancar
 
-Requiere Node `^20.19 || >=22.12` (ver `.nvmrc`).
+Requiere Node `>=22.13` (ver `.nvmrc`).
 
 ```bash
 npm install
@@ -26,29 +26,13 @@ En desarrollo aparece en la barra superior un botón **⏱ x1 / x10 / x60** para
 Para **instalarla como app** (y para las notificaciones) hace falta HTTPS o `localhost`: publícala (ver abajo) y en
 el móvil usa «Añadir a pantalla de inicio».
 
-## Publicar en Netlify (con salas compartidas)
+## Publicar en Cloudflare
 
-Paso a paso en [docs/servidor.md](docs/servidor.md): se conecta el repositorio en Netlify y `netlify.toml` ya dice
-cómo compilar y dónde está la función. Para probarlo todo en local: `npx netlify dev` (http://localhost:8888).
+Paso a paso en [docs/servidor.md](docs/servidor.md): se crea la base de datos D1, se conecta el repositorio en
+Cloudflare (despliega solo en cada push a `main`) y se ponen las claves de Brevo para los correos. Para probar el
+servidor en local: `npm run db:migrate:local` (una vez) y `npm run preview` (http://localhost:8787).
 
-## Publicar en GitHub Pages
-
-En GitHub Pages no hay servidor: los jefes comunitarios se juegan en local, con bots.
-
-El workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) publica la app en cada push a `main`:
-pasa `npm run check`, compila con `BASE_PATH=/<repositorio>/` (la web vive en
-`https://<usuario>.github.io/<repositorio>/`) y sube `dist/` a Pages. Si el check falla, no se publica.
-
-Solo hay que activarlo una vez: **Settings → Pages → Build and deployment → Source: GitHub Actions**. También se
-puede lanzar a mano desde la pestaña **Actions** (*Run workflow*).
-
-Para probar en local el build tal y como queda en Pages:
-
-```bash
-BASE_PATH=/Demo/ npm run build && BASE_PATH=/Demo/ npm run preview   # http://localhost:4173/Demo/
-```
-
-En Git Bash (Windows) antepón `MSYS_NO_PATHCONV=1`, o convertirá `/Demo/` en una ruta de Windows.
+GitHub Actions ([.github/workflows/check.yml](.github/workflows/check.yml)) pasa `npm run check` en cada push.
 
 ## Cómo se juega
 
@@ -68,7 +52,7 @@ Las reglas y todos los números de balance están en [docs/diseno.md](docs/disen
 - [docs/diseno.md](docs/diseno.md): reglas del juego y dónde está cada número de balance.
 - [docs/arquitectura.md](docs/arquitectura.md): capas, estructura de carpetas, store, guardado y flujo de una ruta.
 - [docs/convenciones.md](docs/convenciones.md): estilo de código, tests y definición de terminado.
-- [docs/servidor.md](docs/servidor.md): servidor en Netlify (plan gratuito): salas compartidas y cuentas, paso a paso.
+- [docs/servidor.md](docs/servidor.md): servidor en Cloudflare (plan gratuito): salas compartidas y cuentas, paso a paso.
 
 ## Scripts
 

@@ -14,7 +14,7 @@ import { RaidAction, RoomSlot, type JoinRequest, type MonSnapshot, type RoomChan
 // pasa a ser el reflejo de la del servidor. Desde entonces la juega el servidor y aquí solo se aplica lo que pasa.
 
 /** Petición de una sala, sin quién la hace (lo añade net/raidSync.ts) */
-export type RoomRequest = Omit<JoinRequest, 'playerId' | 'nickname'> | Omit<SyncRequest, 'playerId' | 'nickname'>
+type RoomRequest = Omit<JoinRequest, 'playerId' | 'nickname'> | Omit<SyncRequest, 'playerId' | 'nickname'>
 
 export const ROOM_SLOTS: RoomSlot[] = [RoomSlot.Tab, RoomSlot.Route]
 

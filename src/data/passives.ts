@@ -12,7 +12,7 @@ export type PassiveLevel = 1 | 2
 export const StatusId = { Burn: 'burn', Poison: 'poison', Paralysis: 'paralysis', Freeze: 'freeze', Confusion: 'confusion' } as const
 export type StatusId = (typeof StatusId)[keyof typeof StatusId]
 
-export interface StatusInfo {
+interface StatusInfo {
   name: string
   /** Texto al recibirlo («se quemó») */
   verb: string

@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react'
 import { CloudAction, cloudAction, cloudUpload, stateFromSaved, type CloudLink, type CloudSave } from '../game/core/cloudSave'
 import { getState, replaceState } from '../game/core/store'
-import { account, AccountStatus, subscribeAccount } from './account'
+import { account, AccountStatus, refreshAccount, subscribeAccount } from './account'
 
-// Mantiene la partida de la cuenta en la nube (netlify/functions/save.mts): al entrar o al volver a la app baja la
+// Mantiene la partida de la cuenta en la nube (worker/save.ts): al entrar o al volver a la app baja la
 // de la nube si otro dispositivo ha jugado después; con la app delante la sube cada poco y al ocultarla. Gana la
 // última subida: si al subir resulta que otro dispositivo subió antes, se carga la suya y se avisa.
 
@@ -63,9 +63,17 @@ function loadCloudSave(saved: CloudSave, notice: string | null = null) {
   update({ syncedAt: Date.now(), choice: null, notice: notice ?? cloud.notice })
 }
 
+/** Sin sesión válida (ha caducado o se cerró en otro sitio): se vuelve a preguntar quién es y se para */
+const SESSION_LOST = 401
+
+async function checked(res: Response): Promise<Response> {
+  if (res.status === SESSION_LOST) await refreshAccount()
+  if (!res.ok && res.status !== 409) throw new Error(`${SAVE_API}: ${res.status}`)
+  return res
+}
+
 async function fetchCloud(): Promise<CloudSave | null> {
-  const res = await fetch(SAVE_API, { cache: 'no-store' })
-  if (!res.ok) throw new Error(`GET ${SAVE_API}: ${res.status}`)
+  const res = await checked(await fetch(SAVE_API, { cache: 'no-store' }))
   return ((await res.json()) as { cloud: CloudSave | null }).cloud
 }
 
@@ -73,13 +81,14 @@ async function fetchCloud(): Promise<CloudSave | null> {
 async function upload(base: number | null, keepalive = false) {
   const body = JSON.stringify({ baseRevision: base, ...cloudUpload(getState()) })
   lastUploadAt = Date.now()
-  const res = await fetch(SAVE_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: keepalive && body.length <= KEEPALIVE_MAX_BYTES })
+  const res = await checked(
+    await fetch(SAVE_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: keepalive && body.length <= KEEPALIVE_MAX_BYTES }),
+  )
   if (res.status === 409) {
     const newer = ((await res.json()) as { cloud: CloudSave | null }).cloud
     if (newer) loadCloudSave(newer, 'Se ha jugado con tu cuenta en otro dispositivo: se ha cargado esa partida.')
     return
   }
-  if (!res.ok) throw new Error(`POST ${SAVE_API}: ${res.status}`)
   writeLink({ userId: userId()!, revision: ((await res.json()) as { revision: number }).revision })
   update({ syncedAt: Date.now() })
 }

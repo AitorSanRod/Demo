@@ -2,7 +2,7 @@
 
 import type { Color, Pixmap } from '../paint/pixmap'
 
-export interface MushroomPalette {
+interface MushroomPalette {
   /** Sombrero: sombra, base y luz */
   cap: readonly Color[]
   capInk: Color

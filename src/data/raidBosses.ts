@@ -29,7 +29,7 @@ export const RaidPrizeKind = { Money: 'money', Tickets: 'tickets', BossPieces: '
 export type RaidPrizeKind = (typeof RaidPrizeKind)[keyof typeof RaidPrizeKind]
 
 /** Una línea de la tabla de premios: cada una se tira por separado con su probabilidad */
-export interface RaidPrizeRoll {
+interface RaidPrizeRoll {
   kind: RaidPrizeKind
   amount: number
   /** Probabilidad de 0 a 1 */

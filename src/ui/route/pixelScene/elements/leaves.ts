@@ -19,7 +19,7 @@ export interface LeafClump {
 }
 
 /** Forma de las hojas de una mata; los rangos son [mín, máx] y las medidas, fracciones del tamaño de la mata */
-export interface LeafStyle {
+interface LeafStyle {
   count: [number, number]
   length: [number, number]
   width: [number, number]

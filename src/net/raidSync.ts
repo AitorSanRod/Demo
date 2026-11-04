@@ -7,7 +7,7 @@ import { postRaid, RaidApiError } from './raidApi'
 
 // Mantiene las salas de la partida al día con el servidor: pide entrar en las que esperan sitio, consulta las
 // enlazadas y avisa de las que se han dejado. Solo con la app delante: cerrada, el servidor sigue jugando y al volver
-// se consulta enseguida. Cada consulta gasta cuota del plan de Netlify: ver docs/servidor.md.
+// se consulta enseguida. Cada consulta gasta cuota del plan de Cloudflare: ver docs/servidor.md.
 
 /** Milisegundos reales entre consultas de una sala mientras su pelea está en pantalla */
 const WATCH_SYNC_MS = 5_000

@@ -1,11 +1,11 @@
 import type { RaidRequest, RaidResponse, RoomView } from '../game/raid/online/protocol'
 
-/** Dirección de la función de Netlify (netlify/functions/raid.mts) */
+/** Dirección del servidor de salas (worker/raid.ts) */
 const RAID_API = '/api/raid'
 /** Milisegundos reales que se espera al servidor antes de darlo por perdido */
 const REQUEST_TIMEOUT_MS = 8_000
 
-/** Error de red o del servidor: sin él (p. ej. `npm run dev` o GitHub Pages), las salas se juegan en local */
+/** Error de red o del servidor: sin él (p. ej. con `npm run dev`), las salas se juegan en local */
 export class RaidApiError extends Error {}
 
 /** Manda la petición y devuelve la sala vista por el jugador (null si ya no existe) */

@@ -2,7 +2,7 @@
 
 import { Pixmap, type Color } from '../paint/pixmap'
 
-export interface FountainPalette {
+interface FountainPalette {
   /** Piedra: sombra, base y luz */
   stone: readonly Color[]
   stoneInk: Color

@@ -3,7 +3,7 @@
 import { hash } from '../paint/noise'
 import { Pixmap, type Color } from '../paint/pixmap'
 
-export interface LogPalette {
+interface LogPalette {
   /** Corteza: oscuro, sombra, base y luz */
   bark: readonly Color[]
   barkInk: Color

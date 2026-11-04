@@ -10,7 +10,7 @@ interface ActiveLandmark {
 }
 
 /** Velocidad del suelo a velocidad ×1, en píxeles de arte por segundo */
-export const PATH_SPEED = 26
+const PATH_SPEED = 26
 
 /** Id reservado para mostrar u ocultar las partículas desde los controles */
 export const PARTICLES_ID = 'particles'

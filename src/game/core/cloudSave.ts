@@ -1,7 +1,7 @@
 import { backupTeam, parseTeamBackup, restoreTeam, type TeamBackup } from './teamBackup'
 import { initialState, restoreState, TutorialStep, type GameState } from './state'
 
-// La partida en la nube de una cuenta (netlify/functions/save.mts). Gana la última que se sube: cada copia lleva una
+// La partida en la nube de una cuenta (worker/save.ts). Gana la última que se sube: cada copia lleva una
 // revisión y el servidor solo acepta subir encima de la que el dispositivo vio por última vez.
 
 /** Bytes como mucho de una partida subida (la de un jugador avanzado ocupa unas decenas de KB) */
@@ -27,7 +27,7 @@ export const CloudAction = { Upload: 'upload', Download: 'download', Ask: 'ask' 
 export type CloudAction = (typeof CloudAction)[keyof typeof CloudAction]
 
 /** Una partida recién empezada, aún sin inicial: no hay nada que perder si se cambia por la de la nube */
-export const isFreshGame = (s: GameState): boolean => s.tutorial === TutorialStep.Starter
+const isFreshGame = (s: GameState): boolean => s.tutorial === TutorialStep.Starter
 
 /**
  * Qué hacer al conectar con la cuenta `userId`: sin copia en la nube, subir la de aquí; si la de aquí ya es de esa
@@ -74,7 +74,7 @@ export function saveSummary(s: GameState): SaveSummary {
 }
 
 /** Subida que acepta el servidor: la revisión sobre la que se sube (null, la primera) y la partida */
-export interface SaveUpload {
+interface SaveUpload {
   baseRevision: number | null
   save: GameState
   team: TeamBackup

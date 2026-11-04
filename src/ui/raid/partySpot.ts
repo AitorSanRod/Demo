@@ -13,7 +13,7 @@ const JITTER_X = 4
 const JITTER_RISE = 12
 
 /** Dónde se pinta un Pokémon del grupo: `left` en % del ancho, `rise` en px sobre el suelo; `z` ordena las filas */
-export interface PartySpot {
+interface PartySpot {
   left: number
   rise: number
   scale: number

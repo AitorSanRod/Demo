@@ -1,0 +1,23 @@
+# Pasa `npm run check` (typecheck, lint y tests) en cada push y pull request. Publicar no es cosa de este workflow:
+# Cloudflare despliega solo desde el repositorio (Workers Builds, ver docs/servidor.md).
+name: Comprobar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check

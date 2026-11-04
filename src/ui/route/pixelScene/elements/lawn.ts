@@ -34,7 +34,7 @@ export function lawn(pix: Pixmap, rng: Rng, height: number, colors: readonly Col
 }
 
 /** Colores de un sendero: relleno, borde de arriba (en sombra) y borde de abajo (contorno) */
-export interface LaneColors {
+interface LaneColors {
   fill: Color
   top: Color
   ink: Color

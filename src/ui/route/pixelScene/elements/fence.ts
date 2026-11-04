@@ -4,7 +4,7 @@ import type { Rng } from '../paint/noise'
 import type { Color, Pixmap } from '../paint/pixmap'
 
 /** `colors`: sombra, base y luz; `ink`, contorno */
-export interface Painted {
+interface Painted {
   colors: readonly Color[]
   ink: Color
 }

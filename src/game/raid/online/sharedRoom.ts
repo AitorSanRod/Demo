@@ -5,8 +5,10 @@ import { raidBossAt } from '../raid'
 import { RAID_BOTS } from '../raidBots'
 import { advanceRoom, newRaid, playerMembers, PLAYER_TRAINER, type RoomHooks } from '../raidEngine'
 import { BOSS_ID, hasRoom, newMember, outOfLives, presentMembers, RaidMemberKind, type Raid, type RaidMember } from '../raidRoom'
+import { RAID_ROUND_MS } from '../raidCombat'
 import { ROUTE_RAID_LIVES } from '../routeRaid'
 import { advanceStopRoom, stopRoom } from '../stopRoom'
+import { ROOM_PLAYED_ROUNDS, skipAhead } from './skipAhead'
 import { RoomSlot, type MonSnapshot, type RoomChannel, type RoomView } from './protocol'
 
 // Una sala compartida tal y como la guarda el servidor: la sala del motor de siempre más quién es quién. El servidor
@@ -70,12 +72,15 @@ const advanceShared = (room: SharedRoom, ms: number, rng: Rng, hooks: RoomHooks)
   room.channel.slot === RoomSlot.Tab ? advanceRoom(room.raid, ms, RAID_BOTS, rng, hooks) : advanceStopRoom(room.raid, ms, rng, hooks)
 
 /**
- * Juega la sala hasta `now`. Quien gasta sus vidas sale (su jugador lo verá al consultar) y la pelea sigue sin él; al
- * caer el jefe la sala se queda así, para que cada jugador vea la caída y cobre
+ * Juega la sala hasta `now`: lo que pase de ROOM_PLAYED_ROUNDS rondas se resume (skipAhead) y el resto se juega ronda a
+ * ronda. Quien gasta sus vidas sale (su jugador lo verá al consultar) y la pelea sigue sin él; al caer el jefe la sala
+ * se queda así, para que cada jugador vea la caída y cobre
  */
 export function catchUp(room: SharedRoom, now: number, rng: Rng) {
-  let left: number | null = Math.min(Math.max(0, now - room.updatedAt), ROOM_MAX_CATCHUP_MS)
+  const behind = Math.min(Math.max(0, now - room.updatedAt), ROOM_MAX_CATCHUP_MS)
   room.updatedAt = now
+  let left: number | null = Math.min(behind, ROOM_PLAYED_ROUNDS * RAID_ROUND_MS)
+  skipAhead(room, behind - left)
   const hooks = serverHooks(room)
   while (left !== null && room.raid.hp > 0) {
     left = advanceShared(room, left, rng, hooks)

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.worker.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker-test.tsbuildinfo",
+    /* Los tests del Worker corren en Node (vitest) con un D1 de pruebas sobre node:sqlite */
+    "types": ["@cloudflare/workers-types", "node"]
+  },
+  "include": ["worker/**/*.test.ts", "worker/test", "worker/import-meta.d.ts"],
+  "exclude": []
+}

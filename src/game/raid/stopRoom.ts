@@ -11,14 +11,14 @@ import { RAID_ROOM_SIZE, type Raid, type RaidPlace } from './raidRoom'
 // avanzan. Las usan la ruta del jugador (routeRaid.ts) y el servidor (online/sharedRoom.ts).
 
 /** Bots de una sala de parada: no hay mínimo; van llegando (como si acabaran la ruta), uno cada ≈40 s, hasta llenarla */
-export const ROUTE_RAID_BOTS: BotPolicy = { min: 0, max: RAID_ROOM_SIZE - 1, joinPerMinute: 1.5 }
+const ROUTE_RAID_BOTS: BotPolicy = { min: 0, max: RAID_ROOM_SIZE - 1, joinPerMinute: 1.5 }
 /** Milisegundos de juego tras abrir una sala nueva en los que entra el primer bot (luego, al ritmo de ROUTE_RAID_BOTS) */
 export const ROUTE_RAID_FIRST_BOT_MS = 5_000
 /** Vida mínima del jefe (fracción de la total) para poder entrar en una sala en marcha; si no, se abre otra */
 export const ROUTE_RAID_JOIN_MIN_HP = 0.25
 
 /** Jefe comunitario de la parada; el mapa obliga a que tenga categoría de premios (ver maps.test.ts) */
-export function stopBoss(n: RouteNode): RaidBoss {
+function stopBoss(n: RouteNode): RaidBoss {
   const { boss } = n
   if (!boss?.tier) throw new Error(`La parada ${n.id} no tiene jefe comunitario con categoría de premios`)
   return { ...boss, tier: boss.tier }

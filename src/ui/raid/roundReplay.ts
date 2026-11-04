@@ -14,7 +14,7 @@ export interface ReplayHit extends RaidHit {
  * Los golpes de la última ronda se juegan de una vez en el motor; aquí se reparten en orden a lo largo de la ronda
  * siguiente, con el del jefe a mitad, para que la pelea se vea por turnos y no toda a la vez
  */
-export function replayHits(raid: Raid): ReplayHit[] {
+function replayHits(raid: Raid): ReplayHit[] {
   const party = raid.lastRound.filter((h) => h.from !== BOSS_ID)
   const boss = raid.lastRound.filter((h) => h.from === BOSS_ID)
   const half = Math.ceil(party.length / 2)

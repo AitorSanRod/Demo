@@ -4,9 +4,9 @@ Juego idle tipo digivice: el jugador elige el camino antes de salir y su Pokémo
 En el rancho ve a todo su equipo, cura, entrena y elige compañero; manda al resto de expedición y consigue
 Pokémon nuevos juntando piezas del gacha. PWA para móvil en vertical.
 
-Stack: Vite 8 + React 19 + TypeScript 7 + Vitest. La partida se guarda en `localStorage`; por servidor (funciones de
-Netlify + Netlify Blobs, `netlify/`) van las salas de los jefes comunitarios y, con cuenta opcional (Netlify Identity),
-la partida en la nube. Sin servidor se juega todo en local.
+Stack: Vite 8 + React 19 + TypeScript 7 + Vitest. La partida se guarda en `localStorage`; por servidor (un Worker de
+Cloudflare con D1, `worker/`) van las salas de los jefes comunitarios y, con cuenta opcional (email y contraseña,
+correos con Brevo), la partida en la nube. Sin servidor se juega todo en local.
 
 ## Comandos
 
@@ -15,16 +15,17 @@ npm run dev        # servidor de desarrollo
 npm run check      # typecheck + lint + tests (lo que debe pasar antes de dar algo por terminado)
 npm test           # solo tests (vitest run)
 npm run build      # build de producción
-npx netlify dev    # app + función de salas en http://localhost:8888 (con Blobs local)
+npm run preview    # build + Worker de Cloudflare en local (http://localhost:8787; antes: npm run db:migrate:local)
+npm run deploy     # publicar a mano (normalmente despliega Cloudflare solo con cada push)
 ```
 
-Requiere Node `^20.19 || >=22.12` (ver `.nvmrc`). Con versiones anteriores npm no instala los binarios nativos de
-Vite/oxlint y `build`/`lint` fallan.
+Requiere Node `>=22.13` (ver `.nvmrc`): los tests del Worker usan `node:sqlite`, y con versiones anteriores npm
+tampoco instala los binarios nativos de Vite/oxlint.
 
 ## Arquitectura en una línea
 
 `src/data` (datos estáticos) → `src/game` (lógica pura, sin React ni DOM) → `src/net` (conexión con el servidor) →
-`src/ui` (pantallas React); `netlify/` (servidor) usa `src/game` y `src/data`. Las dependencias solo van en ese
+`src/ui` (pantallas React); `worker/` (servidor) usa `src/game` y `src/data`. Las dependencias solo van en ese
 sentido. `src/game` y `src/data` corren también en el servidor: nada de DOM ni de `import` de imágenes. `src/game` se agrupa por dominio (`core`, `battle`, `run`, `team`,
 `collection`) y `src/ui` por pantalla, cada una con su CSS. Detalle en [docs/arquitectura.md](docs/arquitectura.md).
 
@@ -56,8 +57,9 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Evolución (por nivel o piedra) / piedras de la tienda | `data/evolutions.ts`, `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` / `data/stones.ts`, `game/team/stones.ts` + `ui/shop/StoneShop.tsx` |
 | Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (`ExpeditionScreen` lista de rutas, `ExpeditionList` las que están en curso, `ExpeditionStartDialog` elegir Pokémon y duración; el selector es `ui/shared/MonPicker.tsx`) |
 | Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Raids, `routeRaid` paradas de ruta, `stopRoom` salas de parada sin la partida, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidWaiting` (espera entre jefes), `raidBiome`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster`, `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe y «Retirarse») |
-| Salas compartidas con otros jugadores: protocolo / lo que hace el servidor / la sala de la partida enlazada / conexión, apodo y cada cuánto se consulta / función y almacén | `game/raid/online/` (`protocol`, `sharedRoom` + `roomServer` + `requests`, `linkedRoom`) / `net/` (`raidSync`, `identity`, `raidApi`) + `ui/raid/NicknameDialog`, `RaidLinkNote` / `../netlify/functions/raid.mts`, `../netlify/lib/roomStore.ts`, `../netlify.toml` (despliegue: `docs/servidor.md`) |
-| Cuenta opcional y partida en la nube: decidir subir o bajar y recuperar copia / sesión y correos / subir y bajar / pantallas / función y almacén | `game/core/cloudSave.ts` / `net/account.ts` / `net/cloudSync.ts` / `ui/account/` (`AccountDialog`, `AccountHost`, `CloudChoiceDialog`, `AccountModal`) / `../netlify/functions/save.mts`, `../netlify/lib/saveStore.ts`, plantillas de correo en `../public/emails/` |
+| Salas compartidas con otros jugadores: protocolo / lo que hace el servidor / la sala de la partida enlazada / conexión, apodo y cada cuánto se consulta / función y almacén | `game/raid/online/` (`protocol`, `sharedRoom` + `roomServer` + `requests`, `linkedRoom`) / `net/` (`raidSync`, `identity`, `raidApi`) + `ui/raid/NicknameDialog`, `RaidLinkNote` + `skipAhead` (resumir salas viejas) / `../worker/raid.ts`, `../worker/db/rooms.ts`, `../wrangler.jsonc` (despliegue: `docs/servidor.md`) |
+| Cuenta opcional y partida en la nube: reglas compartidas y subir o bajar / sesión y correos / subir y bajar / pantallas / servidor | `game/core/accountRules.ts`, `cloudSave.ts` / `net/account.ts` / `net/cloudSync.ts` / `ui/account/` (`AccountDialog`, `AccountHost`, `CloudChoiceDialog`, `AccountModal`) / `../worker/auth/`, `../worker/save.ts`, `../worker/db/`, `../worker/mail.ts` (texto de los correos) |
+| Base de datos (tablas) | `../migrations/` (un fichero nuevo por cambio) |
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
 | Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (`DexScreen`, `DexSection` el desplegable de cada Pokédex, `DexCell`; la ficha es `PokemonSheet`, la misma que el rancho) |
@@ -104,7 +106,7 @@ Convenciones completas en [docs/convenciones.md](docs/convenciones.md).
 - [docs/arquitectura.md](docs/arquitectura.md): capas, estructura de carpetas, store, guardado, flujo de una ruta.
 - [docs/convenciones.md](docs/convenciones.md): estilo de código, tests y checklist de revisión.
 - [docs/fondos.md](docs/fondos.md): fondos pixel art de las rutas: estilo, motor, piezas y cómo crear uno nuevo.
-- [docs/servidor.md](docs/servidor.md): servidor en Netlify (plan gratuito): salas compartidas, cuentas y partida en la nube; despliegue y consumo.
+- [docs/servidor.md](docs/servidor.md): servidor en Cloudflare (plan gratuito): despliegue paso a paso, Brevo, base de datos y consumo.
 
 Si cambias una mecánica o la estructura, actualiza el documento correspondiente en el mismo cambio.
 

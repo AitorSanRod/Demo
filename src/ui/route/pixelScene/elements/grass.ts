@@ -5,7 +5,7 @@ import { between, type Rng } from '../paint/noise'
 import { Pixmap, type Color } from '../paint/pixmap'
 import { ramp } from '../paint/shade'
 
-export interface Tuft {
+interface Tuft {
   x: number
   blades: { dx: number; height: number; lean: number }[]
   flower?: { petals: Color; center: Color }
@@ -63,7 +63,7 @@ export function grassField(pix: Pixmap, rng: Rng, top: number, height: number, c
     }
 }
 
-export interface FlowerColors {
+interface FlowerColors {
   petals: Color
   shade: Color
   center: Color
@@ -78,7 +78,7 @@ export function daisy(pix: Pixmap, x: number, y: number, colors: FlowerColors, s
 }
 
 /** Flor de cinco píxeles: cruz de pétalos con el centro de otro color */
-export function flower(pix: Pixmap, x: number, y: number, petals: Color, center: Color) {
+function flower(pix: Pixmap, x: number, y: number, petals: Color, center: Color) {
   for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) pix.set(x + dx, y + dy, petals)
   pix.set(x, y, center)
 }

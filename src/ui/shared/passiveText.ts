@@ -4,7 +4,7 @@ import { TYPE_INFO, type PokeType } from '../../data/types'
 const pct = (fraction: number) => `${Math.round(fraction * 100)}%`
 
 /** Lo que da una pasiva, en frases cortas («+30% ataque», «10% de quemar»…) */
-export function describeEffect(e: PassiveEffect): string[] {
+function describeEffect(e: PassiveEffect): string[] {
   const parts: string[] = []
   if (e.hp) parts.push(`+${pct(e.hp)} PS`)
   if (e.atk) parts.push(`+${pct(e.atk)} ataque`)

@@ -19,7 +19,7 @@ const WILD_STAT_MULT = 0.8
 /** Multiplicador de los pokécuartos por derrotar a un jefe (respecto a un salvaje de su nivel) */
 export const BOSS_MONEY_MULT = 3
 /** Multiplicador de la EXP por derrotar a un jefe (respecto a un salvaje de su nivel) */
-export const BOSS_EXP_MULT = 2
+const BOSS_EXP_MULT = 2
 /** Tickets que da siempre derrotar a un jefe (en lugar de la probabilidad de un salvaje) */
 export const BOSS_TICKETS = 0
 /** Fracción del dinero ganado en la ruta que se pierde al ser derrotado */

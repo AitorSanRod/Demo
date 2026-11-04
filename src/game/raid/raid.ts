@@ -9,7 +9,7 @@ import { hasRoom, pendingLink, type Raid } from './raidRoom'
 // El jefe de la pestaña Raids: siempre hay uno, se manda a un Pokémon del rancho y al caer sale el siguiente.
 
 /** Pokémon del jugador que pueden estar a la vez en la sala */
-export const RAID_PLAYER_SLOTS = 1
+const RAID_PLAYER_SLOTS = 1
 /** Milisegundos de juego que tarda en aparecer el siguiente jefe tras caer uno */
 export const RAID_COOLDOWN_MS = 15 * 60_000
 

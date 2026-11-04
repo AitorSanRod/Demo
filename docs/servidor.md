@@ -1,151 +1,157 @@
-# Servidor en Netlify (plan gratuito)
+# Servidor en Cloudflare (plan gratuito, sin tarjeta)
 
-Dos cosas van por servidor, las dos con funciones de Netlify que guardan en Netlify Blobs:
+Pokérancho se publica como un **Worker de Cloudflare**: sirve la web (`dist/`) y una pequeña API en `/api/*` con una
+base de datos **D1** (SQLite). Por la API van:
 
-- **Salas compartidas** de los jefes comunitarios (pestaña Raids y paradas de ruta).
-- **Cuentas opcionales** con email y contraseña (Netlify Identity) para guardar la partida en la nube y seguirla en
-  otro dispositivo. Sin cuenta se juega igual: la partida vive en el navegador y en las raids se usa un id anónimo.
+- **Salas compartidas** de los jefes comunitarios (pestaña Raids y paradas de ruta), sin cuenta.
+- **Cuentas opcionales** con email y contraseña, para guardar la partida en la nube y seguirla en otro dispositivo.
+  Los correos de confirmar la cuenta y recuperar la contraseña los manda **Brevo** (gratis, sin tarjeta).
 
-Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.md#salas-compartidas-servidor).
+Sin servidor (p. ej. con `npm run dev`) se juega todo igual en local: raids con bots y sin cuentas.
+
+Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.md#salas-compartidas-servidor) y
+[› Cuentas](arquitectura.md#cuentas-y-partida-en-la-nube).
 
 ## Qué hay montado
 
 | Pieza | Dónde |
 |---|---|
-| Configuración del despliegue (build, carpeta publicada, funciones, Node 22) | `netlify.toml` |
-| La función de salas: `POST /api/raid` | `netlify/functions/raid.mts` |
-| La función de partidas: `GET` / `POST /api/save` (solo con sesión) | `netlify/functions/save.mts` |
-| Las partidas en Netlify Blobs (almacén `saves`, se crea solo) | `netlify/lib/saveStore.ts` |
-| Plantillas de los correos en español | `public/emails/confirmation.html`, `public/emails/recovery.html` |
-| Las salas en Netlify Blobs (almacén `raid-rooms`, se crea solo) | `netlify/lib/roomStore.ts` |
-| Lógica del servidor (la misma del juego, con tests) | `src/game/raid/online/` |
-| Cliente: cuenta, partida en la nube, id y apodo, llamadas y cada cuánto consulta | `src/net/` |
-
-No hace falta configurar ninguna variable de entorno, clave ni base de datos: Netlify Blobs e Identity vienen
-incluidos en el plan gratuito y las funciones los encuentran solas. Identity sí hay que activarlo (paso a paso abajo).
+| Configuración del Worker: nombre, web, base de datos | `wrangler.jsonc` |
+| Esquema de la base de datos (cuentas, sesiones, partidas, salas) | `migrations/0001_init.sql` |
+| Entrada del Worker y rutas de la API | `worker/index.ts` |
+| Salas: `POST /api/raid` | `worker/raid.ts` + `worker/db/rooms.ts` |
+| Partida en la nube: `GET` / `POST /api/save` (solo con sesión) | `worker/save.ts` + `worker/db/saves.ts` |
+| Cuentas: `/api/auth/*` (crear, confirmar, entrar, salir, recuperar, apodo) | `worker/auth/` + `worker/db/users.ts` |
+| Correos (Brevo) y su texto | `worker/mail.ts` |
+| Lógica del juego que usa el servidor (con tests) | `src/game/raid/online/`, `src/game/core/cloudSave.ts`, `accountRules.ts` |
+| Cliente: cuenta, partida en la nube, id y apodo, cada cuánto consulta | `src/net/` |
 
 ## Paso a paso: publicar
 
-1. **Sube el código a GitHub.** Haz commit de todo (incluidos `netlify.toml` y la carpeta `netlify/`) y súbelo
-   a tu repositorio.
-2. **Crea la cuenta** en [netlify.com](https://www.netlify.com/) con el plan gratuito (*Free*). Lo más cómodo es
-   entrar con tu cuenta de GitHub.
-3. **Importa el proyecto.** En el panel: *Add new project* → *Import an existing project* → *GitHub* → autoriza y
-   elige el repositorio.
-4. **Revisa la configuración.** Netlify lee `netlify.toml`, así que los campos ya vienen rellenos:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-   - Functions directory: `netlify/functions`
+Necesitas Node 22 (ver `.nvmrc`) y el repositorio en GitHub.
 
-   No cambies nada y pulsa *Deploy*.
-5. **Espera al primer despliegue** (unos 1–2 minutos). Cuando ponga *Published*, abre la URL que te da
-   (`https://<nombre>.netlify.app`). Puedes cambiar el nombre en *Project configuration → Change project name*.
-6. **Comprueba que la función está viva.** En el panel: *Logs → Functions* debe aparecer `raid`. Si abres
-   `https://<nombre>.netlify.app/api/raid` en el navegador verás `{"error":"Solo POST"}`: es lo esperado (la app
-   le habla con POST).
-7. **Prueba con dos jugadores.** Abre la web en el móvil y en el ordenador (o en una ventana de incógnito: cuenta
-   como otro jugador). En los dos: termina el tutorial, ve a *Ruta › Raids* y manda un Pokémon. La primera vez se
-   pide el apodo. Verás «Buscando sala con otros jugadores…» un instante y luego los dos en la misma sala: el tuyo
-   marcado como «Tú» y el del otro con su apodo.
-8. **Instálala como app** desde el móvil («Añadir a pantalla de inicio»): ya está en HTTPS.
+### 1. Cuentas gratuitas
 
-Desde entonces, cada `git push` a `main` vuelve a desplegar solo.
+1. **Cloudflare**: crea una cuenta en <https://dash.cloudflare.com/sign-up>. No pide tarjeta.
+2. **Brevo** (correos): crea una cuenta en <https://www.brevo.com/> con el plan *Free*. Tampoco pide tarjeta.
 
-## Paso a paso: activar las cuentas (Netlify Identity)
+### 2. Crear la base de datos (desde tu ordenador, una vez)
 
-Hasta hacer esto, *Ajustes › Cuenta* dirá que no se ha podido conectar con el servidor de cuentas; lo demás funciona
-igual.
+En la carpeta del proyecto:
 
-1. **Activa Identity.** En el panel del proyecto: *Project configuration → Identity → Enable Identity*.
-2. **Registro abierto.** En *Identity → Registration*, deja *Registration preferences* en **Open** (cualquiera puede
-   crearse una cuenta) y deja **sin** marcar *Autoconfirm*: así cada cuenta nueva tiene que confirmar el email.
-3. **Proveedores externos**: no hace falta ninguno (solo email y contraseña).
-4. **Correos en español.** En *Identity → Emails*, en cada plantilla pulsa *Edit settings*:
-   - *Confirmation template*: asunto `Confirma tu cuenta de Pokérancho`, ruta `/emails/confirmation.html`.
-   - *Recovery template*: asunto `Recupera tu contraseña de Pokérancho`, ruta `/emails/recovery.html`.
+```bash
+npm install
+npx wrangler login              # abre el navegador para autorizar a Wrangler en tu cuenta de Cloudflare
+npx wrangler d1 create pokerancho
+```
 
-   Las plantillas se publican con la web: si cambias el texto, haz push y espera al despliegue.
-5. **Pruébalo.** En la web: *Ajustes (engranaje) › Cuenta › Crear una cuenta*. Te llega un correo (mira en spam).
-   Al abrir el enlace vuelves a la web con la sesión iniciada y la partida se sube sola. En otro dispositivo, en la
-   pantalla del inicial, pulsa «¿Ya tienes cuenta? Entrar» y sigues con esa partida.
-6. **Ver las cuentas**: *Identity* en el panel lista los usuarios; desde ahí se pueden borrar o mandarles un correo
-   de recuperar contraseña. Sus partidas están en *Blobs → saves* (`user/<id>`).
+El último comando escribe un `database_id` (un id largo con guiones). Pégalo en `wrangler.jsonc`, en
+`d1_databases[0].database_id`, en lugar del de ceros. Después crea las tablas en la base de datos de verdad:
 
-### Cómo se guarda la partida
+```bash
+npm run db:migrate              # aplica migrations/ a la base de datos remota
+```
 
-- Con sesión iniciada se sube cada 2 minutos con la app delante, al pasar la app a segundo plano y al pulsar
-  *Guardar ahora*. Al abrir la app o volver a ella se mira si otro dispositivo ha subido una más nueva.
-- **Gana la última partida subida.** Si juegas en dos dispositivos a la vez, cuando uno ha subido y lo intenta el
-  otro, este carga la del primero y avisa. Se pierde lo jugado en el segundo desde su última subida.
-- La primera vez que entras en un dispositivo que ya tiene partida, si la cuenta también tiene una, se pregunta cuál
-  conservar (con un resumen de cada una). En un dispositivo sin empezar se baja la de la cuenta sin preguntar.
-- Al cerrar sesión se sube lo último y la partida se queda en el dispositivo, sin cuenta.
+Haz commit y push del `wrangler.jsonc` con el id.
 
-### GitHub Pages
+### 3. Conectar el repositorio (despliegue automático)
 
-El workflow de GitHub Pages (`.github/workflows/deploy.yml`) sigue funcionando, pero allí no hay servidor: las raids
-se juegan en local, con bots. Si te quedas con Netlify, puedes desactivarlo en GitHub (*Settings → Pages* y, en
-*Actions*, deshabilitar el workflow) para no gastar minutos de más.
+1. En el panel de Cloudflare: *Workers & Pages → Create → Workers → Import a repository*.
+2. Conecta GitHub, autoriza el acceso y elige el repositorio.
+3. Configuración del proyecto:
+   - *Project name*: `pokerancho` (tiene que coincidir con `name` de `wrangler.jsonc`).
+   - *Build command*: `npm run build`
+   - *Deploy command*: `npx wrangler deploy` (el que viene por defecto).
+4. *Save and Deploy*. En un par de minutos la web queda en `https://pokerancho.<tu-subdominio>.workers.dev`.
+
+Desde entonces, cada push a `main` vuelve a desplegar solo. GitHub Actions (`.github/workflows/check.yml`) pasa
+`npm run check` en cada push para avisar si algo se ha roto.
+
+### 4. Activar los correos (Brevo)
+
+1. En Brevo: *Settings → Senders, domains & dedicated IPs → Senders → Add a sender*. Pon tu email (puede ser un
+   Gmail) y confírmalo con el correo que te mandan. Ese será el remitente.
+2. En Brevo: *SMTP & API → API keys → Generate a new API key*. Cópiala: solo se ve una vez.
+3. En Cloudflare: *Workers & Pages → pokerancho → Settings → Variables and Secrets → Add*, dos veces, como tipo
+   **Secret** (los secretos no se borran al desplegar):
+   - `BREVO_API_KEY`: la clave de Brevo.
+   - `MAIL_FROM`: el email del remitente verificado.
+
+Sin estos dos secretos la web funciona, pero los correos no salen: el enlace se escribe en los registros del
+Worker (*pokerancho → Logs*), útil para probar.
+
+### 5. Probarlo
+
+1. Abre la web en el móvil y en el ordenador (o en una ventana de incógnito: cuenta como otro jugador).
+2. **Raids**: en los dos, termina el tutorial, ve a *Ruta › Raids* y manda un Pokémon (la primera vez pide el
+   apodo). Los dos aparecen en la misma sala.
+3. **Cuenta**: *Ajustes (engranaje) › Cuenta › Crear una cuenta*. Llega un correo (mira en spam); al abrir el
+   enlace vuelves a la web con la sesión iniciada y la partida se sube sola. En otro dispositivo, en la pantalla del
+   inicial, pulsa «¿Ya tienes cuenta? Entrar» y sigues con esa partida.
+4. Instálala como app desde el móvil («Añadir a pantalla de inicio»).
 
 ## Probar en local
 
-- `npm run dev`: solo la app. No hay servidor, así que las raids se juegan en local con bots (como antes) y las
-  cuentas no están disponibles.
-- `npx netlify dev`: la app y las funciones juntas en <http://localhost:8888>, con un Netlify Blobs local de
-  pruebas. La primera vez descarga la CLI de Netlify. Para las cuentas hace falta además enlazar el proyecto
-  (`npx netlify login` y `npx netlify link`): en local se usa el Identity del sitio publicado.
+- `npm run dev`: solo la app, en <http://localhost:5173>. Sin servidor: raids con bots locales y sin cuentas.
+- Con servidor: `npm run db:migrate:local` (una vez, crea la base de datos local en `.wrangler/`) y luego
+  `npm run preview`, que compila y arranca el Worker en <http://localhost:8787> con el mismo runtime que Cloudflare.
+  Los correos no salen: el enlace aparece en la terminal.
+
+## Cambiar la base de datos
+
+Un cambio de tablas es un fichero nuevo en `migrations/` (`0002_….sql`); nunca se edita uno ya aplicado. Antes de
+hacer push del código que lo usa, aplícalo con `npm run db:migrate` (y `npm run db:migrate:local` para probar).
 
 ## Lo que gasta del plan gratuito
 
-Identity está incluido en el plan gratuito. La documentación de Netlify indica usuarios activos ilimitados, aunque
-alguna fuente habla de un tope (del orden de 1 000): míralo en *Identity* dentro del panel.
+Límites del plan gratuito de Cloudflare (se renuevan cada día; si se pasan, la API falla hasta el día siguiente y
+**no se cobra nada**):
 
-Netlify tiene dos esquemas de plan gratuito, según cuándo creaste la cuenta. Mira cuál es el tuyo en
-*Team settings → Billing* y el consumo en *Usage*:
-
-- **Cuentas antiguas**: límites por separado (del orden de 125 000 llamadas a funciones al mes y 100 GB de ancho de
-  banda).
-- **Cuentas nuevas (por créditos)**: 300 créditos al mes que se reparten entre despliegues, ancho de banda y
-  funciones. Al agotarlos, la web se pausa hasta el mes siguiente: **no se cobra nada**.
-
-Cada consulta a una sala es una llamada a la función. El cliente solo consulta si el jugador tiene un Pokémon en una
-sala compartida y la app está abierta y delante:
-
-| Situación | Consultas | Por hora |
+| Recurso | Límite gratis | Qué lo gasta |
 |---|---|---|
-| Mirando la pelea (pestaña Raids o parada de ruta en pantalla) | cada 5 s | ≈ 720 |
-| App abierta en otra pestaña | cada 60 s | ≈ 60 |
-| App cerrada o en segundo plano | ninguna (el servidor sigue la pelea y se pone al día al volver) | 0 |
-| Sin Pokémon en ninguna sala | ninguna | 0 |
+| Peticiones al Worker | 100 000 / día | Solo `/api/*`: la web la sirve Cloudflare sin pasar por el Worker |
+| CPU por petición | 10 ms | Las salas juegan como mucho 30 rondas por consulta (`ROOM_PLAYED_ROUNDS`); lo anterior se resume |
+| Filas escritas en D1 | 100 000 / día | Cada consulta de sala y cada subida de partida escriben una |
+| Filas leídas en D1 | 5 millones / día | Sobra |
+| Almacenamiento D1 | 5 GB | Una sala ocupa unos KB; una partida, decenas de KB (máx. 1 MB, `MAX_SAVE_BYTES`) |
+| Correos (Brevo) | 300 / día | Crear cuenta, entrar sin confirmar y recuperar contraseña (como mucho uno por minuto y cuenta) |
 
-Como referencia, con un límite de 125 000 llamadas al mes caben ≈ 170 horas de alguien mirando la pelea, o ≈ 2 000
-horas con la app abierta en otra pestaña. Si se queda corto, sube `WATCH_SYNC_MS` y `BACKGROUND_SYNC_MS` en
-`src/net/raidSync.ts` (con más tiempo entre consultas, la pelea se ve a saltos: se ve la última ronda de cada
-consulta). Cada despliegue también gasta: si vas justo, no hagas push por cada cambio pequeño.
+Lo que consulta cada jugador (solo con la app delante; cerrada, el servidor sigue y se pone al día al volver):
 
-Las partidas en la nube suman ≈ 30 subidas por hora y jugador con la app delante (`UPLOAD_EVERY_MS` en
-`src/net/cloudSync.ts`), más una consulta al abrir o volver a la app.
+| Situación | Peticiones por hora |
+|---|---|
+| Mirando la pelea de un jefe (cada 5 s) | ≈ 720 |
+| App abierta en otra pestaña con un Pokémon en una sala (cada 60 s) | ≈ 60 |
+| Con cuenta: subir la partida (cada 2 min) | ≈ 30 |
+| Sin Pokémon en salas y sin cuenta | 0 |
 
-Blobs: cada sala ocupa unos pocos KB y se borra sola tras 24 h sin consultas (`ROOM_TTL_MS`). Cada partida, unas
-decenas de KB (máximo 1 MB, `MAX_SAVE_BYTES`).
+Con 100 000 peticiones al día caben ≈ 130 horas diarias de alguien mirando una pelea: de sobra para poco tráfico. Si
+se quedara corto, sube `WATCH_SYNC_MS` y `BACKGROUND_SYNC_MS` en `src/net/raidSync.ts` o `UPLOAD_EVERY_MS` en
+`src/net/cloudSync.ts`. El consumo se ve en *Workers & Pages → pokerancho → Metrics* y en *D1 → pokerancho*.
 
 ## Mantenimiento
 
-- **Ver las salas guardadas**: en el panel, *Blobs* → almacén `raid-rooms`. Puedes borrar salas a mano; los
-  jugadores que estuvieran en ellas siguen la pelea en local.
-- **Errores de la función**: *Logs → Functions → raid*.
-- **Cambias el juego (jefes, reglas, `RAID_ROOM_SIZE`…)**: el servidor usa el mismo código de `src/game` y `src/data`,
-  así que se actualiza con cada despliegue. Las salas ya guardadas siguen con su jefe hasta que caen o caducan.
-- **Cambias `SAVE_VERSION`**: no afecta al servidor. El id anónimo y el apodo se guardan aparte de la partida y se
-  conservan.
+- **Registros y errores**: *Workers & Pages → pokerancho → Logs*.
+- **Ver o tocar los datos**: *Storage & Databases → D1 → pokerancho → Console*. Por ejemplo, borrar una cuenta (con
+  su partida y sesiones): `DELETE FROM users WHERE email = 'alguien@ejemplo.com';`. Borrar todas las salas (los
+  jugadores que estuvieran dentro siguen en local): `DELETE FROM rooms;`.
+- **Cambias el juego** (jefes, reglas, `RAID_ROOM_SIZE`…): el Worker usa el mismo código de `src/game` y `src/data`,
+  así que se actualiza con cada despliegue. Las salas ya guardadas siguen con su jefe hasta que caen o caducan (24 h
+  sin consultas).
+- **Cambias `SAVE_VERSION`**: no afecta al servidor. Las partidas de la nube de otra versión recuperan el equipo
+  (como las del navegador).
 
 ## Límites que conviene saber
 
 - **No hay protección contra trampas**: la partida la juega el navegador y el servidor solo la guarda. Quien sepa
   mandar peticiones a mano puede inventarse su partida o el nivel de su Pokémon en las raids. El servidor valida que
   los datos tengan sentido (especie existente, nivel 1–100, apodo limpio), pero no puede comprobar la partida.
+- **Contraseñas**: se guardan con PBKDF2-SHA256 de 100 000 iteraciones (lo máximo que deja Cloudflare), nunca en
+  claro. Si al entrar apareciera un error 1102 (CPU agotada), baja `PASSWORD_ITERATIONS` en
+  `worker/auth/crypto.ts`: cada contraseña guarda sus iteraciones y las ya creadas siguen valiendo.
+- **Correos a spam**: sin dominio propio, Brevo manda desde tu email verificado y algunos correos pueden acabar en
+  spam. Con un dominio propio se puede verificar en Brevo y mejora.
 - **Sin cuenta, todo está en el navegador**: si se borran los datos del sitio se pierde la partida y el dispositivo
   es un jugador nuevo para las raids. Con cuenta se recupera entrando otra vez.
 - **No es tiempo real al milisegundo**: el servidor juega la sala cuando alguien consulta y cada cliente pregunta
-  cada pocos segundos. Para un juego idle basta; para algo más rápido harían falta WebSockets, que el plan
-  gratuito de Netlify no tiene.
+  cada pocos segundos. Para un juego idle basta.

@@ -6,7 +6,7 @@ import type { Color, Pixmap } from './pixmap'
 import { ramp } from './shade'
 import type { Sphere } from './spheres'
 
-export interface FoliageOptions {
+interface FoliageOptions {
   seed: number
   /** Contorno de la parte de abajo (solo bajo bordes llenos, para no dejar motas sueltas) */
   ink: Color

@@ -5,13 +5,14 @@
 ```
 src/data/   Datos estáticos y consultas sobre ellos. No conoce el estado de la partida.
 src/game/   Reglas del juego. Funciones puras sobre GameState. Sin React, sin DOM (salvo core/store.ts).
-src/net/    Conexión con el servidor: salas compartidas, cuenta opcional (Netlify Identity) y partida en la nube.
+src/net/    Conexión con el servidor: salas compartidas, cuenta opcional y partida en la nube.
 src/ui/     Componentes React. Leen GameState y disparan acciones con act().
-netlify/    Servidor (función de Netlify + almacén en Netlify Blobs). Solo lee y guarda: la lógica es la de src/game.
+worker/     Servidor: Worker de Cloudflare con base de datos D1 (API /api/*). La lógica del juego es la de src/game.
+migrations/ Esquema de la base de datos D1, un fichero por cambio.
 scripts/    Utilidades de desarrollo (regenerar pokemon.json, iconos PWA). No se empaquetan.
 ```
 
-Regla de dependencias: `ui → net → game → data` y `netlify → game → data`. Nunca al revés. `data` no importa de
+Regla de dependencias: `ui → net → game → data` y `worker → game → data`. Nunca al revés. `data` no importa de
 `game`; `game` no importa de `net` ni de `ui`. `src/game` y `src/data` se ejecutan también en el servidor: nada de
 DOM ni de `import` de imágenes en ellos (las imágenes de los mapas van con `asset(new URL(…, import.meta.url))`).
 
@@ -44,7 +45,7 @@ src/
                       partida enlazada a la del servidor), sharedRoom + roomServer (lo que hace el servidor),
                       requests (validar lo que le llega)
   net/                identity (id de jugador y apodo), raidApi (fetch a /api/raid), raidSync (bucle de consultas),
-                      account (cuenta con @netlify/identity), cloudSync (partida en la nube)
+                      account (cuenta: /api/auth), cloudSync (partida en la nube)
   ui/
     shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
                       barra superior, bocadillos del tutorial, ErrorBoundary
@@ -65,11 +66,15 @@ src/
     gacha/            Tiradas, apertura de la Pokéball, trituradora y tienda de MissingNo
     dex/              Pokédex; al tocar una casilla abre PokemonSheet, la misma ficha que el rancho
     shop/             Mejoras
-netlify/
-  functions/raid.mts  POST /api/raid: lee la sala de Blobs, llama a game/raid/online/roomServer y la guarda
-  functions/save.mts  GET / POST /api/save: la partida de la cuenta con sesión (getUser de @netlify/identity)
-  lib/roomStore.ts    Salas en Netlify Blobs con escritura condicional (etag)
-  lib/saveStore.ts    Partidas de las cuentas en Netlify Blobs
+worker/
+  index.ts            Entrada: /api/raid, /api/save y /api/auth/* (la web la sirve Cloudflare sin pasar por aquí)
+  raid.ts             POST /api/raid: lee las salas de D1, llama a game/raid/online/roomServer y las guarda
+  save.ts             GET / POST /api/save: la partida de la cuenta con sesión
+  auth/               Cuentas: routes (rutas), credentials (crear y entrar), links (correos: confirmar y recuperar),
+                      session (cookie), crypto (PBKDF2 y tokens)
+  db/                 Consultas a D1: rooms, saves, users (cuentas, sesiones y enlaces)
+  mail.ts             Correos con Brevo
+  test/               D1 de pruebas sobre node:sqlite y un Worker de pruebas con cookie
 ```
 
 Cada pantalla tiene su CSS en su carpeta y lo importa su componente (`RanchScreen.tsx` → `ranch.css`). Los
@@ -123,8 +128,10 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/raid/online/roomServer.ts` | Las acciones del servidor: elegir sala (`pickRoom`), entrar y ponerse al día; caducidad |
 | `game/raid/online/requests.ts` | Validación de lo que llega al servidor y limpieza del apodo |
 | `net/raidSync.ts` | Bucle que entra, consulta y avisa de las salas dejadas; cada cuánto se consulta |
+| `game/raid/online/skipAhead.ts` | Resumir de golpe lo que una sala lleva sin consultar (el Worker tiene poca CPU por petición) |
+| `game/core/accountRules.ts` | Lo que comparten web y servidor de cuentas: email, contraseña, códigos de error |
 | `game/core/cloudSave.ts` | Partida en la nube: qué hacer al conectar (`cloudAction`), recuperar una copia (`stateFromSaved`), resumen y validar la subida |
-| `net/account.ts` | Cuenta opcional con Netlify Identity: sesión, enlaces de los correos, entrar, crearla, recuperar la contraseña |
+| `net/account.ts` | Cuenta opcional: sesión, enlaces de los correos, entrar, crearla, recuperar la contraseña (`/api/auth`) |
 | `net/cloudSync.ts` | Subir y bajar la partida de la cuenta; conflictos entre dispositivos |
 
 ## Store y acciones
@@ -226,10 +233,12 @@ dispositivo, `guest` los de otros jugadores (solo en salas compartidas). Los que
 
 Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servidor.md).
 
-- **El servidor manda.** `netlify/functions/raid.mts` (`POST /api/raid`) guarda cada sala en Netlify Blobs
-  (`SharedRoom`: la `Raid` de siempre más los asientos de cada jugador) y, en cada petición, la juega hasta la hora
-  real con el mismo motor (`catchUp` → `advanceRoom` / `advanceStopRoom`), con bots de servidor. Nadie la juega
-  entre peticiones: con todos los jugadores con la app cerrada, se pone al día (hasta 12 h) en la siguiente consulta.
+- **El servidor manda.** `worker/raid.ts` (`POST /api/raid`) guarda cada sala en D1 (`SharedRoom`: la `Raid` de
+  siempre más los asientos de cada jugador) y, en cada petición, la juega hasta la hora real con el mismo motor
+  (`catchUp` → `advanceRoom` / `advanceStopRoom`), con bots de servidor. Nadie la juega entre peticiones: con todos
+  los jugadores con la app cerrada, se pone al día (hasta 12 h) en la siguiente consulta. Como el Worker gratuito
+  tiene 10 ms de CPU por petición, solo se juegan de verdad las últimas `ROOM_PLAYED_ROUNDS` rondas; lo anterior se
+  resume con el ritmo de la sala (`skipAhead`, con `roomPace` de `raidEstimate.ts`).
 - **Sin cuentas.** Cada dispositivo tiene un id anónimo y un apodo (`net/identity.ts`, en `localStorage` aparte de
   la partida). Cada uno ve la sala con sus Pokémon por su uid y los demás como `guest` (`viewFor`).
 - **Entrar** (`joinRoom`): la sala de ese jefe en la que ya estuvo el jugador; si no, la que tenga más jugadores;
@@ -243,29 +252,33 @@ Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servid
   respuesta trae la sala y las rondas de EXP contadas, y lo que pase se resuelve con las mismas funciones que en
   local (`fallTabRaid`, `finishRouteRaid`, `startOver`). Retirarse de una parada deja el id en
   `GameState.roomsToLeave` hasta que el servidor lo sabe.
-- **Sin servidor** (`npm run dev`, GitHub Pages, sin red): si la petición de entrar falla, la sala sigue en local
+- **Sin servidor** (`npm run dev`, sin red): si la petición de entrar falla, la sala sigue en local
   como antes, con bots locales. Si una sala enlazada deja de responder se reintenta; si el servidor ya no la tiene,
   sigue en local.
-- **Concurrencia**: cada escritura lleva el etag leído (`onlyIfMatch`); si otro jugador escribió antes, se repite
-  la petición entera (hasta 5 veces).
+- **Concurrencia**: cada sala lleva una versión; la escritura es `UPDATE … WHERE version = <la leída>` y, si otro
+  jugador escribió antes, no cambia nada y se repite la petición entera (hasta 5 veces).
 
 ## Cuentas y partida en la nube
 
-Opcionales. La cuenta es de Netlify Identity (email y contraseña; Netlify guarda las contraseñas y manda los correos
-de confirmar y recuperar). `net/account.ts` usa `@netlify/identity` en el navegador: al abrir la app procesa los
-enlaces de los correos (`handleAuthCallback`) y recupera la sesión. La sesión viaja en la cookie `nf_jwt`;
-`netlify/functions/save.mts` la comprueba con `getUser()` (contra Identity) y solo acepta subidas desde la propia web
-(`verifyRequestOrigin`).
+Opcionales, con email y contraseña, en el propio Worker (`worker/auth/`, tablas `users`, `sessions` y
+`auth_tokens`). Paso a paso de Brevo y del despliegue: [servidor.md](servidor.md).
 
-- **Una partida por cuenta**, en Blobs (`saves`, `user/<id>`): `CloudSave` = la partida, la copia del equipo (por si
-  es de otra `SAVE_VERSION`) y una revisión. Se sube encima de la revisión que el dispositivo vio por última vez
-  (`CloudLink`, en `localStorage` aparte de la partida); si en la nube hay otra más nueva, el servidor responde 409
-  con ella y el dispositivo la carga (`replaceState`): gana la última subida.
+- **Contraseñas** con PBKDF2-SHA256 (`worker/auth/crypto.ts`); cada hash guarda sus iteraciones. Tras 10 fallos
+  seguidos la cuenta se bloquea 15 min.
+- **Sesión** en una cookie `HttpOnly` (`pkr_session`, solo para `/api`) con un token al azar; en la base de datos
+  solo está su hash. Todas las peticiones que cambian algo comprueban que vienen de la propia web (`sameOrigin`).
+- **Correos** con Brevo (`worker/mail.ts`): confirmar la cuenta (48 h) y recuperar la contraseña (1 h). El enlace
+  lleva a la web con el token tras el `#` (`#confirm=…`, `#reset=…`); `net/account.ts` lo manda a la API al abrir
+  la app y lo quita de la dirección. Sin confirmar no se puede entrar. Como mucho un correo por minuto y cuenta.
+- **Una partida por cuenta** (tabla `saves`): `CloudSave` = la partida, la copia del equipo (por si es de otra
+  `SAVE_VERSION`) y una revisión. Se sube encima de la revisión que el dispositivo vio por última vez (`CloudLink`, en
+  `localStorage` aparte de la partida) con `UPDATE … WHERE revision = <base>`; si en la nube hay otra más nueva, el
+  servidor responde 409 con ella y el dispositivo la carga (`replaceState`): gana la última subida.
 - **Al conectar** (`cloudAction`): sin copia, se sube; si la de aquí ya es de la cuenta, se baja si hay revisión nueva
   y si no se sube; si no, se pregunta cuál conservar (salvo que la de aquí esté sin empezar).
 - **Raids**: con sesión, el id de jugador es el de la cuenta (`setAccountId`), así los asientos son los mismos en
   cualquier dispositivo; al cambiar de id, `raidSync` saca de las salas los asientos del anterior. El apodo se guarda
-  también en la cuenta (`user_metadata.nickname`).
+  también en la cuenta.
 
 ## Notificaciones
 

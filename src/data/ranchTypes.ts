@@ -28,7 +28,7 @@ export const RanchTypeId = {
 } as const
 export type RanchTypeId = (typeof RanchTypeId)[keyof typeof RanchTypeId]
 
-export interface RanchTypeInfo {
+interface RanchTypeInfo {
   name: string
   /** Tipos de Pokémon a los que favorece */
   favors: PokeType[]

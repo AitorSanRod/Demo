@@ -1,0 +1,29 @@
+// Despliegue en Cloudflare (plan gratuito): un Worker que sirve la web (dist/) y la API (/api/*) con una base de
+// datos D1. Paso a paso: docs/servidor.md.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pokerancho",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // La web es una sola página: cualquier ruta desconocida sirve index.html
+    "not_found_handling": "single-page-application",
+    // Solo /api/* pasa por el Worker; el resto lo sirve Cloudflare directamente (no gasta peticiones del plan)
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pokerancho",
+      // Lo dio `npx wrangler d1 create pokerancho` (ver docs/servidor.md)
+      "database_id": "1bdf6aa1-c2c7-4792-b06e-366986f1f9aa",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Los mapas (src/data/maps) escriben sus imágenes con new URL(…, import.meta.url), que en Workers no existe: se le da
+  // un valor fijo solo para que esas URLs se puedan construir (el servidor no usa las imágenes)
+  "define": { "import.meta.url": "\"https://pokerancho.invalid/worker.js\"" },
+  // Registros de la API en el panel de Cloudflare (Workers › pokerancho › Logs)
+  "observability": { "enabled": true }
+}

@@ -2,7 +2,7 @@ import type { RouteId } from '../../../data/maps'
 import type { PassiveRef } from '../../../data/passives'
 import type { Raid } from '../raidRoom'
 
-// Lo que se dicen el juego y el servidor de salas compartidas (netlify/functions/raid.mts). Sin cuentas: cada
+// Lo que se dicen el juego y el servidor de salas compartidas (worker/raid.ts). Sin cuentas: cada
 // dispositivo se identifica con un id anónimo al azar y un apodo.
 
 /** Dónde vive la sala en la partida: el jefe de la pestaña Raids o el de la parada de la ruta en curso */

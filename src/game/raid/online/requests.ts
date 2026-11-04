@@ -44,7 +44,7 @@ function parsePassives(v: unknown): PassiveRef[] | null {
   return ok ? v.map((p) => ({ type: p.type as PokeType, level: p.level })) : null
 }
 
-export function parseMon(v: unknown): MonSnapshot | null {
+function parseMon(v: unknown): MonSnapshot | null {
   if (!isObject(v) || !matches(v.uid, MON_UID) || !isInt(v.speciesId, 1, Number.MAX_SAFE_INTEGER) || !knownSpecies(v.speciesId)) return null
   if (!isInt(v.level, 1, MAX_LEVEL) || !isInt(v.stars, 0, MAX_STARS)) return null
   if (typeof v.hpFraction !== 'number' || !(v.hpFraction >= 0 && v.hpFraction <= 1)) return null
@@ -62,7 +62,7 @@ function isRaidStop(routeId: string, nodeId: string): boolean {
   }
 }
 
-export function parseChannel(v: unknown): RoomChannel | null {
+function parseChannel(v: unknown): RoomChannel | null {
   if (!isObject(v)) return null
   if (v.slot === RoomSlot.Tab) return isInt(v.bossIndex, 0, RAID_BOSSES.length - 1) ? { slot: RoomSlot.Tab, bossIndex: v.bossIndex } : null
   if (v.slot !== RoomSlot.Route || typeof v.routeId !== 'string' || typeof v.nodeId !== 'string') return null

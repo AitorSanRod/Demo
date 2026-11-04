@@ -10,7 +10,7 @@ export const RAID_ROUND_MS = 4_000
 /** Milisegundos de juego que tarda en revivir, con todos sus PS, un Pokémon debilitado en la sala */
 export const RAID_REVIVE_MS = 30_000
 /** Multiplicador del Ataque del jefe: pega a uno por ronda, y con su Ataque entero los debilitaría casi siempre */
-export const RAID_BOSS_ATK_MULT = 0.35
+const RAID_BOSS_ATK_MULT = 0.35
 /** Fracción máxima de los PS máximos de un Pokémon que le puede quitar el jefe de un golpe */
 export const RAID_BOSS_MAX_HIT = 0.4
 

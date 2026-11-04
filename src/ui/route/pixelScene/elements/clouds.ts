@@ -6,7 +6,7 @@ import { between, type Rng } from '../paint/noise'
 import type { Color, Pixmap } from '../paint/pixmap'
 import type { Sphere } from '../paint/spheres'
 
-export interface CloudShape {
+interface CloudShape {
   /** Centro horizontal y línea de la base, en píxeles de arte */
   x: number
   baseY: number

@@ -5,7 +5,7 @@ import type { Color, Pixmap } from './pixmap'
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16)
 
 /** Anchura por defecto de la franja tramada entre dos tonos (fracción de la banda; 0 = bandas limpias, 1 = degradado entero) */
-export const DITHER = 0
+const DITHER = 0
 
 /** Elige un color de la rampa (oscuro → claro) para `t` en [0, 1], tramando solo cerca del paso entre dos tonos */
 export function ramp(colors: readonly Color[], t: number, x: number, y: number, dither = DITHER): Color {

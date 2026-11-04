@@ -10,7 +10,7 @@ import { verticalGradient } from '../../paint/shade'
 import { CANOPY, FAR_LEAVES, FAR_TRUNKS, FLOOR, HAZE, MID_LEAVES, MID_TRUNKS, RAY } from './palette'
 
 /** Tesela de la banda de copas y de los rayos, y sus claros, en píxeles de arte (los claros salen de tarde en tarde) */
-export const CANOPY_TILE = 900
+const CANOPY_TILE = 900
 const CLEARINGS: Clearing[] = [{ from: 300, to: 420 }, { from: 720, to: 790 }]
 
 export function sky(height: number): Pixmap {

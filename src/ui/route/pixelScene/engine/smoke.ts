@@ -28,7 +28,7 @@ interface Puff {
   seed: number
 }
 
-export interface EmitterLayer {
+interface EmitterLayer {
   id: string
   /** Puntos de salida en coordenadas de la tesela */
   emitters: readonly { x: number; y: number }[]

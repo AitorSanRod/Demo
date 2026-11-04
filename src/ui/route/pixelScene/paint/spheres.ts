@@ -14,7 +14,7 @@ export interface Sphere {
   tone?: number
 }
 
-export interface SphereOptions {
+interface SphereOptions {
   /** Corta todo lo que quede por debajo de esta Y (base plana de las nubes) */
   floorY?: number
   /** Oscurece las filas cercanas a `floorY` (sombra de la base) */

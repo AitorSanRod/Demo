@@ -6,7 +6,7 @@ import { ranchCount } from './ranches'
 export const ranchTypeOwned = (s: GameState, id: RanchTypeId): number => s.ranchTypeItems[id] ?? 0
 
 /** Objetos de ese tipo que están colocados en algún rancho */
-export const ranchTypePlaced = (s: GameState, id: RanchTypeId): number => Object.values(s.ranchTypeOf).filter((t) => t === id).length
+const ranchTypePlaced = (s: GameState, id: RanchTypeId): number => Object.values(s.ranchTypeOf).filter((t) => t === id).length
 
 /** Objetos de ese tipo guardados, listos para colocar */
 export const ranchTypeAvailable = (s: GameState, id: RanchTypeId): number => ranchTypeOwned(s, id) - ranchTypePlaced(s, id)
