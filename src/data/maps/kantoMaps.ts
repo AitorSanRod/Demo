@@ -62,7 +62,7 @@ export const KANTO: GameMap = {
       unlocks: RouteId.BosqueVerde,
       nodes: chain(
         { id: 's', name: 'Ruta 1', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Entrada a Bosque Verde', kind: NodeKind.Raid, steps: 30, boss: raidBoss(POKEMON.Pidgeotto, 10, RaidTier.Low, { soloMinutes: 3 }) },
+        { id: 'a', name: 'Entrada a Bosque Verde', kind: NodeKind.Raid, steps: 30, boss: raidBoss(POKEMON.Pidgeotto, 10, RaidTier.Low, { soloMinutes: 6 }) },
       ),
     },
     {
