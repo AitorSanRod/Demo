@@ -83,7 +83,7 @@ export const KANTO: GameMap = {
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
         { id: 'f', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Nidorino, 17, RaidTier.Low, { soloMinutes: 6 }) },
-        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Nidorina, 17, RaidTier.Low, { soloMinutes: 6 }) },
+        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Nidorina, 17, RaidTier.Low, { soloMinutes: 10 }) },
       ),
     }
     // {
