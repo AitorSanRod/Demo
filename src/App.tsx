@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Item } from './data/items'
 import { combinableCount } from './game/collection/pieces'
 import { TutorialStep } from './game/core/state'
+import { startRaidSync } from './net/raidSync'
 import { act, useGame } from './game/core/store'
 import { tick } from './game/core/tick'
 import { isExpeditionDone } from './game/team/expedition'
@@ -38,6 +39,8 @@ export default function App() {
     const id = setInterval(() => act((s) => tick(s, Date.now())), TICK_MS)
     return () => clearInterval(id)
   }, [])
+  // Salas compartidas de los jefes comunitarios: entrar, ponerse al día y avisar al salir
+  useEffect(startRaidSync, [])
   useExpeditionNotifications(game)
 
   const badges: Record<Tab, boolean> = {

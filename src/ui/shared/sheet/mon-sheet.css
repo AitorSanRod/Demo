@@ -16,17 +16,24 @@
 }
 .mon-hero-corner {
   position: absolute;
-  top: 10px;
-  right: 10px;
   z-index: 1;
 }
-.mon-hero-corner.left {
-  right: auto;
+.mon-hero-corner.top-left {
+  top: 10px;
   left: 10px;
 }
-/* Botones redondos de las esquinas de la cabecera: corazón de favorito y Poké Ball de compañero */
+.mon-hero-corner.top-right {
+  top: 10px;
+  right: 10px;
+}
+.mon-hero-corner.bottom-left {
+  bottom: 28px;
+  left: 10px;
+}
+/* Botones redondos de las esquinas de la cabecera: corazón de favorito, Poké Ball de compañero y poción de curar */
 .favorite-button,
-.companion-button {
+.companion-button,
+.heal-button {
   display: grid;
   place-items: center;
   width: 48px;
@@ -78,7 +85,8 @@
 .companion-button.on .ball-button {
   fill: #fff;
 }
-.companion-button:disabled:not(.on) {
+.companion-button:disabled:not(.on),
+.heal-button:disabled {
   opacity: 0.5;
 }
 @keyframes favorite-beat {
@@ -185,6 +193,19 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.evolve-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.evolve-option > .tiny {
+  padding: 0 14px;
+}
+/* Lo que pide la evolución (nivel o piedra), debajo del nombre */
+.evolve-requirement {
+  display: block;
+  font-weight: 600;
 }
 /* Mover a otro rancho o a la Caja */
 .move-options {

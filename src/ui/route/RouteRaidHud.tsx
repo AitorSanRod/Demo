@@ -5,6 +5,7 @@ import { act } from '../../game/core/store'
 import { raidMinutesLeft } from '../../game/raid/raidEstimate'
 import { presentMembers, RAID_ROOM_SIZE, type Raid } from '../../game/raid/raidRoom'
 import { retreatRouteRaid } from '../../game/raid/routeRaid'
+import { RaidLinkNote } from '../raid/RaidLinkNote'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { formatMinutes } from '../shared/format'
 import { ICON } from '../shared/icons'
@@ -14,6 +15,7 @@ import { ItemIcon } from '../shared/ItemIcon'
 export function RaidHudLine({ game, raid }: { game: GameState; raid: Raid }) {
   const minutesLeft = raidMinutesLeft(game, raid)
   return (
+    <>
     <div className="row between small">
       <span className="with-icon">
         <ItemIcon item={ICON.Raid} size={18} /> <strong>{species(raid.boss.speciesId).name}</strong> · {presentMembers(raid).length}/
@@ -21,6 +23,8 @@ export function RaidHudLine({ game, raid }: { game: GameState; raid: Raid }) {
       </span>
       <span>{minutesLeft === null ? 'Nadie le hace daño' : `Caerá en ≈ ${formatMinutes(minutesLeft / game.timeScale)}`}</span>
     </div>
+    <RaidLinkNote raid={raid} />
+    </>
   )
 }
 

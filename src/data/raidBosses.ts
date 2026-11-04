@@ -21,6 +21,7 @@ export interface RaidBoss {
 
 export const RAID_BOSSES: RaidBoss[] = [
   { speciesId: POKEMON.Snorlax, level: 15, minLevel: 10, tier: RaidTier.Low },
+  { speciesId: POKEMON.Rapidash, level: 30, minLevel: 25, tier: RaidTier.High },
   // { speciesId: POKEMON.Onix, level: 15, tier: RaidTier.Mid },
 ]
 
@@ -41,8 +42,9 @@ export interface RaidPrizeRoll {
  */
 export const RAID_PRIZE_TABLES: Record<RaidTier, RaidPrizeRoll[]> = {
   [RaidTier.Low]: [
-    { kind: RaidPrizeKind.Money, amount: 300, chance: 0.1 },
-    { kind: RaidPrizeKind.Money, amount: 100, chance: 0.25 },
+    { kind: RaidPrizeKind.Money, amount: 80, chance: 1 },
+    { kind: RaidPrizeKind.Money, amount: 300, chance: 0.3 },
+    { kind: RaidPrizeKind.Money, amount: 100, chance: 0.4 },
     { kind: RaidPrizeKind.Tickets, amount: 1, chance: 1 },
     { kind: RaidPrizeKind.BossPieces, amount: 1, chance: 0.1 },
     { kind: RaidPrizeKind.BossPieces, amount: 1, chance: 0.1 },

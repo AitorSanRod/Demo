@@ -1,5 +1,6 @@
 import { RouteId } from '../../data/maps'
 import type { RanchTypeId } from '../../data/ranchTypes'
+import type { Stone } from '../../data/stones'
 import type { BattleRecord } from '../battle/battle'
 import type { Raid, RaidPrize } from '../raid/raidRoom'
 import type { UpgradeId } from '../team/upgrades'
@@ -97,6 +98,8 @@ export interface GameState {
   ranchTypeItems: Partial<Record<RanchTypeId, number>>
   /** Tipo de rancho colocado en cada rancho, por su índice; sin entrada, rancho normal */
   ranchTypeOf: Partial<Record<number, RanchTypeId>>
+  /** Piedras evolutivas compradas y aún sin gastar */
+  stones: Partial<Record<Stone, number>>
   tutorial: TutorialStep | null
   unlockedRoutes: string[]
   completedRoutes: string[]
@@ -106,12 +109,14 @@ export interface GameState {
   raid: Raid | null
   /** Premios de los jefes de la pestaña Raids derrotados, pendientes de recoger allí */
   raidPrizes: RaidPrize[]
+  /** Salas compartidas del servidor que el jugador ha dejado sin que el servidor lo sepa aún (ver net/raidSync.ts) */
+  roomsToLeave: string[]
   /** Multiplicador de tiempo (x1 = tiempo real); solo se puede cambiar en desarrollo, desde la barra superior */
   timeScale: number
   lastTick: number
 }
 
-export const SAVE_VERSION = 24
+export const SAVE_VERSION = 26
 
 export function initialState(): GameState {
   return {
@@ -128,6 +133,7 @@ export function initialState(): GameState {
     upgrades: {},
     ranchTypeItems: {},
     ranchTypeOf: {},
+    stones: {},
     tutorial: TutorialStep.Starter,
     unlockedRoutes: [RouteId.PuebloPaleta],
     completedRoutes: [],
@@ -135,6 +141,7 @@ export function initialState(): GameState {
     expeditions: [],
     raid: null,
     raidPrizes: [],
+    roomsToLeave: [],
     timeScale: 1,
     lastTick: Date.now(),
   }

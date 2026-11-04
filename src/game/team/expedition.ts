@@ -39,6 +39,13 @@ interface ExpeditionResult extends LevelUpResult {
 
 export const expeditionSlots = (s: GameState): number => BASE_EXPEDITION_SLOTS + upgradeLevel(s, 'expeditionSlots')
 
+/** Por qué no se puede mandar a nadie más de expedición (sin huecos o sin nadie en el rancho), o null si se puede */
+export function expeditionsBlocker(s: GameState): string | null {
+  if (s.expeditions.length >= expeditionSlots(s)) return 'No quedan huecos de expedición. Amplíalos en la Tienda.'
+  if (!s.owned.some((m) => monPlace(s, m.uid) === MonPlace.Ranch)) return 'No queda ningún Pokémon en el rancho.'
+  return null
+}
+
 export function expeditionBlocker(s: GameState, uid: string): string | null {
   const mon = findMon(s, uid)
   if (!mon) return 'Ese Pokémon no existe.'
@@ -46,7 +53,8 @@ export function expeditionBlocker(s: GameState, uid: string): string | null {
   if (place === 'run') return 'Está explorando una ruta.'
   if (place === MonPlace.Expedition) return 'Ya está de expedición.'
   if (place === MonPlace.Box) return 'Está guardado en la Caja.'
-  if (s.expeditions.length >= expeditionSlots(s)) return 'No quedan huecos de expedición. Amplíalos en la Tienda.'
+  const general = expeditionsBlocker(s)
+  if (general) return general
   if (mon.hp < 1) return `${species(mon.speciesId).name} está debilitado.`
   return null
 }

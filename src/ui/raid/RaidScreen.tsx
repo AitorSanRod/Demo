@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
+import { raidWaiting } from '../../game/raid/raid'
 import { collectRaidPrizes } from '../../game/raid/raidPrizes'
 import { presentMembers, RAID_ROOM_SIZE } from '../../game/raid/raidRoom'
 import { ICON } from '../shared/icons'
@@ -10,6 +11,7 @@ import { BigAction, MonSection } from '../shared/sheet/MonSheet'
 import { RaidJoin } from './RaidJoin'
 import { RaidRoster } from './RaidRoster'
 import { RaidScene } from './RaidScene'
+import { RaidWaiting } from './RaidWaiting'
 import './raid.css'
 
 /** Pestaña Ruta › Raids: el jefe comunitario, la sala luchando contra él y tu Pokémon en ella */
@@ -30,15 +32,19 @@ export function RaidScreen({ game }: { game: GameState }) {
   return (
     <div className="screen raid-screen">
       {report && <RewardOverlay title="¡Premio del jefe!" items={report} onClose={() => setReport(null)} />}
-      <RaidScene game={game} raid={raid} />
+      {raidWaiting(raid) ? <RaidWaiting game={game} raid={raid} /> : <RaidScene game={game} raid={raid} />}
       <div className="mon-card">
         {pending > 0 && <BigAction icon={ICON.Raid} label={`Recoger premio${pending > 1 ? `s (${pending})` : ''}`} className="primary" onClick={collect} />}
-        <MonSection title={`En la sala · ${presentMembers(raid).length}/${RAID_ROOM_SIZE}`}>
-          <RaidRoster raid={raid} timeScale={game.timeScale} />
-        </MonSection>
-        <MonSection title="Tu Pokémon">
-          <RaidJoin game={game} raid={raid} />
-        </MonSection>
+        {!raidWaiting(raid) && (
+          <>
+            <MonSection title={`En la sala · ${presentMembers(raid).length}/${RAID_ROOM_SIZE}`}>
+              <RaidRoster raid={raid} timeScale={game.timeScale} />
+            </MonSection>
+            <MonSection title="Tu Pokémon">
+              <RaidJoin game={game} raid={raid} />
+            </MonSection>
+          </>
+        )}
       </div>
     </div>
   )

@@ -28,15 +28,17 @@ interface RarityInfo {
   surplusMoney: number
   /** ₽ que cuesta crear el Pokémon con sus piezas */
   createPrice: number
+  /** ₽ que cuesta evolucionar a un Pokémon de esta rareza (la de la evolución, no la del que evoluciona) */
+  evolvePrice: number
   /** Espacios que ocupa en un rancho (en la Caja siempre ocupa 1) */
   ranchSlots: number
 }
 
 export const RARITY_INFO: Record<Rarity, RarityInfo> = {
-  [Rarity.Common]: { name: 'Común', color: '#888070', rate: 0.68, surplusMoney: 20, createPrice: 1000, ranchSlots: 1 },
-  [Rarity.Rare]: { name: 'Raro', color: '#1a6fbf', rate: 0.24, surplusMoney: 50, createPrice: 2500, ranchSlots: 2 },
-  [Rarity.Epic]: { name: 'Épico', color: '#a040a0', rate: 0.07, surplusMoney: 150, createPrice: 5000, ranchSlots: 3 },
-  [Rarity.Legendary]: { name: 'Legendario', color: '#e0a000', rate: 0.01, surplusMoney: 500, createPrice: 10000, ranchSlots: 5 },
+  [Rarity.Common]: { name: 'Común', color: '#888070', rate: 0.68, surplusMoney: 20, createPrice: 1000, evolvePrice: 1000, ranchSlots: 1 },
+  [Rarity.Rare]: { name: 'Raro', color: '#1a6fbf', rate: 0.24, surplusMoney: 50, createPrice: 2500, evolvePrice: 2500, ranchSlots: 2 },
+  [Rarity.Epic]: { name: 'Épico', color: '#a040a0', rate: 0.07, surplusMoney: 150, createPrice: 5000, evolvePrice: 5000, ranchSlots: 3 },
+  [Rarity.Legendary]: { name: 'Legendario', color: '#e0a000', rate: 0.01, surplusMoney: 500, createPrice: 10000, evolvePrice: 10000, ranchSlots: 5 },
 }
 
 interface RawSpecies extends Omit<Species, 'base'> {

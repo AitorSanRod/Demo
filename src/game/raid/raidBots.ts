@@ -11,12 +11,14 @@ export interface BotPolicy {
   /** Mínimo: si se va uno y quedan menos, entra otro enseguida */
   min: number
   max: number
-  /** Bots que entran de media por minuto de juego mientras haya menos del máximo */
+  /** Bots que entran de media por minuto de juego mientras haya menos del máximo (al azar: unas veces antes, otras después) */
   joinPerMinute: number
+  /** Minutos de juego que pueden pasar como mucho sin que entre ninguno mientras haya menos del máximo; sin él, no hay tope */
+  maxGapMinutes?: number
 }
 
 /** Bots de la sala del jefe de la pestaña Raids: siempre hay de 2 a 5 */
-export const RAID_BOTS: BotPolicy = { min: 2, max: 5, joinPerMinute: 0.06 }
+export const RAID_BOTS: BotPolicy = { min: 2, max: 5, joinPerMinute: 0.06, maxGapMinutes: 10 }
 /** Minutos de juego que se queda un bot, al azar entre ambos */
 export const RAID_BOT_STAY_MINUTES: readonly [number, number] = [15, 90]
 /** Niveles por debajo del jefe con los que llega un bot, al azar entre ambos */
@@ -49,14 +51,23 @@ export function addBot(raid: Raid, rng: Rng) {
     randInt(minStay, maxStay, rng) * 60_000,
   )
   raid.members.push(bot)
+  raid.sinceBotMs = 0
+}
+
+/** Entra uno nuevo al azar a su ritmo medio, o seguro si ya ha pasado el tope de `policy` sin que entre nadie */
+function botJoins(raid: Raid, ms: number, policy: BotPolicy, rng: Rng): boolean {
+  if (presentBots(raid).length >= policy.max || !hasRoom(raid)) return false
+  const overdue = policy.maxGapMinutes !== undefined && raid.sinceBotMs >= policy.maxGapMinutes * 60_000
+  return overdue || rng() < (policy.joinPerMinute * ms) / 60_000
 }
 
 /** Los bots cuyo tiempo se acaba se van; entra alguno nuevo al azar y siempre hay al menos el mínimo de `policy` */
 export function updateBots(raid: Raid, ms: number, policy: BotPolicy, rng: Rng) {
+  raid.sinceBotMs += ms
   for (const bot of presentBots(raid)) {
     bot.stayMs = Math.max(0, bot.stayMs! - ms)
     if (bot.stayMs === 0) bot.left = true
   }
   while (presentBots(raid).length < policy.min && hasRoom(raid)) addBot(raid, rng)
-  if (presentBots(raid).length < policy.max && hasRoom(raid) && rng() < (policy.joinPerMinute * ms) / 60_000) addBot(raid, rng)
+  if (botJoins(raid, ms, policy, rng)) addBot(raid, rng)
 }

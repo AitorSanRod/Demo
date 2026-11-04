@@ -3,6 +3,7 @@ import type { Biome } from '../../data/maps'
 import { signatureMove } from '../../data/moves'
 import { species } from '../../data/species'
 import { BOSS_ID, presentMembers, RaidMemberKind, type Raid, type RaidMember } from '../../game/raid/raidRoom'
+import { useWatchRaid } from '../../net/raidSync'
 import { HitEffect } from '../route/HitEffect'
 import { WalkScene } from '../route/WalkScene'
 import { Bar, Sprite } from '../shared/common'
@@ -35,6 +36,7 @@ export function RaidBattleScene({ raid, biome, timeScale }: { raid: Raid; biome:
  * roundReplay.ts): quien ataca embiste, quien lo recibe tiembla con su número y el destello del tipo
  */
 export function RaidBattle({ raid, timeScale }: { raid: Raid; timeScale: number }) {
+  useWatchRaid()
   // El del jugador, delante del todo
   const party = presentMembers(raid).sort((a, b) => Number(b.kind === RaidMemberKind.Player) - Number(a.kind === RaidMemberKind.Player))
   const hits = visibleHits(raid, timeScale)
@@ -114,13 +116,9 @@ function PartyMon({ m, index, attack, struck, bossSpeciesId, timeScale }: PartyM
 
   return (
     <div className={`raid-party-mon ${down ? 'down' : ''} ${mine ? 'mine' : ''}`} style={style}>
-      {/* Con 10 en la escena, solo el del jugador lleva su barra; los PS de todos están en la lista de la sala */}
-      {(mine || down) && (
-        <div className="raid-party-hp">
-          {mine && <span className="raid-mine-tag">Tú</span>}
-          {down ? <span className="raid-revive">{Math.ceil(m.downMs / 1000 / timeScale)} s</span> : <Bar value={m.hpFraction} max={1} kind="hp" />}
-        </div>
-      )}
+      {/* Sin barras sobre el grupo: los PS de todos están en la lista de la sala */}
+      {mine && <span className="raid-mine-tag">Tú</span>}
+      {down && <span className="raid-revive-count">{Math.ceil(m.downMs / 1000 / timeScale)}</span>}
       {struck && (
         <span key={struck.seq} className="battle-pop hit">
           {struck.dealt > 0 ? `-${struck.dealt}` : 'Fallo'}

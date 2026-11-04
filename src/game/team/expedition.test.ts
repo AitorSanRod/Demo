@@ -11,6 +11,7 @@ import {
   EXPEDITION_DURATIONS,
   expeditionBattles,
   expeditionBlocker,
+  expeditionsBlocker,
   expeditionRewardMult,
   expeditionWinRate,
   isExpeditionDone,
@@ -144,6 +145,17 @@ describe('expediciones', () => {
     expect(expeditionBlocker(s, second.uid)).toMatch(/huecos/)
     sendExpedition(s, second.uid, RouteId.PuebloPaleta, DURATION)
     expect(s.expeditions).toHaveLength(1)
+  })
+
+  it('avisa de que no se puede mandar a nadie sin huecos libres o sin nadie en el rancho', () => {
+    const s = initialState()
+    chooseStarter(s, POKEMON.Bulbasaur)
+    expect(expeditionsBlocker(s)).toBeNull()
+    s.owned[0].ranch = null
+    expect(expeditionsBlocker(s)).toMatch(/rancho/)
+    const { s: full } = stateOnExpedition()
+    full.owned.push(createMon(POKEMON.Pidgey, 5))
+    expect(expeditionsBlocker(full)).toMatch(/huecos/)
   })
 
   it('la mejora de espacio permite uno más', () => {

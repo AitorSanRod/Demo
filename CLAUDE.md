@@ -4,7 +4,8 @@ Juego idle tipo digivice: el jugador elige el camino antes de salir y su Pokémo
 En el rancho ve a todo su equipo, cura, entrena y elige compañero; manda al resto de expedición y consigue
 Pokémon nuevos juntando piezas del gacha. PWA para móvil en vertical.
 
-Stack: Vite 8 + React 19 + TypeScript 7 + Vitest. Sin backend: la partida se guarda en `localStorage`.
+Stack: Vite 8 + React 19 + TypeScript 7 + Vitest. La partida se guarda en `localStorage`, sin cuentas; solo las salas
+de los jefes comunitarios van por servidor (función de Netlify + Netlify Blobs, `netlify/`), y sin él se juegan en local.
 
 ## Comandos
 
@@ -13,6 +14,7 @@ npm run dev        # servidor de desarrollo
 npm run check      # typecheck + lint + tests (lo que debe pasar antes de dar algo por terminado)
 npm test           # solo tests (vitest run)
 npm run build      # build de producción
+npx netlify dev    # app + función de salas en http://localhost:8888 (con Blobs local)
 ```
 
 Requiere Node `^20.19 || >=22.12` (ver `.nvmrc`). Con versiones anteriores npm no instala los binarios nativos de
@@ -20,8 +22,9 @@ Vite/oxlint y `build`/`lint` fallan.
 
 ## Arquitectura en una línea
 
-`src/data` (datos estáticos) → `src/game` (lógica pura, sin React ni DOM) → `src/ui` (pantallas React).
-Las dependencias solo van en ese sentido. `src/game` se agrupa por dominio (`core`, `battle`, `run`, `team`,
+`src/data` (datos estáticos) → `src/game` (lógica pura, sin React ni DOM) → `src/net` (conexión con el servidor) →
+`src/ui` (pantallas React); `netlify/` (servidor) usa `src/game` y `src/data`. Las dependencias solo van en ese
+sentido. `src/game` y `src/data` corren también en el servidor: nada de DOM ni de `import` de imágenes. `src/game` se agrupa por dominio (`core`, `battle`, `run`, `team`,
 `collection`) y `src/ui` por pantalla, cada una con su CSS. Detalle en [docs/arquitectura.md](docs/arquitectura.md).
 
 ## Cómo orientarse sin leer todo el programa
@@ -32,7 +35,7 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 
 | Quiero cambiar… | Dónde (`src/`) |
 |---|---|
-| Rutas, paradas, encuentros, jefes, premio de ruta, imagen de la lista (`backdrop`) | `data/maps/kantoMaps.ts` (un fichero por región) |
+| Rutas, paradas, encuentros, jefes, premio de ruta, imagen de la lista (`backdrop`, con `asset(new URL(…))`) | `data/maps/kantoMaps.ts` (un fichero por región) |
 | Tipos de parada y biomas, ids de ruta, atajos y consultas de caminos | `data/maps/mapCommon.ts` |
 | Lista de regiones y `route(id)` | `data/maps/index.ts` |
 | Especies, rarezas, iniciales, evoluciones | `data/species.ts`, `data/evolutions.ts` |
@@ -45,20 +48,21 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Tipos de rancho (lista a mano) | `data/ranchTypes.ts` + `game/team/ranchTypes.ts` + `ui/shop/RanchTypeShop.tsx`, `ui/ranch/RanchTypeSection.tsx` |
 | Avance por la ruta / combates dentro de la ruta | `game/run/run.ts` / `game/run/runBattle.ts` |
 | Stats, EXP, niveles, ★, pasos | `game/team/stats.ts` |
-| Curar, entrenar, elegir activo, descanso | `game/team/ranch.ts` + `ui/shared/sheet/CareSection.tsx`, `TrainControl.tsx` |
-| Ficha del Pokémon, un solo componente para rancho y Pokédex: paisaje por tipo, arco de EXP, PS, secciones | `ui/shared/sheet/` (`PokemonSheet` (la ficha), `MonSheet` + `MonSection`, `SpeciesHero`, `CareSection`, `MovePanel`, `MonOverview` (Datos), `TicketsSection`, `FavoriteButton` (corazón de la cabecera), `CompanionButton` (Poké Ball de compañero, esquina izquierda), `CombineResultAnimation`, `HeroLayout`, `MonHero`, `LevelUpBurst`, `StepperAction` (− / + de entrenar y crear tickets), `scenery.ts`) |
+| Curar, entrenar, elegir activo, descanso | `game/team/ranch.ts` + `ui/shared/sheet/HealButton.tsx`, `CompanionButton.tsx`, `CareSection.tsx`, `TrainControl.tsx` |
+| Ficha del Pokémon, un solo componente para rancho y Pokédex: paisaje por tipo, arco de EXP, PS, secciones | `ui/shared/sheet/` (`PokemonSheet` (la ficha), `MonSheet` + `MonSection`, `SpeciesHero`, `CareSection`, `MovePanel`, `MonOverview` (Datos), `TicketsSection`, `FavoriteButton` (corazón de la cabecera), `CompanionButton` (Poké Ball de compañero, esquina izquierda), `HealButton` (poción de curar, abajo a la izquierda), `CombineResultAnimation`, `HeroLayout`, `MonHero`, `LevelUpBurst`, `StepperAction` (− / + de entrenar y crear tickets), `scenery.ts`) |
 | Animación de crear y evolucionar | `ui/shared/sheet/EvolutionAnimation.tsx` |
 | Espacios, varios ranchos, Caja, arrastrar | `game/team/ranches.ts` + `ui/ranch/RanchMon`, `RanchSlots`, `BoxSheet`, `ranchLooks.ts` + `ui/shared/sheet/MovePanel` |
-| Evolución | `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` |
-| Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (el selector de Pokémon es `ui/shared/MonPicker.tsx`) |
-| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Raids, `routeRaid` paradas de ruta, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster`, `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe y «Retirarse») |
+| Evolución (por nivel o piedra) / piedras de la tienda | `data/evolutions.ts`, `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` / `data/stones.ts`, `game/team/stones.ts` + `ui/shop/StoneShop.tsx` |
+| Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (`ExpeditionScreen` lista de rutas, `ExpeditionList` las que están en curso, `ExpeditionStartDialog` elegir Pokémon y duración; el selector es `ui/shared/MonPicker.tsx`) |
+| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Raids, `routeRaid` paradas de ruta, `stopRoom` salas de parada sin la partida, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidWaiting` (espera entre jefes), `raidBiome`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster`, `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe y «Retirarse») |
+| Salas compartidas con otros jugadores: protocolo / lo que hace el servidor / la sala de la partida enlazada / conexión, apodo y cada cuánto se consulta / función y almacén | `game/raid/online/` (`protocol`, `sharedRoom` + `roomServer` + `requests`, `linkedRoom`) / `net/` (`raidSync`, `identity`, `raidApi`) + `ui/raid/NicknameDialog`, `RaidLinkNote` / `../netlify/functions/raid.mts`, `../netlify/lib/roomStore.ts`, `../netlify.toml` (despliegue: `docs/servidor.md`) |
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
 | Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (`DexScreen`, `DexSection` el desplegable de cada Pokédex, `DexCell`; la ficha es `PokemonSheet`, la misma que el rancho) |
 | Pokédex regionales y Nacional (rangos y mapa de cada región) | `data/pokedexes.ts`; las especies nuevas, en `NATIONAL_IDS` de `scripts/fetch-pokemon.mjs` + `data/pokemon.ts` |
 | Gacha, trituradora, MissingNo | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
 | Rancho | `ui/ranch/RanchScreen.tsx` |
-| Pantalla de ruta: lista / diálogo de comenzar / en curso / combate | `ui/route/RouteMap`, `RouteStartDialog`, `RunView`, `RouteBattle` |
+| Pantalla de ruta: lista / línea de ruta (también en expediciones) / diálogo de comenzar / en curso / combate | `ui/route/RouteMap`, `RouteRow`, `RouteStartDialog`, `RunView`, `RouteBattle` |
 | Escena de paseo / efectos de golpe | `ui/route/WalkScene.tsx` / `HitEffect.tsx` |
 | Fondos de ruta por bioma: pixel art generado en canvas / SVG de los biomas que aún no lo tienen | `ui/route/pixelScene/` (`index.ts` bioma → escena, `usePixelScene`, `engine/`, `paint/`, `elements/`, `scenes/<bioma>/`) / `ui/route/scenery/` |
 | Banco de pruebas de los fondos pixel art (`/tools/scenery-lab/` con `npm run dev`) | `tools/scenery-lab/` (skill `fondos-pixel-art`) |
@@ -72,7 +76,7 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 
 Diccionarios (nunca strings ni números sueltos): `POKEMON` en `data/pokemon.ts`; `NodeKind`, `Biome`, `RouteId` en
 `data/maps/mapCommon.ts`; `Rarity` en `data/species.ts`; `TutorialStep`, `MonPlace` en `game/core/state.ts`; `CombineKind` en
-`game/collection/pieces.ts`; `EvolveKind` en `game/team/evolution.ts`.
+`game/collection/pieces.ts`; `Stone` en `data/stones.ts`.
 
 Si creas, mueves o cambias de función un fichero, actualiza esta tabla en el mismo cambio.
 
@@ -97,6 +101,8 @@ Convenciones completas en [docs/convenciones.md](docs/convenciones.md).
 - [docs/diseno.md](docs/diseno.md): reglas del juego, bucle principal y dónde está cada número de balance.
 - [docs/arquitectura.md](docs/arquitectura.md): capas, estructura de carpetas, store, guardado, flujo de una ruta.
 - [docs/convenciones.md](docs/convenciones.md): estilo de código, tests y checklist de revisión.
+- [docs/fondos.md](docs/fondos.md): fondos pixel art de las rutas: estilo, motor, piezas y cómo crear uno nuevo.
+- [docs/servidor.md](docs/servidor.md): servidor de salas compartidas en Netlify (plan gratuito): despliegue y consumo.
 
 Si cambias una mecánica o la estructura, actualiza el documento correspondiente en el mismo cambio.
 

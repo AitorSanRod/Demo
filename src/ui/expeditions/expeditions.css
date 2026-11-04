@@ -1,18 +1,17 @@
-/* Expediciones */
+/* Expediciones: cada una en curso va sobre la imagen de su ruta, como las líneas del mapa */
 
-.expedition-list {
-  gap: 10px;
+.expedition-info {
+  min-width: 0;
 }
-.expedition-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.expedition-row .grow > * {
+.expedition-info > * {
   display: block;
 }
-.expedition-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Nombre y tiempo sobre la imagen: en una píldora para que se lean */
+.expedition-info > .muted {
+  width: fit-content;
+  margin: 2px 0 4px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  color: var(--text);
 }

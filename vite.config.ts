@@ -31,6 +31,8 @@ export default defineConfig({
       workbox: {
         // Por defecto solo se precachean js/css/html: se añaden las imágenes propias (fondo del rancho)
         globPatterns: ['**/*.{js,css,html,svg,png,jpg}'],
+        // El servidor de salas (netlify/functions) no es una página de la app: que el service worker no la sirva
+        navigateFallbackDenylist: [/^\/api\//],
         // Abre la app al tocar una notificación (expediciones terminadas)
         importScripts: ['sw-notifications.js'],
         // Los sprites vienen del repo de PokeAPI: se guardan en caché para jugar sin conexión

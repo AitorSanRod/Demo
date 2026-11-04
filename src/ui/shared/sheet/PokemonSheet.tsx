@@ -8,6 +8,7 @@ import { CompanionButton } from './CompanionButton'
 import { EvolvePanel } from './EvolvePanel'
 import { EvolveResultAnimation } from './EvolveResultAnimation'
 import { FavoriteButton } from './FavoriteButton'
+import { HealButton } from './HealButton'
 import { MonHero } from './MonHero'
 import { MonOverview } from './MonOverview'
 import { MonSheet } from './MonSheet'
@@ -34,8 +35,11 @@ export function PokemonSheet({ game, speciesId, onClose }: { game: GameState; sp
     <SpeciesHero speciesId={speciesId} seen={isSeen(game, speciesId)} />
   )
   return (
-    <MonSheet label={knownName(game, speciesId)} hero={hero} heroCorner={<FavoriteButton game={game} speciesId={speciesId} />}
-      heroCornerLeft={mon && <CompanionButton game={game} mon={mon} />}
+    <MonSheet label={knownName(game, speciesId)} hero={hero} corners={{
+        topLeft: mon && <CompanionButton game={game} mon={mon} />,
+        topRight: <FavoriteButton game={game} speciesId={speciesId} />,
+        bottomLeft: mon && <HealButton game={game} mon={mon} />,
+      }}
       onClose={onClose}>
       <MonOverview game={game} speciesId={speciesId} mon={mon} previewLevel={plan && plan.levelsGained > 0 ? plan.level : null} />
       {mon && <CareSection game={game} mon={mon} sessions={sessions} onSessionsChange={setSessions} />}

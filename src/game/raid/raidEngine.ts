@@ -21,7 +21,7 @@ const REFERENCE_UPTIME = 0.5
 /** EXP por minuto de juego luchando (no mientras está debilitado), por cada nivel del jefe */
 export const RAID_EXP_PER_MINUTE_PER_LEVEL = 1
 /** Nombre con el que sale el jugador en la sala */
-const PLAYER_TRAINER = 'Tú'
+export const PLAYER_TRAINER = 'Tú'
 
 /**
  * Vida del jefe: la que quitaría en `soloMinutes` (o RAID_SOLO_MINUTES) un Pokémon de su nivel con un ataque de
@@ -33,11 +33,25 @@ export function raidBossHp(boss: Pick<RaidBoss, 'level' | 'soloMinutes'>): numbe
   return Math.round(hit * REFERENCE_UPTIME * ((minutes * 60_000) / RAID_ROUND_MS))
 }
 
-/** Sala nueva con el jefe entero; los `stayers` siguen dentro, recuperados y con el contador a cero */
-export function newRaid(boss: RaidBoss, place: RaidPlace | null, opts: { felled?: number; stayers?: RaidMember[]; nextBotId?: number } = {}): Raid {
+/** Sala nueva y vacía con el jefe entero; `startsInMs` es lo que tarda en aparecer (0, ya está) */
+export function newRaid(boss: RaidBoss, place: RaidPlace | null, opts: { felled?: number; nextBotId?: number; startsInMs?: number } = {}): Raid {
   const hp = raidBossHp(boss)
-  const members = (opts.stayers ?? []).map((m) => newMember(m, 1, m.stayMs))
-  return { boss, place, hp, maxHp: hp, elapsedMs: 0, roundMsLeft: RAID_ROUND_MS, round: 0, members, lastRound: [], felled: opts.felled ?? 0, nextBotId: opts.nextBotId ?? 0 }
+  return {
+    boss,
+    place,
+    hp,
+    maxHp: hp,
+    elapsedMs: 0,
+    roundMsLeft: RAID_ROUND_MS,
+    round: 0,
+    members: [],
+    lastRound: [],
+    felled: opts.felled ?? 0,
+    nextBotId: opts.nextBotId ?? 0,
+    sinceBotMs: 0,
+    startsInMs: opts.startsInMs ?? 0,
+    remote: null,
+  }
 }
 
 export const playerMembers = (raid: Raid) => presentMembers(raid).filter((m) => m.kind === RaidMemberKind.Player)
@@ -75,6 +89,13 @@ export const passivesOf =
 export const raidExpPerRound = (boss: RaidBoss): number =>
   Math.max(1, Math.round((boss.level * RAID_EXP_PER_MINUTE_PER_LEVEL * RAID_ROUND_MS) / 60_000))
 
+/** Lo que cada clase de motor (la partida local o el servidor) pone en cada ronda */
+export interface RoomHooks {
+  passivesOf: PassivesOf
+  /** Antes de jugar la ronda, con el tiempo ya pasado: EXP y nivel de los Pokémon de los jugadores */
+  beforeRound: (raid: Raid) => void
+}
+
 /** Los del jugador ganan la EXP de la ronda si están en pie y luchan con su nivel y sus ★ de ahora */
 function syncPlayers(s: GameState, raid: Raid) {
   for (const m of playerMembers(raid)) {
@@ -88,11 +109,17 @@ function syncPlayers(s: GameState, raid: Raid) {
   }
 }
 
+/** Ganchos de la partida local: las pasivas del rancho de cada uno y la EXP a los Pokémon del jugador */
+export const localHooks = (s: GameState): RoomHooks => ({ passivesOf: passivesOf(s), beforeRound: (raid) => syncPlayers(s, raid) })
+
+/** La pelea se para: ha caído el jefe o un Pokémon de un jugador ha gastado sus vidas */
+export const roomStopped = (raid: Raid): boolean => raid.hp === 0 || playerMembers(raid).some(outOfLives)
+
 /**
  * Juega las rondas que caben en `ms` milisegundos de juego. Si el jefe cae o un Pokémon del jugador gasta sus vidas,
  * se para ahí y devuelve los milisegundos que sobran; si no, null
  */
-export function advanceRoom(s: GameState, raid: Raid, ms: number, bots: BotPolicy, rng: Rng): number | null {
+export function advanceRoom(raid: Raid, ms: number, bots: BotPolicy, rng: Rng, hooks: RoomHooks): number | null {
   let left = ms
   while (left >= raid.roundMsLeft) {
     left -= raid.roundMsLeft
@@ -100,13 +127,20 @@ export function advanceRoom(s: GameState, raid: Raid, ms: number, bots: BotPolic
     raid.round++
     elapseRound(raid)
     updateBots(raid, RAID_ROUND_MS, bots, rng)
-    syncPlayers(s, raid)
-    raid.lastRound = playRound(raid, passivesOf(s), rng)
-    if (raid.hp === 0 || playerMembers(raid).some(outOfLives)) return left
+    hooks.beforeRound(raid)
+    raid.lastRound = playRound(raid, hooks.passivesOf, rng)
+    if (roomStopped(raid)) return left
   }
   raid.roundMsLeft -= left
   return null
 }
+
+/** Sala enlazada al servidor: no se juega aquí, solo corre el reloj de la ronda para que la UI reparta sus golpes */
+export function runLinkedClock(raid: Raid, ms: number) {
+  raid.roundMsLeft = Math.max(0, raid.roundMsLeft - ms)
+}
+
+export const isLinked = (raid: Raid): boolean => raid.remote?.roomId != null
 
 /**
  * Al caer el jefe: tira el premio de cada Pokémon del jugador que cobra y los que siguen dentro salen de la sala.

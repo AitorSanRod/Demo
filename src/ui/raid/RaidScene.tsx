@@ -1,6 +1,5 @@
-import { Biome, route } from '../../data/maps'
+import { route } from '../../data/maps'
 import { species } from '../../data/species'
-import type { PokeType } from '../../data/types'
 import type { GameState } from '../../game/core/state'
 import { raidMinutesLeft } from '../../game/raid/raidEstimate'
 import type { Raid } from '../../game/raid/raidRoom'
@@ -9,30 +8,9 @@ import { formatMinutes } from '../shared/format'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
 import { RaidBattleScene } from './RaidBattleScene'
+import { raidBiome } from './raidBiome'
 import { shownBossHp } from './roundReplay'
 import './raid.css'
-
-/** Paisaje de la pelea del jefe de la pestaña Raids (que no está en ninguna ruta), según su primer tipo */
-const TYPE_BIOME: Record<PokeType, Biome> = {
-  normal: Biome.Meadow,
-  fire: Biome.Cave,
-  water: Biome.Sea,
-  electric: Biome.Meadow,
-  grass: Biome.Forest,
-  ice: Biome.Sea,
-  fighting: Biome.Cave,
-  poison: Biome.Forest,
-  ground: Biome.Cave,
-  flying: Biome.Meadow,
-  psychic: Biome.Meadow,
-  bug: Biome.Forest,
-  rock: Biome.Cave,
-  ghost: Biome.Cave,
-  dragon: Biome.Sea,
-  dark: Biome.Cave,
-  steel: Biome.Cave,
-  fairy: Biome.Forest,
-}
 
 /**
  * El jefe comunitario: la pelea en su paisaje (el de su ruta o, sin ruta, el de su tipo) y debajo la vida que le queda
@@ -40,7 +18,7 @@ const TYPE_BIOME: Record<PokeType, Biome> = {
  */
 export function RaidScene({ game, raid }: { game: GameState; raid: Raid }) {
   const sp = species(raid.boss.speciesId)
-  const biome = raid.place ? route(raid.place.routeId).biome : TYPE_BIOME[sp.types[0]]
+  const biome = raidBiome(raid)
   const gameMinutesLeft = raidMinutesLeft(game, raid)
   // La vida baja golpe a golpe, al ritmo de la escena (ver roundReplay.ts)
   const hp = shownBossHp(raid)

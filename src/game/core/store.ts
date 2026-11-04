@@ -51,7 +51,8 @@ function scheduleSave() {
 window.addEventListener('pagehide', save)
 document.addEventListener('visibilitychange', () => document.hidden && save())
 
-function getState(): GameState {
+/** El estado de ahora, para quien lo lee fuera de React (ver net/raidSync.ts); se modifica solo con act() */
+export function getState(): GameState {
   return state
 }
 

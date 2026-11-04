@@ -4,7 +4,7 @@ import { seqRng } from '../core/test-utils'
 import { runBlocker } from '../run/run'
 import { createMon } from '../team/mons'
 import { maxHp } from '../team/stats'
-import { advanceRaid, ensureRaid, joinRaid, leaveRaid, raidBlocker, raidBossAt } from './raid'
+import { advanceRaid, ensureRaid, joinRaid, leaveRaid, RAID_COOLDOWN_MS, raidBlocker, raidBossAt, raidWaiting } from './raid'
 import { RAID_BOTS } from './raidBots'
 import { RAID_SOLO_MINUTES, raidBossHp, raidExpPerRound } from './raidEngine'
 import { RAID_ROUND_MS } from './raidCombat'
@@ -91,7 +91,7 @@ describe('jefe comunitario', () => {
     expect(s.raid!.round).toBe(1)
   })
 
-  it('al caer el jefe cobra quien estaba dentro, vuelve al rancho y sale el siguiente sin esperar', () => {
+  it('al caer el jefe cobra quien estaba dentro, vuelve al rancho y la sala se vacía hasta el siguiente', () => {
     const { s, raid, mon } = raidState()
     joinRaid(s, mon.uid)
     raid.hp = 1
@@ -100,8 +100,26 @@ describe('jefe comunitario', () => {
     expect(s.raid!.felled).toBe(1)
     expect(s.raid!.boss).toEqual(raidBossAt(1))
     expect(monPlace(s, mon.uid)).toBe(MonPlace.Ranch)
-    expect(s.raid!.members.some((m) => m.id === mon.uid)).toBe(false)
-    expect(s.raid!.members.every((m) => m.presentMs === 0 && m.damage === 0)).toBe(true)
+    expect(s.raid!.members).toHaveLength(0)
+    expect(s.raid!.startsInMs).toBe(RAID_COOLDOWN_MS)
+  })
+
+  it('el siguiente jefe aparece pasado RAID_COOLDOWN_MS: hasta entonces no hay rondas, ni bots, ni se puede entrar', () => {
+    const { s, raid, mon } = raidState()
+    raid.hp = 1
+    joinRaid(s, mon.uid)
+    advanceRaid(s, RAID_ROUND_MS, seqRng(0))
+    const next = s.raid!
+    advanceRaid(s, RAID_COOLDOWN_MS - 1, seqRng(0))
+    expect(raidWaiting(next)).toBe(true)
+    expect(next.round).toBe(0)
+    expect(next.members).toHaveLength(0)
+    expect(raidBlocker(s, mon.uid)).toMatch(/aún no/)
+    advanceRaid(s, RAID_ROUND_MS + 1, seqRng(0))
+    expect(raidWaiting(next)).toBe(false)
+    expect(next.round).toBe(1)
+    expect(next.members.length).toBeGreaterThanOrEqual(RAID_BOTS.min)
+    expect(raidBlocker(s, mon.uid)).toBeNull()
   })
 
   it('quien se retiró antes de tiempo sin llegar al mínimo de presencia no cobra', () => {

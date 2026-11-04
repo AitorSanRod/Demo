@@ -25,3 +25,6 @@ dist-ssr
 
 # Claude Code (ajustes personales)
 .claude/settings.local.json
+
+# Netlify CLI (netlify dev / netlify link)
+.netlify

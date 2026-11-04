@@ -111,6 +111,13 @@ export function chain(...stops: Stop[]): RouteNode[] {
   })
 }
 
+/**
+ * Imagen propia de `src/assets`, escrita como `asset(new URL('../../assets/…', import.meta.url))` y no con `import`:
+ * Vite la convierte igual en la URL publicada, y el servidor (netlify/), que también lee los mapas, no tiene que
+ * empaquetar imágenes
+ */
+export const asset = (url: URL): string => url.href
+
 export function node(r: Route, id: string): RouteNode {
   const n = r.nodes.find((n) => n.id === id)
   if (!n) throw new Error(`Nodo desconocido: ${r.id}/${id}`)

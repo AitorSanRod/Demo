@@ -3,13 +3,18 @@ import { species } from '../../data/species'
 import type { Rng } from '../core/random'
 import { findMon, MonPlace, monPlace, type GameState } from '../core/state'
 import { RAID_BOTS } from './raidBots'
-import { addPlayer, advanceRoom, newRaid, playerMembers, removePlayer, settleFall } from './raidEngine'
-import { hasRoom, presentMembers, type Raid } from './raidRoom'
+import { addPlayer, advanceRoom, isLinked, localHooks, newRaid, playerMembers, removePlayer, runLinkedClock, settleFall } from './raidEngine'
+import { hasRoom, pendingLink, type Raid } from './raidRoom'
 
 // El jefe de la pestaña Raids: siempre hay uno, se manda a un Pokémon del rancho y al caer sale el siguiente.
 
 /** Pokémon del jugador que pueden estar a la vez en la sala */
 export const RAID_PLAYER_SLOTS = 1
+/** Milisegundos de juego que tarda en aparecer el siguiente jefe tras caer uno */
+export const RAID_COOLDOWN_MS = 15 * 60_000
+
+/** El jefe ya ha caído y el siguiente aún no ha aparecido */
+export const raidWaiting = (raid: Raid): boolean => raid.startsInMs > 0
 
 export const raidBossAt = (felled: number): RaidBoss => RAID_BOSSES[felled % RAID_BOSSES.length]
 
@@ -21,6 +26,7 @@ export function ensureRaid(s: GameState) {
 export function raidBlocker(s: GameState, uid: string): string | null {
   const mon = findMon(s, uid)
   if (!s.raid) return 'Todavía no hay ningún jefe.'
+  if (raidWaiting(s.raid)) return 'El siguiente jefe aún no ha aparecido.'
   if (!mon) return 'Ese Pokémon no existe.'
   if (monPlace(s, uid) !== MonPlace.Ranch) return 'Solo puede ir desde el rancho.'
   if (playerMembers(s.raid).length >= RAID_PLAYER_SLOTS) return 'Ya tienes un Pokémon luchando contra el jefe.'
@@ -31,32 +37,48 @@ export function raidBlocker(s: GameState, uid: string): string | null {
   return null
 }
 
-/** Manda al Pokémon a la sala; si ya estuvo contra este jefe, conserva su tiempo y su daño */
+/**
+ * Manda al Pokémon a la sala; si ya estuvo contra este jefe, conserva su tiempo y su daño. Una sala solo local pasa a
+ * esperar sitio en una compartida del servidor (ver online/linkedRoom.ts); mientras, sigue la pelea aquí
+ */
 export function joinRaid(s: GameState, uid: string) {
-  if (!raidBlocker(s, uid)) addPlayer(s, s.raid!, findMon(s, uid)!)
+  if (raidBlocker(s, uid)) return
+  addPlayer(s, s.raid!, findMon(s, uid)!)
+  s.raid!.remote ??= pendingLink()
 }
 
 /** Retirada antes de tiempo; si ya cumple el mínimo de presencia, cobrará cuando caiga el jefe */
 export function leaveRaid(s: GameState, uid: string) {
   const m = s.raid && playerMembers(s.raid).find((x) => x.id === uid)
-  if (m) removePlayer(s, m)
+  if (!m) return
+  removePlayer(s, m)
+  // Si aún estaba entrando en una sala del servidor, ya no hace falta
+  if (s.raid!.remote?.roomId === null) s.raid!.remote = null
 }
 
 /**
- * Al caer: el premio queda pendiente en la pestaña, los Pokémon del jugador vuelven al rancho y sale el siguiente jefe
- * con los bots que siguen dentro
+ * Al caer: el premio queda pendiente en la pestaña, los Pokémon del jugador vuelven al rancho, la sala se vacía y el
+ * siguiente jefe aparece pasado RAID_COOLDOWN_MS
  */
-function fall(s: GameState, raid: Raid, rng: Rng) {
+export function fallTabRaid(s: GameState, raid: Raid, rng: Rng) {
   s.raidPrizes.push(...settleFall(s, raid, rng))
-  s.raid = newRaid(raidBossAt(raid.felled + 1), null, { felled: raid.felled + 1, stayers: presentMembers(raid), nextBotId: raid.nextBotId })
+  s.raid = newRaid(raidBossAt(raid.felled + 1), null, { felled: raid.felled + 1, nextBotId: raid.nextBotId, startsInMs: RAID_COOLDOWN_MS })
 }
 
-/** Avanza la pelea `ms` milisegundos de juego; si cae el jefe, el tiempo que sobra lo juega el siguiente */
+/** Gasta en la espera del jefe lo que haga falta de `ms`; devuelve lo que sobra */
+function waitForBoss(raid: Raid, ms: number): number {
+  const waited = Math.min(ms, raid.startsInMs)
+  raid.startsInMs -= waited
+  return ms - waited
+}
+
+/** Avanza la pelea `ms` milisegundos de juego; si cae el jefe, el tiempo que sobra cuenta para la espera y el siguiente */
 export function advanceRaid(s: GameState, ms: number, rng: Rng = Math.random) {
   ensureRaid(s)
   let left: number | null = ms
+  if (s.raid && isLinked(s.raid)) return runLinkedClock(s.raid, ms)
   while (s.raid && left !== null) {
-    left = advanceRoom(s, s.raid, left, RAID_BOTS, rng)
-    if (left !== null) fall(s, s.raid, rng)
+    left = advanceRoom(s.raid, waitForBoss(s.raid, left), RAID_BOTS, rng, localHooks(s))
+    if (left !== null) fallTabRaid(s, s.raid, rng)
   }
 }

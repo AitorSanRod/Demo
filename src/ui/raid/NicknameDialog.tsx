@@ -1,0 +1,26 @@
+import { useState } from 'react'
+import { DEFAULT_NICKNAME, NICKNAME_MAX } from '../../game/raid/online/protocol'
+import { nickname, setNickname } from '../../net/identity'
+import { ConfirmDialog } from '../shared/ConfirmDialog'
+import './raid.css'
+
+/** Elegir el apodo con el que te ven los demás jugadores en las salas de los jefes (sin cuentas: solo un nombre) */
+export function NicknameDialog({ onDone, onCancel }: { onDone: (name: string) => void; onCancel: () => void }) {
+  const [draft, setDraft] = useState(nickname() ?? '')
+  const save = () => onDone(setNickname(draft))
+
+  return (
+    <ConfirmDialog title="Tu apodo en las raids" confirmLabel="Guardar" onConfirm={save} onCancel={onCancel}>
+      <p className="small confirm-text">Es lo que verán los demás jugadores en la sala del jefe. Puedes cambiarlo en Ajustes.</p>
+      <input
+        className="nickname-input"
+        value={draft}
+        maxLength={NICKNAME_MAX}
+        placeholder={DEFAULT_NICKNAME}
+        autoFocus
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && save()}
+      />
+    </ConfirmDialog>
+  )
+}

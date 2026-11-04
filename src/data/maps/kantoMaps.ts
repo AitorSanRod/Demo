@@ -1,9 +1,10 @@
-import palletTown from '../../assets/routes/pallet-town.webp'
-import route1 from '../../assets/routes/route-1.webp'
-import viridianForest from '../../assets/routes/viridian-forest.webp'
 import { POKEMON } from '../pokemon'
 import { RaidTier } from '../raidBosses'
-import { Biome, boss, chain, enc, NodeKind, raidBoss, RouteId, type GameMap } from './mapCommon'
+import { asset, Biome, boss, chain, enc, NodeKind, raidBoss, RouteId, type GameMap } from './mapCommon'
+
+const palletTown = asset(new URL('../../assets/routes/pallet-town.webp', import.meta.url))
+const route1 = asset(new URL('../../assets/routes/route-1.webp', import.meta.url))
+const viridianForest = asset(new URL('../../assets/routes/viridian-forest.webp', import.meta.url))
 
 export const KANTO: GameMap = {
   id: 'kanto',
@@ -62,7 +63,7 @@ export const KANTO: GameMap = {
       unlocks: RouteId.BosqueVerde,
       nodes: chain(
         { id: 's', name: 'Ruta 1', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Entrada a Bosque Verde', kind: NodeKind.Raid, steps: 30, boss: raidBoss(POKEMON.Pidgeotto, 10, RaidTier.Low, { soloMinutes: 6 }) },
+        { id: 'a', name: 'Entrada a Bosque Verde', kind: NodeKind.Raid, steps: 30, boss: raidBoss(POKEMON.Squirtle, 10, RaidTier.Low, { soloMinutes: 5 }) },
       ),
     },
     {
@@ -82,8 +83,7 @@ export const KANTO: GameMap = {
         { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
-        { id: 'f', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Nidorino, 17, RaidTier.Low, { soloMinutes: 6 }) },
-        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Nidorina, 17, RaidTier.Low, { soloMinutes: 10 }) },
+        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Bulbasaur, 17, RaidTier.Low, { soloMinutes: 10 }) },
       ),
     }
     // {
@@ -91,7 +91,7 @@ export const KANTO: GameMap = {
     //   name: 'Monte Moon',
     //   description: 'Cuevas oscuras donde dicen que caen meteoritos.',
     //   biome: Biome.Cave,
-    //   backdrop: { image: mtMoon, focusY: 50 }, (importar '../../assets/routes/mt-moon.webp')
+    //   backdrop: { image: mtMoon, focusY: 50 }, (con const mtMoon = asset(new URL('../../assets/routes/mt-moon.webp', import.meta.url)))
     //   levels: [7, 11],
     //   encounters: enc([POKEMON.Zubat, 25], [POKEMON.Geodude, 20], [POKEMON.Paras, 15], [POKEMON.Sandshrew, 10], [POKEMON.Ekans, 10], [POKEMON.Machop, 10], [POKEMON.Clefairy, 5], [POKEMON.Jigglypuff, 5]),
     //   reward: { tickets: 5, money: 300, exp: 800 },
@@ -110,7 +110,7 @@ export const KANTO: GameMap = {
     //   name: 'Ruta Marina',
     //   description: 'Islotes y corrientes. Hay que nadar mucho.',
     //   biome: Biome.Sea,
-    //   backdrop: { image: route19, focusY: 15 }, (importar '../../assets/routes/route-19.webp')
+    //   backdrop: { image: route19, focusY: 15 }, (con const route19 = asset(new URL('../../assets/routes/route-19.webp', import.meta.url)))
     //   levels: [13, 18],
     //   encounters: enc([POKEMON.Tentacool, 22], [POKEMON.Magikarp, 17], [POKEMON.Psyduck, 13], [POKEMON.Poliwag, 13], [POKEMON.Horsea, 9], [POKEMON.Krabby, 9], [POKEMON.Staryu, 9], [POKEMON.Shellder, 8]),
     //   reward: { tickets: 6, money: 450, exp: 1800 },

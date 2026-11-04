@@ -41,38 +41,41 @@
   top: 12px;
   font-size: 15px;
 }
-/* A los pies del Pokémon: así queda pegada a él sea cual sea el tamaño de su sprite */
-.raid-party-hp {
+/* A los pies del suyo: así queda pegada a él sea cual sea el tamaño de su sprite */
+.raid-mine-tag {
   position: absolute;
   bottom: -14px;
   left: 50%;
   z-index: 1;
   translate: -50% 0;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  width: 54px;
-  min-height: 12px;
-  padding: 2px 4px;
+  padding: 1px 6px;
   border-radius: 6px;
   background: #fbfbf2dd;
-  color: #333;
-  box-shadow: 0 1px 0 #0003;
-}
-.raid-party-hp .bar {
-  flex: 1;
-  height: 5px;
-}
-.raid-party-mon.mine .raid-party-hp {
   outline: 2px solid var(--accent);
-}
-.raid-mine-tag {
+  box-shadow: 0 1px 0 #0003;
   font-size: 10px;
   font-weight: 900;
   color: var(--accent);
 }
-.raid-party-mon .raid-revive {
-  font-size: 10px;
+/* Cuenta atrás para revivir, encima del sprite tumbado */
+.raid-revive-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 15px;
+  background: #222c;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 0 #0004;
 }
 /* Debilitado: tumbado y en gris hasta que vuelve */
 .raid-party-mon.down .sprite {

@@ -2,9 +2,8 @@ import { Fragment, useState } from 'react'
 import { KANTO, type Route } from '../../data/maps'
 import { activeMon, TutorialStep, type GameState } from '../../game/core/state'
 import { runBlocker } from '../../game/run/run'
-import { ICON } from '../shared/icons'
-import { ItemIcon } from '../shared/ItemIcon'
 import { TutorialHint } from '../shared/TutorialHint'
+import { RouteLock, RouteRow, RouteRowTitle } from './RouteRow'
 import { RouteStartDialog } from './RouteStartDialog'
 
 /**
@@ -30,18 +29,8 @@ export function RouteMap({ game }: { game: GameState }) {
             <Fragment key={r.id}>
               {/* El bocadillo señala hacia abajo: va encima de la línea, apuntando a «Comenzar» */}
               {guided && <TutorialHint arrowX="88%">Toca «Comenzar» para salir a tu primera ruta.</TutorialHint>}
-              <div className={`card route-row ${unlocked ? '' : 'locked'}`}>
-                {r.backdrop && (
-                  <span
-                    className="route-backdrop"
-                    style={{ backgroundImage: `url(${r.backdrop.image})`, backgroundPositionY: `${r.backdrop.focusY}%` }}
-                    aria-hidden="true"
-                  />
-                )}
-                <strong className="grow">{r.name}</strong>
-                <span className="small route-levels">
-                  Nv. {r.levels[0]}–{r.levels[1]}
-                </span>
+              <RouteRow route={r} locked={!unlocked}>
+                <RouteRowTitle route={r} />
                 {done && (
                   <span className="route-done" title="Completada" aria-label="Completada">
                     ✓
@@ -52,11 +41,9 @@ export function RouteMap({ game }: { game: GameState }) {
                     Comenzar
                   </button>
                 ) : (
-                  <span className="route-lock" aria-label="Bloqueada: completa la ruta anterior" title="Completa la ruta anterior">
-                    <ItemIcon item={ICON.Locked} size={32} />
-                  </span>
+                  <RouteLock />
                 )}
-              </div>
+              </RouteRow>
             </Fragment>
           )
         })}

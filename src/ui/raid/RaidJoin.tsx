@@ -6,11 +6,14 @@ import { joinRaid, leaveRaid, raidBlocker } from '../../game/raid/raid'
 import { playerMembers } from '../../game/raid/raidEngine'
 import { earnsPrize, presenceShare, RAID_MIN_PRESENCE } from '../../game/raid/raidPrizes'
 import { RaidMemberKind, type Raid } from '../../game/raid/raidRoom'
+import { nickname } from '../../net/identity'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { Sprite } from '../shared/common'
 import { ICON } from '../shared/icons'
 import { MonPicker } from '../shared/MonPicker'
 import { BigAction } from '../shared/sheet/MonSheet'
+import { NicknameDialog } from './NicknameDialog'
+import { RaidLinkNote } from './RaidLinkNote'
 
 const percent = (fraction: number) => `${Math.floor(fraction * 100)}%`
 
@@ -32,6 +35,7 @@ function InRaid({ game, raid, uid }: { game: GameState; raid: Raid; uid: string 
         {name} lleva el {percent(presenceShare(member, raid.elapsedMs))} de la pelea y ha hecho {member.damage} de daño. Recibe recompensas si llega al{' '}
         {percent(RAID_MIN_PRESENCE)} o si sigue dentro cuando caiga el jefe.
       </p>
+      <RaidLinkNote raid={raid} />
       <BigAction icon={ICON.Ranch} label={`Retirar a ${name}`} onClick={() => setConfirming(true)} />
       {confirming && (
         <ConfirmDialog
@@ -62,8 +66,14 @@ function InRaid({ game, raid, uid }: { game: GameState; raid: Raid; uid: string 
 function JoinPicker({ game, raid }: { game: GameState; raid: Raid }) {
   const home = game.owned.filter((m) => monPlace(game, m.uid) === MonPlace.Ranch)
   const [selectedUid, setSelectedUid] = useState('')
+  // La primera vez se elige el apodo con el que te verán los demás jugadores
+  const [naming, setNaming] = useState(false)
   const mon = home.find((m) => m.uid === selectedUid) ?? home[0]
   const blocker = mon ? raidBlocker(game, mon.uid) : 'No queda ningún Pokémon en el rancho.'
+  const send = () => {
+    setNaming(false)
+    act((s) => joinRaid(s, mon.uid))
+  }
   const secured = raid.members.some((m) => m.kind === RaidMemberKind.Player && earnsPrize(m, raid.elapsedMs))
 
   return (
@@ -77,8 +87,9 @@ function JoinPicker({ game, raid }: { game: GameState; raid: Raid }) {
         label={mon ? `Mandar a ${species(mon.speciesId).name}` : 'Mandar a luchar'}
         className="primary"
         disabled={!!blocker}
-        onClick={() => act((s) => joinRaid(s, mon.uid))}
+        onClick={() => (nickname() ? send() : setNaming(true))}
       />
+      {naming && <NicknameDialog onDone={send} onCancel={() => setNaming(false)} />}
     </>
   )
 }

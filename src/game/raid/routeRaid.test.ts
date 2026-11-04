@@ -10,11 +10,10 @@ import {
   advanceRouteRaid,
   currentRouteRaid,
   retreatRouteRaid,
-  ROUTE_RAID_FIRST_BOT_MS,
-  ROUTE_RAID_JOIN_MIN_HP,
   ROUTE_RAID_LIVES,
   ROUTE_RAID_RUNNING_CHANCE,
 } from './routeRaid'
+import { ROUTE_RAID_FIRST_BOT_MS, ROUTE_RAID_JOIN_MIN_HP } from './stopRoom'
 import { sparringSpecies } from './raid-test-utils'
 
 vi.mock('../../data/maps/kantoMaps', () => import('../core/test-map'))
@@ -118,18 +117,15 @@ describe('jefe comunitario de ruta', () => {
     expect(s.run!.raidRejoinHp).toBeNull()
   })
 
-  // it('si el jefe estaba por debajo del mínimo para unirse, entra en la sala más cercana que lo permite', () => {
-  //   const { s, raid } = arriveAtRaid()
-  //   raid.hp = 1
-  //   raid.members.find((m) => m.id === activeMon(s)!.uid)!.lives = 1
-  //   const me = raid.members.find((m) => m.id === activeMon(s)!.uid)!
-  //   me.hpFraction = Number.MIN_VALUE
-  //   // El golpe del jugador no debe tirar al jefe: lo deja sin daño fallando con rng alto en el ataque
-  //   //loseLastLifeBelowMin(s)
-  //   walk(s, Number.MAX_SAFE_INTEGER, NEW_ROOM)
-  //   const again = currentRouteRaid(s)!
-  //   expect(again.hp).toBe(Math.floor(again.maxHp * ROUTE_RAID_JOIN_MIN_HP) + 1)
-  // })
+  it('si el jefe estaba por debajo del mínimo para unirse, entra en la sala más cercana que lo permite', () => {
+    const { s, raid } = arriveAtRaid()
+    raid.hp = Math.round((raid.maxHp * ROUTE_RAID_JOIN_MIN_HP) / 2)
+    loseLastLife(s)
+    expect(s.run!.raidRejoinHp).toBeLessThan(ROUTE_RAID_JOIN_MIN_HP)
+    walk(s, Number.MAX_SAFE_INTEGER, NEW_ROOM)
+    const again = currentRouteRaid(s)!
+    expect(again.hp).toBe(Math.floor(again.maxHp * ROUTE_RAID_JOIN_MIN_HP) + 1)
+  })
 
   it('retirarse es una derrota y no da el premio del jefe', () => {
     const { s } = arriveAtRaid()

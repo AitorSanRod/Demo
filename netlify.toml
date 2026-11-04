@@ -1,0 +1,20 @@
+# Despliegue en Netlify (plan gratuito): la web estática de `dist` y la función de las salas compartidas de los
+# jefes comunitarios (netlify/functions/raid.mts), que guarda las salas en Netlify Blobs. Paso a paso: docs/servidor.md.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# `npx netlify dev`: la app de Vite y la función juntas en http://localhost:8888, con un Blobs local de pruebas
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+  port = 8888
+  framework = "#custom"

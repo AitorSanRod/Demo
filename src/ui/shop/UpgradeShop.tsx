@@ -6,6 +6,7 @@ import './shop.css'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
 import { RanchTypeShop } from './RanchTypeShop'
+import { StoneShop } from './StoneShop'
 
 /** Pestaña Tienda: mejoras permanentes que se pagan con pokécuartos */
 const UPGRADE_ICON: Record<UpgradeId, Item> = { expeditionSlots: ICON.Expedition, ranches: ICON.Ranch }
@@ -18,6 +19,7 @@ export function UpgradeShop({ game }: { game: GameState }) {
         <UpgradeCard key={id} game={game} id={id} />
       ))}
       <RanchTypeShop game={game} />
+      <StoneShop game={game} />
     </div>
   )
 }

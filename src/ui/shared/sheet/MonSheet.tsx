@@ -4,13 +4,17 @@ import type { Stats } from '../../../game/team/stats'
 import { ItemIcon } from '../ItemIcon'
 import './mon-sheet.css'
 
+interface HeroCorners {
+  topLeft?: ReactNode
+  topRight?: ReactNode
+  bottomLeft?: ReactNode
+}
+
 interface MonSheetProps {
   label: string
   hero: ReactNode
-  /** Botón sobre la esquina superior derecha de la cabecera (el corazón de favorito) */
-  heroCorner?: ReactNode
-  /** Botón sobre la esquina superior izquierda (la Poké Ball de compañero de viaje) */
-  heroCornerLeft?: ReactNode
+  /** Botones sobre las esquinas de la cabecera: compañero arriba a la izquierda, favorito a la derecha, curar abajo */
+  corners?: HeroCorners
   children: ReactNode
   onClose: () => void
 }
@@ -19,13 +23,14 @@ interface MonSheetProps {
  * Ficha a pantalla completa (rancho y Pokédex): la cabecera arriba, el contenido debajo y un botón redondo ✕ abajo
  * en el centro, siempre a la vista. Cubre la zona de contenido; el menú inferior sigue visible.
  */
-export function MonSheet({ label, hero, heroCorner, heroCornerLeft, children, onClose }: MonSheetProps) {
+export function MonSheet({ label, hero, corners = {}, children, onClose }: MonSheetProps) {
   return (
     <div className="mon-screen" role="dialog" aria-modal="true" aria-label={label}>
       <div className="mon-screen-top">
         {hero}
-        {heroCornerLeft && <div className="mon-hero-corner left">{heroCornerLeft}</div>}
-        {heroCorner && <div className="mon-hero-corner">{heroCorner}</div>}
+        {corners.topLeft && <div className="mon-hero-corner top-left">{corners.topLeft}</div>}
+        {corners.topRight && <div className="mon-hero-corner top-right">{corners.topRight}</div>}
+        {corners.bottomLeft && <div className="mon-hero-corner bottom-left">{corners.bottomLeft}</div>}
       </div>
       <div className="mon-card">{children}</div>
       <button className="mon-close" onClick={onClose} aria-label="Cerrar">

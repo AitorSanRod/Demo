@@ -7,11 +7,14 @@ export const RAID_ROOM_SIZE = 10
 /** Id del jefe en los golpes de una ronda */
 export const BOSS_ID = 'boss'
 
-/** Quién está detrás de un participante; los bots desaparecerán cuando haya jugadores reales */
-export const RaidMemberKind = { Player: 'player', Bot: 'bot' } as const
+/**
+ * Quién está detrás de un participante: `Player`, un Pokémon de este jugador; `Guest`, el de otro jugador real (solo
+ * en las salas compartidas del servidor); `Bot`, uno de relleno
+ */
+export const RaidMemberKind = { Player: 'player', Guest: 'guest', Bot: 'bot' } as const
 export type RaidMemberKind = (typeof RaidMemberKind)[keyof typeof RaidMemberKind]
 
-/** Un Pokémon de la sala. Los del jugador se identifican por su uid; los bots, por un id propio */
+/** Un Pokémon de la sala. Los del jugador se identifican por su uid; los demás, por un id propio de la sala */
 export interface RaidMember {
   id: string
   kind: RaidMemberKind
@@ -51,6 +54,21 @@ export interface RaidPlace {
   nodeId: string
 }
 
+/**
+ * Enlace de una sala con su copia compartida del servidor (ver raid/online/). `roomId` null: aún entrando (mientras,
+ * se juega en local); con id, el servidor manda y la sala local es solo su reflejo
+ */
+export interface RoomLink {
+  roomId: string | null
+  /** Rondas de EXP que el servidor ha contado a cada Pokémon del jugador (por uid) y ya se le han dado */
+  exp: Record<string, number>
+  /** Mientras entra en una parada: vida del jefe (fracción) si el servidor tiene que abrir una sala en marcha; null, nueva */
+  openHp: number | null
+}
+
+/** Enlace de una sala que espera sitio en una compartida del servidor */
+export const pendingLink = (openHp: number | null = null): RoomLink => ({ roomId: null, exp: {}, openHp })
+
 /** Un jefe comunitario y una sala luchando contra él */
 export interface Raid {
   boss: RaidBoss
@@ -69,6 +87,12 @@ export interface Raid {
   felled: number
   /** Contador para dar ids únicos a los bots */
   nextBotId: number
+  /** Milisegundos de juego desde que entró el último bot (o desde que apareció el jefe) */
+  sinceBotMs: number
+  /** Milisegundos de juego que faltan para que aparezca el jefe (pestaña Raids, tras caer el anterior); 0 si ya está */
+  startsInMs: number
+  /** Sala compartida del servidor de la que es reflejo; null si se juega solo en local */
+  remote: RoomLink | null
 }
 
 /** Premio de un jefe comunitario derrotado */

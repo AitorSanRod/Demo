@@ -4,8 +4,9 @@ Juego idle para móvil: tu Pokémon recorre las rutas y combate solo; tú eliges
 ruta y ruta, cuidas de tu equipo en el rancho, mandas al resto de expedición y consigues Pokémon nuevos juntando
 piezas del gacha.
 
-PWA con Vite + React + TypeScript, pensada para móvil en vertical. No tiene servidor: la partida se guarda en el
-navegador (`localStorage`).
+PWA con Vite + React + TypeScript, pensada para móvil en vertical. La partida se guarda en el navegador
+(`localStorage`), sin cuentas. Lo único que va por servidor son las salas compartidas de los jefes comunitarios: una
+función de Netlify con Netlify Blobs (ver [docs/servidor.md](docs/servidor.md)). Sin servidor, se juegan en local con bots.
 
 ## Arrancar
 
@@ -24,7 +25,14 @@ En desarrollo aparece en la barra superior un botón **⏱ x1 / x10 / x60** para
 Para **instalarla como app** (y para las notificaciones) hace falta HTTPS o `localhost`: publícala (ver abajo) y en
 el móvil usa «Añadir a pantalla de inicio».
 
+## Publicar en Netlify (con salas compartidas)
+
+Paso a paso en [docs/servidor.md](docs/servidor.md): se conecta el repositorio en Netlify y `netlify.toml` ya dice
+cómo compilar y dónde está la función. Para probarlo todo en local: `npx netlify dev` (http://localhost:8888).
+
 ## Publicar en GitHub Pages
+
+En GitHub Pages no hay servidor: los jefes comunitarios se juegan en local, con bots.
 
 El workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) publica la app en cada push a `main`:
 pasa `npm run check`, compila con `BASE_PATH=/<repositorio>/` (la web vive en
@@ -59,6 +67,7 @@ Las reglas y todos los números de balance están en [docs/diseno.md](docs/disen
 - [docs/diseno.md](docs/diseno.md): reglas del juego y dónde está cada número de balance.
 - [docs/arquitectura.md](docs/arquitectura.md): capas, estructura de carpetas, store, guardado y flujo de una ruta.
 - [docs/convenciones.md](docs/convenciones.md): estilo de código, tests y definición de terminado.
+- [docs/servidor.md](docs/servidor.md): servidor de salas compartidas en Netlify (plan gratuito), paso a paso.
 
 ## Scripts
 

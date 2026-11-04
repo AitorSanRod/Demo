@@ -9,6 +9,7 @@ import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { formatMinutes } from '../shared/format'
 import { discoveryReward, earningsRewards, levelUpReward } from '../shared/rewardItems'
 import { RewardOverlay, type RewardItem } from '../shared/RewardOverlay'
+import { RouteRow } from '../route/RouteRow'
 
 /** Pokémon de expedición: lo que les queda (con opción de cancelar) y, a los que han vuelto, el botón para recoger su premio */
 export function ExpeditionList({ game }: { game: GameState }) {
@@ -29,18 +30,18 @@ export function ExpeditionList({ game }: { game: GameState }) {
   }
 
   return (
-    <div className="card expedition-list">
+    <div className="route-list">
       {report && <RewardOverlay title={`¡${report.name} ha vuelto!`} items={report.items} onClose={() => setReport(null)} />}
-      {game.expeditions.length === 0 && <p className="small muted">Ningún Pokémon está de expedición.</p>}
+      {game.expeditions.length === 0 && <p className="card small muted">Ningún Pokémon está de expedición.</p>}
       {game.expeditions.map((e) => {
         const mon = findMon(game, e.uid)!
         const name = species(mon.speciesId).name
         const done = isExpeditionDone(e)
         const left = (e.durationMin - e.elapsedMin) / game.timeScale
         return (
-          <div key={e.uid} className="expedition-row">
-            <Sprite id={mon.speciesId} size={40} animated={false} />
-            <span className="grow small">
+          <RouteRow key={e.uid} route={route(e.routeId)}>
+            <Sprite id={mon.speciesId} size={56} animated={false} />
+            <span className="grow small expedition-info">
               <strong>
                 {name} <span className="muted">Nv. {mon.level}</span>
               </strong>
@@ -58,7 +59,7 @@ export function ExpeditionList({ game }: { game: GameState }) {
                 Cancelar
               </button>
             )}
-          </div>
+          </RouteRow>
         )
       })}
       {cancelling && (
