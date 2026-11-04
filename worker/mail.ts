@@ -26,16 +26,27 @@ const MAILS: Record<MailKind, { subject: string; body: (link: string) => string 
   },
 }
 
+/** Lo que respondió Brevo, para el registro del Worker (sin la clave) */
+async function describe(res: Response): Promise<string> {
+  const headers = [...res.headers].map(([k, v]) => `${k}: ${v}`).join('; ')
+  return `${res.status} ${res.statusText} | ${headers} | ${(await res.text().catch(() => '')) || '(sin cuerpo)'}`
+}
+
+/** Manda el correo; si Brevo falla, lo apunta en el registro y sigue (un correo perdido no debe romper la petición) */
 export async function sendMail(env: Env, to: string, kind: MailKind, link: string) {
   if (!env.BREVO_API_KEY || !env.MAIL_FROM) {
     console.log(`[correo sin enviar: faltan BREVO_API_KEY o MAIL_FROM] ${kind} para ${to}: ${link}`)
     return
   }
   const { subject, body } = MAILS[kind]
-  const res = await fetch(BREVO_API, {
-    method: 'POST',
-    headers: { 'api-key': env.BREVO_API_KEY, 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ sender: { email: env.MAIL_FROM, name: SENDER_NAME }, to: [{ email: to }], subject, htmlContent: body(link) }),
-  })
-  if (!res.ok) console.error(`Brevo no ha mandado el correo (${res.status}): ${await res.text()}`)
+  try {
+    const res = await fetch(BREVO_API, {
+      method: 'POST',
+      headers: { 'api-key': env.BREVO_API_KEY.trim(), 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ sender: { email: env.MAIL_FROM.trim(), name: SENDER_NAME }, to: [{ email: to }], subject, htmlContent: body(link) }),
+    })
+    if (!res.ok) console.error(`Brevo no ha mandado el correo ${kind} a ${to}: ${await describe(res)}`)
+  } catch (e) {
+    console.error(`No se ha podido hablar con Brevo para el correo ${kind} a ${to}: ${String(e)}`)
+  }
 }
