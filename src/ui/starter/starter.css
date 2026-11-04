@@ -71,3 +71,7 @@
 .starter-slot .sprite {
   align-items: center;
 }
+.starter-account {
+  align-self: center;
+  color: #fffc;
+}

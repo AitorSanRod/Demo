@@ -31,6 +31,8 @@ export default defineConfig({
       workbox: {
         // Por defecto solo se precachean js/css/html: se añaden las imágenes propias (fondo del rancho)
         globPatterns: ['**/*.{js,css,html,svg,png,jpg}'],
+        // Las plantillas de los correos de las cuentas las lee Netlify, no la app
+        globIgnores: ['emails/**'],
         // El servidor de salas (netlify/functions) no es una página de la app: que el service worker no la sirva
         navigateFallbackDenylist: [/^\/api\//],
         // Abre la app al tocar una notificación (expediciones terminadas)

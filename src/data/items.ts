@@ -29,6 +29,7 @@ export const ITEM = {
   ExpShare: 'exp-share',
   LockCapsule: 'lock-capsule',
   DynamaxBand: 'dynamax-band',
+  MemberCard: 'member-card',
 } as const
 export type Item = (typeof ITEM)[keyof typeof ITEM]
 

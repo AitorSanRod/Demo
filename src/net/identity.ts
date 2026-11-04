@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from 'react'
 import { cleanNickname } from '../game/raid/online/requests'
 
-// Quién es este dispositivo en las salas compartidas, sin cuentas: un id anónimo al azar y el apodo que elija el
-// jugador. Se guarda aparte de la partida (como el aviso de expediciones) para que sobreviva a los cambios de versión.
+// Quién es este dispositivo en las salas compartidas: el id de su cuenta si ha entrado en una (net/account.ts) o, si
+// no, un id anónimo al azar; y el apodo que elija el jugador. Se guarda aparte de la partida (como el aviso de
+// expediciones) para que sobreviva a los cambios de versión.
 
 const IDENTITY_KEY = 'pokerancho-online'
 
@@ -34,7 +35,14 @@ function save() {
 }
 save()
 
-export const playerId = (): string => identity.playerId
+/** Id de la cuenta con la que se ha entrado: con él, los asientos de las salas son los mismos en cualquier dispositivo */
+let accountId: string | null = null
+
+export function setAccountId(id: string | null) {
+  accountId = id
+}
+
+export const playerId = (): string => accountId ?? identity.playerId
 
 export const nickname = (): string | null => identity.nickname
 

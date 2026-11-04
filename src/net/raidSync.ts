@@ -65,13 +65,32 @@ async function flushLeaves() {
   }
 }
 
+let lastPlayerId: string | null = null
+
+/**
+ * Al entrar o salir de una cuenta cambia el id de jugador: sus Pokémon salen de las salas con el id anterior (la
+ * próxima consulta los sienta con el nuevo)
+ */
+async function leaveAsPreviousPlayer() {
+  const previous = lastPlayerId
+  lastPlayerId = playerId()
+  if (!previous || previous === lastPlayerId) return
+  for (const slot of ROOM_SLOTS) {
+    const req = roomRequest(getState(), slot)
+    if (req?.action === RaidAction.Sync) await postRaid({ ...req, mon: null, playerId: previous, nickname: who().nickname })
+  }
+}
+
+const ignoreNetwork = (e: unknown) => {
+  if (!(e instanceof RaidApiError)) throw e
+}
+
 async function step() {
   if (busy || document.hidden) return
   busy = true
   try {
-    await flushLeaves().catch((e: unknown) => {
-      if (!(e instanceof RaidApiError)) throw e
-    })
+    await leaveAsPreviousPlayer().catch(ignoreNetwork)
+    await flushLeaves().catch(ignoreNetwork)
     const now = Date.now()
     for (const slot of ROOM_SLOTS) await syncSlot(slot, now)
   } finally {

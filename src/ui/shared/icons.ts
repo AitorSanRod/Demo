@@ -18,6 +18,8 @@ export const ICON = {
   Shredder: ITEM.DnaSplicers,
   Settings: ITEM.VsSeeker,
   Notify: ITEM.SootheBell,
+  /** Cuenta y partida en la nube */
+  Account: ITEM.MemberCard,
   Box: ITEM.BoxLink,
   Heal: ITEM.Potion,
   Rest: ITEM.FullRestore,

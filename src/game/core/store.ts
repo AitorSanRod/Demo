@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
-import { initialState, restoreState, type GameState } from './state'
-import { backupTeam, parseTeamBackup, restoreTeam } from './teamBackup'
+import { stateFromSaved } from './cloudSave'
+import { initialState, type GameState } from './state'
+import { backupTeam } from './teamBackup'
 
 const SAVE_KEY = 'pokerancho-save'
 /** Copia del equipo que sobrevive a los cambios de versión (ver teamBackup.ts). Provisional hasta tener servidor */
@@ -11,24 +12,17 @@ const readJson = (key: string): unknown => {
   return raw ? JSON.parse(raw) : null
 }
 
-/** La partida guardada si es de esta versión; si no, una nueva con el equipo recuperado de su copia */
-function load(): GameState {
+const readSafely = (key: string): unknown => {
   try {
-    const saved = readJson(SAVE_KEY)
-    const restored = saved ? restoreState(saved as GameState) : null
-    if (restored) return restored
+    return readJson(key)
   } catch {
-    // Partida corrupta: se empieza de cero (intentando recuperar el equipo)
+    // Guardado corrupto o almacenamiento no disponible: como si no lo hubiera
+    return null
   }
-  const fresh = initialState()
-  try {
-    const backup = parseTeamBackup(readJson(TEAM_KEY))
-    if (backup) restoreTeam(fresh, backup)
-  } catch {
-    // Copia corrupta o almacenamiento no disponible: partida nueva sin equipo
-  }
-  return fresh
 }
+
+/** La partida guardada si es de esta versión; si no, una nueva con el equipo recuperado de su copia */
+const load = (): GameState => stateFromSaved(readSafely(SAVE_KEY), readSafely(TEAM_KEY))
 
 let state = load()
 const listeners = new Set<() => void>()
@@ -64,6 +58,13 @@ export function act<T>(recipe: (draft: GameState) => T): T {
   scheduleSave()
   listeners.forEach((l) => l())
   return result
+}
+
+/** Cambia la partida entera por otra (la de la nube, ver net/cloudSync.ts) y la guarda */
+export function replaceState(next: GameState) {
+  state = next
+  save()
+  listeners.forEach((l) => l())
 }
 
 /** Reiniciar borra también la copia del equipo: se empieza de verdad de cero, con el tutorial */

@@ -3,6 +3,8 @@ import { STARTERS } from '../../data/species'
 import { act } from '../../game/core/store'
 import { pickStarter, STARTER_PIECES } from '../../game/team/tutorial'
 import { Sprite } from '../shared/common'
+import { AccountStatus, useAccount } from '../../net/account'
+import { AccountDialog } from '../account/AccountDialog'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import './starter.css'
 
@@ -13,6 +15,9 @@ import './starter.css'
 export function StarterScreen() {
   const [opened, setOpened] = useState<number[]>([])
   const [chosen, setChosen] = useState<number | null>(null)
+  // En un dispositivo nuevo se puede entrar en la cuenta antes de elegir y seguir la partida de la nube
+  const [accountOpen, setAccountOpen] = useState(false)
+  const { status } = useAccount()
 
   return (
     <div className="screen starter">
@@ -42,6 +47,12 @@ export function StarterScreen() {
       <p className="starter-hint small">
         {opened.length === 0 ? 'Toca una Pokéball' : 'Toca una silueta para elegir a tu compañero'}
       </p>
+      {status === AccountStatus.Guest && (
+        <button className="btn ghost small starter-account" onClick={() => setAccountOpen(true)}>
+          ¿Ya tienes cuenta? Entrar
+        </button>
+      )}
+      {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
       {chosen !== null && (
         <ConfirmDialog
           title="¿Este será tu compañero?"

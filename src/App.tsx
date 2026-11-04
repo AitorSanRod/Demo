@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import type { Item } from './data/items'
 import { combinableCount } from './game/collection/pieces'
 import { TutorialStep } from './game/core/state'
+import { startAccount } from './net/account'
+import { startCloudSync } from './net/cloudSync'
 import { startRaidSync } from './net/raidSync'
+import { AccountHost } from './ui/account/AccountHost'
 import { act, useGame } from './game/core/store'
 import { tick } from './game/core/tick'
 import { isExpeditionDone } from './game/team/expedition'
@@ -41,6 +44,11 @@ export default function App() {
   }, [])
   // Salas compartidas de los jefes comunitarios: entrar, ponerse al día y avisar al salir
   useEffect(startRaidSync, [])
+  // Cuenta opcional: sesión, enlaces de los correos y partida en la nube
+  useEffect(() => {
+    void startAccount()
+    return startCloudSync()
+  }, [])
   useExpeditionNotifications(game)
 
   const badges: Record<Tab, boolean> = {
@@ -55,6 +63,7 @@ export default function App() {
     return (
       <div className="app">
         <StarterScreen />
+        <AccountHost game={game} />
       </div>
     )
   }
@@ -62,6 +71,7 @@ export default function App() {
   return (
     <div className="app">
       <TopBar game={game} />
+      <AccountHost game={game} />
 
       <main className="content">
         {tab === 'route' && <RouteScreen game={game} />}

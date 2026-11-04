@@ -1,0 +1,62 @@
+/* Cuenta: entrar, crearla, recuperar la contraseña y elegir partida */
+
+.account-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.account-modal h3 {
+  margin: 0;
+}
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.account-form .btn {
+  min-height: 44px;
+}
+.account-error {
+  margin: 0;
+  color: var(--red-dark);
+  font-weight: 700;
+}
+.account-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+}
+.account-link {
+  border: 0;
+  padding: 4px 0;
+  background: none;
+  color: var(--exp);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Elegir entre la partida de la nube y la de este dispositivo */
+.cloud-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cloud-choice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-2);
+}
+/* Los botones, abajo y a la misma altura aunque un título ocupe dos líneas */
+.cloud-choice-card .btn {
+  margin-top: auto;
+}
+.cloud-choice-card .tiny:last-of-type {
+  margin-bottom: 6px;
+}

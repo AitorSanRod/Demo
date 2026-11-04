@@ -100,3 +100,8 @@
   flex-direction: column;
   gap: 12px;
 }
+/* Netlify mete este botón al servir la página en el plan gratuito. */
+#nl-badge,
+#nl-card {
+  display: none !important;
+}
