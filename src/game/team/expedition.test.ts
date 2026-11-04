@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { route, RouteId } from '../../data/maps'
 import { POKEMON } from '../../data/pokemon'
 import { activeMon, initialState, MonPlace, monPlace } from '../core/state'
-import { EXP_PER_LEVEL } from '../battle/rewards'
 import { chooseStarter, seqRng } from '../core/test-utils'
 import { runBlocker } from '../run/run'
 import {
@@ -15,6 +14,7 @@ import {
   expeditionRewardMult,
   expeditionWinRate,
   isExpeditionDone,
+  scaleCount,
   sendExpedition,
 } from './expedition'
 import { createMon } from './mons'
@@ -81,12 +81,17 @@ describe('expediciones', () => {
     mon.level = route(RouteId.PuebloPaleta).levels[0]
     advanceExpeditions(s, duration)
     const mult = expeditionRewardMult(duration)
+    // Con rng muy bajo, la parte decimal del multiplicador siempre suma una unidad más
     const result = collectExpedition(s, mon.uid, () => 0.001)!
     expect(result.exp).toBeGreaterThan(0)
-    expect(result.exp % (EXP_PER_LEVEL * mult)).toBe(0)
-    expect(result.tickets).toBe(result.battles * mult)
-    expect(result.pieces).toHaveLength(result.battles * mult)
-    expect(result.money % mult).toBe(0)
+    expect(result.tickets).toBe(result.battles * Math.ceil(mult))
+    expect(result.pieces).toHaveLength(result.battles * Math.ceil(mult))
+  })
+
+  it('redondea las unidades: la parte decimal suma una más con su probabilidad y sin decimales no tira', () => {
+    expect(scaleCount(2, 1.5, () => 0.4)).toBe(3)
+    expect(scaleCount(2, 1.25, () => 0.6)).toBe(2)
+    expect(scaleCount(3, 2, () => { throw new Error('no debe tirar') })).toBe(6)
   })
 
   it('la expedición más larga rinde mucho más por minuto', () => {

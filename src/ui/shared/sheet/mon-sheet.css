@@ -20,8 +20,13 @@
   right: 10px;
   z-index: 1;
 }
-/* Corazón de favorito sobre el paisaje: gris si no lo es, rosa y con un latido al marcarlo */
-.favorite-button {
+.mon-hero-corner.left {
+  right: auto;
+  left: 10px;
+}
+/* Botones redondos de las esquinas de la cabecera: corazón de favorito y Poké Ball de compañero */
+.favorite-button,
+.companion-button {
   display: grid;
   place-items: center;
   width: 48px;
@@ -46,8 +51,35 @@
   fill: var(--favorite);
   stroke: var(--favorite);
 }
-.favorite-button.on svg {
+.favorite-button.on svg,
+.companion-button.on svg {
   animation: favorite-beat 0.35s ease-out;
+}
+/* Poké Ball de compañero: solo el contorno si no lo es; roja y blanca si lo es */
+.companion-button path,
+.companion-button circle {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.8;
+}
+.companion-button.on {
+  border-color: #fff;
+  background: rgb(255 255 255 / 0.9);
+  opacity: 1;
+}
+.companion-button.on path,
+.companion-button.on circle {
+  stroke: #222;
+}
+.companion-button.on .ball-top {
+  fill: var(--red);
+}
+.companion-button.on .ball-bottom,
+.companion-button.on .ball-button {
+  fill: #fff;
+}
+.companion-button:disabled:not(.on) {
+  opacity: 0.5;
 }
 @keyframes favorite-beat {
   50% {
@@ -133,7 +165,6 @@
 .mon-close {
   position: sticky;
   bottom: 16px;
-  left: 50%;
   z-index: 2;
   display: grid;
   place-items: center;

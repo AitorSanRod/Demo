@@ -59,7 +59,7 @@ describe('jefe comunitario de ruta', () => {
     expect(raid.members[1].kind).toBe(RaidMemberKind.Bot)
   })
 
-  it('al caer el jefe se completa la ruta y su premio va a lo ganado en ella, no a la pestaña Jefes', () => {
+  it('al caer el jefe se completa la ruta y su premio va a lo ganado en ella, no a la pestaña Raids', () => {
     const { s, raid } = arriveAtRaid()
     const money = s.money
     raid.hp = 1

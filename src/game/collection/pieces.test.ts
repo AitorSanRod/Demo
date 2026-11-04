@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { POKEMON } from '../../data/pokemon'
 import { Rarity, RARITY_INFO, rarityOf, species } from '../../data/species'
+import { boostedMoney } from '../battle/rewards'
 import { initialState } from '../core/state'
 import { chooseStarter, speciesOfRarity } from '../core/test-utils'
 import { createMon, NEW_MON_LEVEL } from '../team/mons'
@@ -118,7 +119,7 @@ describe('combine', () => {
     s.owned[0].stars = MAX_STARS
     s.money = 0
     addPieces(s, POKEMON.Bulbasaur, PIECES_PER_COMBINE)
-    const expected = RARITY_INFO[rarityOf(species(POKEMON.Bulbasaur))].surplusMoney
+    const expected = boostedMoney(RARITY_INFO[rarityOf(species(POKEMON.Bulbasaur))].surplusMoney)
     expect(combine(s, POKEMON.Bulbasaur)).toMatchObject({ kind: CombineKind.Money, money: expected })
     expect(s.money).toBe(expected)
     expect(s.owned[0].stars).toBe(MAX_STARS)

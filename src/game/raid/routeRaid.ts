@@ -1,4 +1,5 @@
 import { route, type Route, type RouteNode } from '../../data/maps'
+import type { RaidBoss } from '../../data/raidBosses'
 import { randInt, type Rng } from '../core/random'
 import { activeMon, type GameState } from '../core/state'
 import { completeRoute, faint } from '../run/runBattle'
@@ -11,7 +12,7 @@ import { RAID_ROOM_SIZE, type Raid, type RaidPlace, type RaidPrize } from './rai
 
 // Jefes comunitarios de las paradas de ruta (NodeKind.Raid): el Pokémon de la ruta llega, entra en una sala de esa
 // parada y lucha hasta que cae el jefe; los que llegan después se unen hasta llenarla. Su premio es parte del de la
-// ruta (sale en su resumen), no de la pestaña Jefes.
+// ruta (sale en su resumen), no de la pestaña Raids.
 
 /** Bots de una sala de parada: no hay mínimo; van llegando (como si acabaran la ruta), uno cada ≈40 s, hasta llenarla */
 export const ROUTE_RAID_BOTS: BotPolicy = { min: 0, max: RAID_ROOM_SIZE - 1, joinPerMinute: 1.5 }
@@ -22,12 +23,19 @@ export const ROUTE_RAID_RUNNING_CHANCE = 0.5
 /** Vida mínima del jefe (fracción de la total) para poder entrar en una sala en marcha; si no, se abre otra */
 export const ROUTE_RAID_JOIN_MIN_HP = 0.25
 
+/** Jefe comunitario de la parada; el mapa obliga a que tenga categoría de premios (ver maps.test.ts) */
+function stopBoss(n: RouteNode): RaidBoss {
+  const { boss } = n
+  if (!boss?.tier) throw new Error(`La parada ${n.id} no tiene jefe comunitario con categoría de premios`)
+  return { ...boss, tier: boss.tier }
+}
+
 /**
  * Sala que lleva un rato en marcha cuando llega el jugador: unos bots dentro y el jefe tocado, con vida por encima del
  * mínimo para unirse. El tiempo que llevan es el que habrían tardado en quitarle esa vida al ritmo de la sala
  */
 function runningRoom(s: GameState, n: RouteNode, place: RaidPlace, rng: Rng): Raid {
-  const raid = newRaid(n.boss!, place)
+  const raid = newRaid(stopBoss(n), place)
   const bots = randInt(1, RAID_ROOM_SIZE - 2, rng)
   for (let i = 0; i < bots; i++) addBot(raid, rng)
   // 1 − rng() está en (0, 1]: la vida queda siempre por encima del mínimo para unirse
@@ -43,7 +51,7 @@ function runningRoom(s: GameState, n: RouteNode, place: RaidPlace, rng: Rng): Ra
 export function enterRouteRaid(s: GameState, r: Route, n: RouteNode, rng: Rng) {
   const run = s.run!
   const place = { routeId: r.id, nodeId: n.id }
-  run.raid = rng() < ROUTE_RAID_RUNNING_CHANCE ? runningRoom(s, n, place, rng) : newRaid(n.boss!, place)
+  run.raid = rng() < ROUTE_RAID_RUNNING_CHANCE ? runningRoom(s, n, place, rng) : newRaid(stopBoss(n), place)
   addPlayer(s, run.raid, activeMon(s)!)
   run.phase = 'raid'
 }

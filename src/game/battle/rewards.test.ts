@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { Rarity } from '../../data/species'
 import { speciesOfRarity } from '../core/test-utils'
 import {
+  boostedMoney,
   EXP_LEVEL_GAP,
   EXP_PER_LEVEL,
   expReward,
   MONEY_BONUS_RANGE,
+  MONEY_GAIN_MULT,
   MONEY_PER_LEVEL,
   moneyReward,
   PIECE_DROP_CHANCE,
@@ -33,11 +35,17 @@ describe('ticketReward', () => {
 })
 
 describe('moneyReward', () => {
-  it('da el nivel del rival por MONEY_PER_LEVEL más un extra dentro de MONEY_BONUS_RANGE', () => {
+  it('da el nivel del rival por MONEY_PER_LEVEL más un extra dentro de MONEY_BONUS_RANGE, con el multiplicador de dinero', () => {
     const [min, max] = MONEY_BONUS_RANGE
     const level = 5
-    expect(moneyReward(level, () => 0)).toBe(Math.ceil(level * MONEY_PER_LEVEL) + min)
-    expect(moneyReward(level, () => 0.999)).toBe(Math.ceil(level * MONEY_PER_LEVEL) + max)
+    expect(moneyReward(level, () => 0)).toBe(boostedMoney(Math.ceil(level * MONEY_PER_LEVEL) + min))
+    expect(moneyReward(level, () => 0.999)).toBe(boostedMoney(Math.ceil(level * MONEY_PER_LEVEL) + max))
+  })
+
+  it('boostedMoney aplica MONEY_GAIN_MULT y redondea', () => {
+    const amount = 1000
+    expect(boostedMoney(amount)).toBe(Math.round(amount * MONEY_GAIN_MULT))
+    expect(boostedMoney(0)).toBe(0)
   })
 
   it('crece con el nivel del rival', () => {

@@ -2,7 +2,8 @@ import palletTown from '../../assets/routes/pallet-town.webp'
 import route1 from '../../assets/routes/route-1.webp'
 import viridianForest from '../../assets/routes/viridian-forest.webp'
 import { POKEMON } from '../pokemon'
-import { Biome, boss, chain, enc, NodeKind, RouteId, type GameMap } from './mapCommon'
+import { RaidTier } from '../raidBosses'
+import { Biome, boss, chain, enc, NodeKind, raidBoss, RouteId, type GameMap } from './mapCommon'
 
 export const KANTO: GameMap = {
   id: 'kanto',
@@ -13,7 +14,7 @@ export const KANTO: GameMap = {
       id: RouteId.PuebloPaleta,
       name: 'Pueblo Paleta',
       description: 'Tu primer paseo: da una vuelta por el pueblo antes de salir a la Ruta 1.',
-      biome: Biome.Meadow,
+      biome: Biome.PalletTown,
       backdrop: { image: palletTown, focusY: 45 },
       levels: [2, 3],
       encounters: enc([POKEMON.Pidgey, 40], [POKEMON.Rattata, 40], [POKEMON.Caterpie, 20]),
@@ -37,7 +38,7 @@ export const KANTO: GameMap = {
       levels: [5, 8],
       encounters: enc([POKEMON.Pidgey, 30], [POKEMON.Rattata, 30], [POKEMON.Caterpie, 13], [POKEMON.Weedle, 13], [POKEMON.NidoranF, 7], [POKEMON.NidoranM, 7]),
       reward: { tickets: 2, money: 400, exp: 250 },
-      unlocks: RouteId.BosqueVerde,
+      unlocks: RouteId.Ruta1Boss,
       nodes: chain(
         { id: 's', name: 'Salida del pueblo', kind: NodeKind.Start, steps: 0 },
         { id: 'a', name: 'Prado', kind: NodeKind.Wild, steps: 25 },
@@ -47,7 +48,22 @@ export const KANTO: GameMap = {
         { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
         { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
         { id: 'g', name: 'Hierba crecida', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 7) },
-        { id: 'h', name: 'Entrada a Ciudad Verde', kind: NodeKind.Raid, steps: 45, boss: { ...boss(POKEMON.Pidgeotto, 12), soloMinutes: 10 } },
+        { id: 'h', name: 'Entrada a Ciudad Verde', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Pidgeotto, 12, RaidTier.Low, { soloMinutes: 3 }) },
+      ),
+    },
+    {
+      id: RouteId.Ruta1Boss,
+      name: 'Ruta 1 - Jefe',
+      description: 'El camino a Ciudad Verde. Más largo y peligroso de lo que parece.',
+      biome: Biome.Meadow,
+      backdrop: { image: route1, focusY: 40 },
+      levels: [6, 10],
+      encounters: enc([POKEMON.Pidgey, 30], [POKEMON.Rattata, 30], [POKEMON.Caterpie, 13], [POKEMON.Weedle, 13], [POKEMON.NidoranF, 7], [POKEMON.NidoranM, 7]),
+      reward: { tickets: 1, money: 250, exp: 300 },
+      unlocks: RouteId.BosqueVerde,
+      nodes: chain(
+        { id: 's', name: 'Ruta 1', kind: NodeKind.Start, steps: 0 },
+        { id: 'a', name: 'Entrada a Bosque Verde', kind: NodeKind.Raid, steps: 30, boss: raidBoss(POKEMON.Pidgeotto, 10, RaidTier.Low, { soloMinutes: 3 }) },
       ),
     },
     {
@@ -56,9 +72,9 @@ export const KANTO: GameMap = {
       description: 'Un bosque frondoso lleno de Pokémon bicho.',
       biome: Biome.Forest,
       backdrop: { image: viridianForest, focusY: 50 },
-      levels: [9, 15],
+      levels: [9, 16],
       encounters: enc([POKEMON.Caterpie, 20], [POKEMON.Weedle, 20], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Pidgey, 8], [POKEMON.Oddish, 8], [POKEMON.Bellsprout, 8], [POKEMON.Pikachu, 6]),
-      reward: { tickets: 3, money: 400, exp: 350 },
+      reward: { tickets: 2, money: 400, exp: 350 },
       //unlocks: RouteId.MonteMoon,
       nodes: chain(
         { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
@@ -67,7 +83,8 @@ export const KANTO: GameMap = {
         { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
-        { id: 'f', name: 'Salida', kind: NodeKind.Raid, steps: 45, boss: boss(POKEMON.Pikachu, 20) },
+        { id: 'f', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Nidorino, 17, RaidTier.Low, { soloMinutes: 6 }) },
+        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Nidorina, 17, RaidTier.Low, { soloMinutes: 6 }) },
       ),
     }
     // {

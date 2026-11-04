@@ -1,4 +1,5 @@
 import type { PassiveRef } from '../passives'
+import type { RaidTier } from '../raidBosses'
 
 export interface Encounter {
   speciesId: number
@@ -13,14 +14,15 @@ export interface Encounter {
 export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss', Raid: 'raid' } as const
 export type NodeKind = (typeof NodeKind)[keyof typeof NodeKind]
 
-/** Fondo de la escena de caminar (ver src/ui/route/scenery/) */
-export const Biome = { Meadow: 'meadow', Forest: 'forest', Cave: 'cave', Sea: 'sea' } as const
+/** Fondo de la escena de caminar (ver src/ui/route/pixelScene/ y scenery/). PalletTown es solo de Pueblo Paleta */
+export const Biome = { Meadow: 'meadow', PalletTown: 'pallet-town', Forest: 'forest', Cave: 'cave', Sea: 'sea' } as const
 export type Biome = (typeof Biome)[keyof typeof Biome]
 
 /** Rutas por su id. El valor se guarda en la partida: no cambiarlo sin subir SAVE_VERSION */
 export const RouteId = {
   PuebloPaleta: 'pueblo-paleta',
   Ruta1: 'ruta-1',
+  Ruta1Boss: 'ruta-1-boss',
   BosqueVerde: 'bosque-verde',
   MonteMoon: 'monte-moon',
   RutaMarina: 'ruta-marina',
@@ -32,6 +34,8 @@ export interface Boss {
   speciesId: number
   level: number
   passives?: PassiveRef[]
+  /** Tabla de premios (`RAID_PRIZE_TABLES`) si es jefe comunitario: obligatoria en las paradas `NodeKind.Raid` */
+  tier?: RaidTier
   /** Minutos que tardaría en caer con un solo Pokémon de su nivel, si es jefe comunitario; sin él, RAID_SOLO_MINUTES */
   soloMinutes?: number
 }
@@ -94,6 +98,9 @@ export const enc = (...chances: [speciesId: number, chance: number][]): Encounte
 
 /** Jefe de una parada: `boss(POKEMON.Pidgeotto, 7)` */
 export const boss = (speciesId: number, level: number, passives?: PassiveRef[]): Boss => ({ speciesId, level, passives })
+
+/** Jefe comunitario de una parada `NodeKind.Raid`: `raidBoss(POKEMON.Pidgeotto, 12, RaidTier.Low, { soloMinutes: 10 })` */
+export const raidBoss = (speciesId: number, level: number, tier: RaidTier, opts: { soloMinutes?: number } = {}): Boss => ({ speciesId, level, tier, ...opts })
 
 /** Atajo para un camino sin bifurcar: cada nodo enlaza con el siguiente de la lista */
 type Stop = Omit<RouteNode, 'next'> & { steps: number }

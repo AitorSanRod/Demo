@@ -92,10 +92,12 @@ function popText(record: BattleRecord, frame: BattleFrame, side: Side): ReactNod
     if (side !== 'enemy' || record.outcome !== 'win') return ''
     return (
       <>
-        +₽ {record.rewards.money}
-        {record.rewards.exp > 0 && ` · +${record.rewards.exp} EXP`}
-        {record.rewards.tickets > 0 && <ItemIcon item={ICON.Ticket} size={20} />}
-        {record.rewards.piece && <ItemIcon item={ICON.Piece} size={20} />}
+        <span className="reward-money">
+          +₽ {record.rewards.money}
+          {record.rewards.tickets > 0 && <ItemIcon item={ICON.Ticket} size={20} />}
+          {record.rewards.piece && <ItemIcon item={ICON.Piece} size={20} />}
+        </span>
+        {record.rewards.exp > 0 && <span className="reward-exp">+{record.rewards.exp} EXP</span>}
       </>
     )
   }

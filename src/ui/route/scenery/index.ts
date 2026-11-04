@@ -1,11 +1,14 @@
 import type { Biome } from '../../../data/maps'
 import { cave } from './cave'
 import type { Scene } from './draw'
-import { forest } from './forest'
-import { meadow } from './meadow'
 import { sea } from './sea'
 
-export { SCALE, type SceneLayer } from './draw'
+export { SCALE, type SceneLayer, type Scene } from './draw'
 
-/** Escena de cada bioma; un bioma nuevo en data/maps/mapCommon.ts necesita aquí su escena */
-export const SCENES: Record<Biome, Scene> = { meadow, forest, cave, sea }
+/**
+ * Paisaje SVG de los biomas que aún no tienen escena pixel art (ver ../pixelScene). Un bioma nuevo en
+ * data/maps/mapCommon.ts necesita escena en uno de los dos sitios.
+ */
+const SCENES: Partial<Record<Biome, Scene>> = { cave, sea }
+
+export const svgSceneFor = (biome: Biome): Scene | undefined => SCENES[biome]

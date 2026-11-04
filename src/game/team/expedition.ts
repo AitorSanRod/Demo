@@ -9,9 +9,13 @@ import { gainExp, type LevelUpResult } from './stats'
 import { upgradeLevel } from './upgrades'
 
 /** Duraciones que se pueden elegir, en minutos de juego */
-export const EXPEDITION_DURATIONS = [15, 60, 240]
-/** Multiplicador de EXP, ₽, tickets y piezas según la duración en minutos, sobre lo que ya den sus combates */
-const DURATION_REWARD_MULT: Record<number, number> = { 15: 1, 60: 2, 240: 4 }
+export const EXPEDITION_DURATIONS = [15, 60, 240, 480]
+/**
+ * Multiplicador de EXP, ₽, tickets y piezas de cada victoria según la duración en minutos (las más largas ya tienen
+ * más combates). Si no es entero, cada ticket o pieza suelta saca el número de arriba con la probabilidad de la parte
+ * decimal (×2,5: 2 o 3, de media 2,5)
+ */
+const DURATION_REWARD_MULT: Record<number, number> = { 15: 1, 60: 2.5, 240: 3, 480: 3 }
 /** Probabilidad, por combate, de descubrir (marcar como vista) una especie no vista, según su rareza */
 const DISCOVERY_CHANCE: Record<Rarity, number> = { common: 0.15, rare: 0.1, epic: 0.075, legendary: 0.05 }
 /** Pokémon que pueden estar de expedición a la vez sin mejoras (cada mejora de la tienda suma 1) */
@@ -72,6 +76,13 @@ export const expeditionBattles = (durationMin: number): number =>
 
 export const expeditionRewardMult = (durationMin: number): number => DURATION_REWARD_MULT[durationMin]
 
+/** `amount × mult` en unidades enteras: la parte decimal se convierte en una unidad más con esa probabilidad */
+export function scaleCount(amount: number, mult: number, rng: Rng): number {
+  const scaled = amount * mult
+  const whole = Math.floor(scaled)
+  return scaled > whole && rng() < scaled - whole ? whole + 1 : whole
+}
+
 /** Marca como vista una especie nueva si se supera su probabilidad de descubrimiento; true si la descubre */
 function rollDiscovery(s: GameState, enemyId: number, rng: Rng): boolean {
   if (isSeen(s, enemyId) || rng() >= DISCOVERY_CHANCE[rarityOf(species(enemyId))]) return false
@@ -112,10 +123,10 @@ export function collectExpedition(s: GameState, uid: string, rng: Rng = Math.ran
     if (rollDiscovery(s, enemyId, rng)) result.discovered.push(enemyId)
     if (rng() >= winRate) continue
     result.wins++
-    result.exp += expReward(level, mon.level) * mult
-    result.money += moneyReward(level, rng) * mult
-    result.tickets += ticketReward(enemyId, rng) * mult
-    if (pieceReward(enemyId, rng)) result.pieces.push(...Array<number>(mult).fill(enemyId))
+    result.exp += Math.round(expReward(level, mon.level) * mult)
+    result.money += Math.round(moneyReward(level, rng) * mult)
+    result.tickets += scaleCount(ticketReward(enemyId, rng), mult, rng)
+    if (pieceReward(enemyId, rng)) result.pieces.push(...Array<number>(scaleCount(1, mult, rng)).fill(enemyId))
   }
 
   s.expeditions = s.expeditions.filter((x) => x !== e)

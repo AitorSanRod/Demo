@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { RARITY_INFO, rarityOf, species } from '../../../data/species'
+import { species } from '../../../data/species'
 import { isSeen, knownName } from '../../../game/collection/dex'
-import { canCombine, combine, combineBlocker, CombineKind, combineKind, combinePrice, PIECES_PER_COMBINE, piecesOf, type CombineResult } from '../../../game/collection/pieces'
+import { canCombine, combine, combineBlocker, CombineKind, combineKind, combinePrice, PIECES_PER_COMBINE, piecesOf, surplusMoney, type CombineResult } from '../../../game/collection/pieces'
 import { buyPiece, maxPiecesToBuy, pieceShardPrice } from '../../../game/collection/shredder'
 import { TutorialStep, type GameState } from '../../../game/core/state'
 import { act } from '../../../game/core/store'
@@ -28,7 +28,7 @@ export function TicketsSection({ game, speciesId }: { game: GameState; speciesId
   const kind = combineKind(game, speciesId)
   const blocker = combineBlocker(game, speciesId)
   const guided = game.tutorial === TutorialStep.Combine && canCombine(game, speciesId)
-  const price = kind === CombineKind.Money ? RARITY_INFO[rarityOf(species(speciesId))].surplusMoney : combinePrice(game, speciesId)
+  const price = kind === CombineKind.Money ? surplusMoney(speciesId) : combinePrice(game, speciesId)
   const shardPrice = pieceShardPrice(speciesId)
 
   return (

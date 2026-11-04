@@ -4,6 +4,7 @@ import type { GameState } from '../../../game/core/state'
 import type { EvolveResult } from '../../../game/team/evolution'
 import { trainPlan } from '../../../game/team/ranch'
 import { CareSection } from './CareSection'
+import { CompanionButton } from './CompanionButton'
 import { EvolvePanel } from './EvolvePanel'
 import { EvolveResultAnimation } from './EvolveResultAnimation'
 import { FavoriteButton } from './FavoriteButton'
@@ -33,7 +34,9 @@ export function PokemonSheet({ game, speciesId, onClose }: { game: GameState; sp
     <SpeciesHero speciesId={speciesId} seen={isSeen(game, speciesId)} />
   )
   return (
-    <MonSheet label={knownName(game, speciesId)} hero={hero} heroCorner={<FavoriteButton game={game} speciesId={speciesId} />} onClose={onClose}>
+    <MonSheet label={knownName(game, speciesId)} hero={hero} heroCorner={<FavoriteButton game={game} speciesId={speciesId} />}
+      heroCornerLeft={mon && <CompanionButton game={game} mon={mon} />}
+      onClose={onClose}>
       <MonOverview game={game} speciesId={speciesId} mon={mon} previewLevel={plan && plan.levelsGained > 0 ? plan.level : null} />
       {mon && <CareSection game={game} mon={mon} sessions={sessions} onSessionsChange={setSessions} />}
       <TicketsSection game={game} speciesId={speciesId} />

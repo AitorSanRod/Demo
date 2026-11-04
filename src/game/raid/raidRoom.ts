@@ -52,7 +52,7 @@ export interface RaidPlace {
 /** Un jefe comunitario y una sala luchando contra él */
 export interface Raid {
   boss: RaidBoss
-  /** Parada de ruta de la sala; null para el jefe de la pestaña Jefes */
+  /** Parada de ruta de la sala; null para el jefe de la pestaña Raids */
   place: RaidPlace | null
   hp: number
   maxHp: number
@@ -63,7 +63,7 @@ export interface Raid {
   round: number
   members: RaidMember[]
   lastRound: RaidHit[]
-  /** Jefes de la pestaña Jefes derrotados desde el principio: decide cuál sale ahora (0 en las salas de ruta) */
+  /** Jefes de la pestaña Raids derrotados desde el principio: decide cuál sale ahora (0 en las salas de ruta) */
   felled: number
   /** Contador para dar ids únicos a los bots */
   nextBotId: number

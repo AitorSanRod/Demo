@@ -12,7 +12,7 @@ import { RaidBattleScene } from './RaidBattleScene'
 import { shownBossHp } from './roundReplay'
 import './raid.css'
 
-/** Paisaje de la pelea del jefe de la pestaña Jefes (que no está en ninguna ruta), según su primer tipo */
+/** Paisaje de la pelea del jefe de la pestaña Raids (que no está en ninguna ruta), según su primer tipo */
 const TYPE_BIOME: Record<PokeType, Biome> = {
   normal: Biome.Meadow,
   fire: Biome.Cave,

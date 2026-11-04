@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laboratorio de fondos</title>
+    <link rel="stylesheet" href="./lab.css" />
+  </head>
+  <body>
+    <main class="lab">
+      <aside class="panel">
+        <h1>Laboratorio de fondos</h1>
+        <label>Escena <select id="scene"></select></label>
+        <label>Semilla
+          <span class="row"><input id="seed" type="number" min="1" value="1" /><button id="reseed" type="button">Otra</button></span>
+        </label>
+        <label>Pantalla <select id="viewport"></select></label>
+        <label>Pokémon <select id="species"></select></label>
+        <label>Velocidad <span class="row"><input id="speed" type="range" min="0.25" max="3" step="0.25" value="1" /><output id="speed-out">×1</output></span></label>
+        <button id="walk" type="button">Parar</button>
+        <div id="landmarks" class="stack"></div>
+        <label class="check"><input id="auto-landmark" type="checkbox" /> Una parada cada 12 s</label>
+        <fieldset id="layers"><legend>Capas</legend></fieldset>
+        <button id="export" type="button">Descargar capas (PNG)</button>
+        <p class="hint">Cada píxel del dibujo ocupa 3×3 píxeles de pantalla.</p>
+      </aside>
+      <section class="stage-wrap">
+        <div class="stage" id="stage">
+          <canvas id="back"></canvas>
+          <div class="walker" id="walker"><div class="shadow"></div><span class="sprite"><img id="walker-img" alt="" /></span></div>
+          <canvas id="front"></canvas>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

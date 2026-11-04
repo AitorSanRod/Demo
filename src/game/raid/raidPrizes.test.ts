@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { RAID_PRIZE_TABLE, RaidPrizeKind } from '../../data/raidBosses'
+import { RAID_PRIZE_TABLES, RaidPrizeKind, RaidTier } from '../../data/raidBosses'
+import { boostedMoney } from '../battle/rewards'
 import { isSeen } from '../collection/dex'
 import { seqRng } from '../core/test-utils'
 import { raidBossAt } from './raid'
@@ -16,8 +17,8 @@ const member = (presentMs: number, left: boolean) => ({
   left,
 })
 
-const sumOf = (kind: RaidPrizeKind, minChance = 0) =>
-  RAID_PRIZE_TABLE.filter((r) => r.kind === kind && r.chance >= minChance).reduce((a, r) => a + r.amount, 0)
+const sumOf = (kind: RaidPrizeKind, minChance = 0, tier = raidBossAt(0).tier) =>
+  RAID_PRIZE_TABLES[tier].filter((r) => r.kind === kind && r.chance >= minChance).reduce((a, r) => a + r.amount, 0)
 
 describe('premio del jefe', () => {
   it('cobra quien seguía dentro al caer, aunque llegara al final', () => {
@@ -39,15 +40,24 @@ describe('premio del jefe', () => {
     const prize = rollPrize(raidBossAt(0), seqRng(0))
     expect(prize).toEqual({
       bossSpeciesId: raidBossAt(0).speciesId,
-      money: sumOf(RaidPrizeKind.Money),
+      money: boostedMoney(sumOf(RaidPrizeKind.Money)),
       tickets: sumOf(RaidPrizeKind.Tickets),
       pieces: sumOf(RaidPrizeKind.BossPieces),
     })
   })
 
+  it('cada jefe tira la tabla de su categoría', () => {
+    for (const tier of Object.values(RaidTier)) {
+      const prize = rollPrize({ ...raidBossAt(0), tier }, seqRng(0))
+      expect(prize.money).toBe(boostedMoney(sumOf(RaidPrizeKind.Money, 0, tier)))
+      expect(prize.tickets).toBe(sumOf(RaidPrizeKind.Tickets, 0, tier))
+      expect(prize.pieces).toBe(sumOf(RaidPrizeKind.BossPieces, 0, tier))
+    }
+  })
+
   it('con la peor tirada solo salen las líneas seguras', () => {
     const prize = rollPrize(raidBossAt(0), seqRng(0.9999))
-    expect(prize.money).toBe(sumOf(RaidPrizeKind.Money, 1))
+    expect(prize.money).toBe(boostedMoney(sumOf(RaidPrizeKind.Money, 1)))
     expect(prize.tickets).toBe(sumOf(RaidPrizeKind.Tickets, 1))
     expect(prize.pieces).toBe(sumOf(RaidPrizeKind.BossPieces, 1))
   })

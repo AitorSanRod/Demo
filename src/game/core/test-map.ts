@@ -1,4 +1,5 @@
-import { boss, chain, enc, NodeKind, RouteId, Biome, type GameMap } from '../../data/maps/mapCommon'
+import { boss, chain, enc, NodeKind, raidBoss, RouteId, Biome, type GameMap } from '../../data/maps/mapCommon'
+import { RaidTier } from '../../data/raidBosses'
 import { POKEMON } from '../../data/pokemon'
 
 /**
@@ -48,7 +49,7 @@ export const KANTO: GameMap = {
       reward: { tickets: 1, money: 30, exp: 300 },
       nodes: chain(
         { id: 's', name: 'Inicio', kind: NodeKind.Start, steps: 0 },
-        { id: 'r', name: 'Jefe comunitario', kind: NodeKind.Raid, steps: 20, boss: boss(POKEMON.Snorlax, 10) },
+        { id: 'r', name: 'Jefe comunitario', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Snorlax, 10, RaidTier.Mid) },
       ),
     },
   ],

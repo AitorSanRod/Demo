@@ -27,7 +27,7 @@ export function RouteScreen({ game }: { game: GameState }) {
           <ItemIcon item={ICON.Expedition} size={22} /> Expediciones {returned > 0 && <span className="count-badge">{returned}</span>}
         </button>
         <button className={tab === 'raid' ? 'active' : ''} onClick={() => setTab('raid')}>
-          <ItemIcon item={ICON.Raid} size={22} /> Jefes {game.raidPrizes.length > 0 && <span className="count-badge">{game.raidPrizes.length}</span>}
+          <ItemIcon item={ICON.Raid} size={22} /> Raids {game.raidPrizes.length > 0 && <span className="count-badge">{game.raidPrizes.length}</span>}
         </button>
       </div>
       <div className="tabbed-body">

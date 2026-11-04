@@ -1,7 +1,7 @@
 import { NodeKind, type Boss, type Route, type RouteNode } from '../../data/maps'
 import { makeFighter, simulateBattle, type BattleRecord } from '../battle/battle'
 import { combineBonus } from '../battle/combatBonus'
-import { expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
+import { boostedMoney, expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
 import { addPieces } from '../collection/pieces'
 import { pickEncounter, randInt, type Rng } from '../core/random'
@@ -136,9 +136,10 @@ export function completeRoute(s: GameState, r: Route) {
   if (s.completedRoutes.includes(r.id)) return
   s.completedRoutes.push(r.id)
   s.tickets += r.reward.tickets
-  s.money += r.reward.money
+  const money = boostedMoney(r.reward.money)
+  s.money += money
   run.earned.tickets += r.reward.tickets
-  run.earned.money += r.reward.money
+  run.earned.money += money
   gainRunExp(s, r.reward.exp)
   if (r.unlocks && !s.unlockedRoutes.includes(r.unlocks)) s.unlockedRoutes.push(r.unlocks)
 }

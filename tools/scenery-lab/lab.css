@@ -1,0 +1,147 @@
+:root {
+  --bg: #15181d;
+  --panel: #1f242b;
+  --line: #333a44;
+  --text: #e8ecf1;
+  --muted: #9aa4b1;
+  --accent: #e3350d;
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.4 system-ui, sans-serif;
+}
+.lab {
+  display: flex;
+  gap: 24px;
+  padding: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.panel {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+.panel h1 {
+  font-size: 16px;
+  margin: 0;
+}
+.panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+}
+.panel label.check {
+  flex-direction: row;
+  align-items: center;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.row input[type='number'] {
+  width: 80px;
+}
+input,
+select,
+button {
+  font: inherit;
+  color: var(--text);
+  background: #2a3039;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+button {
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--accent);
+}
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
+.stage-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #000;
+}
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.walker {
+  position: absolute;
+  left: 40%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+/* Igual que .scene-walker y .sprite del juego: GIF animado pegado abajo en una caja de 128 px */
+.walker .sprite {
+  display: flex;
+  width: 128px;
+  height: 128px;
+  align-items: flex-end;
+  justify-content: center;
+  image-rendering: pixelated;
+  transform: scaleX(-1);
+  animation: hop 0.42s ease-in-out infinite;
+  filter: drop-shadow(0 2px 0 #0003);
+}
+.walker .shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 64px;
+  height: 10px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #0000002e;
+}
+.stage.paused .walker .sprite {
+  animation: none;
+}
+#front {
+  z-index: 2;
+}
+@keyframes hop {
+  50% {
+    transform: scaleX(-1) translateY(-6px);
+  }
+}

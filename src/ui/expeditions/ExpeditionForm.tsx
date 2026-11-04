@@ -41,7 +41,7 @@ export function ExpeditionForm({ game, mon }: { game: GameState; mon: OwnedMon }
         ))}
       </div>
       <p className="small muted">
-        ~{expeditionBattles(duration)} combates · {winPct}% de victorias · premios ×{mult}. Cada victoria da EXP, ₽ y a veces
+        ~{expeditionBattles(duration)} combates · {winPct}% de victorias · premios ×{mult.toLocaleString('es')}. Cada victoria da EXP, ₽ y a veces
         tickets (sin EXP si los rivales tienen más de {EXP_LEVEL_GAP} niveles menos), sin riesgo. Puede descubrir Pokémon nuevos.
         Se puede cancelar, pero entonces no gana nada.
       </p>

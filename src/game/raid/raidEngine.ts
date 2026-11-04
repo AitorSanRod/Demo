@@ -9,7 +9,7 @@ import { updateBots, type BotPolicy } from './raidBots'
 import { earnsPrize, rollPrize } from './raidPrizes'
 import { newMember, presentMembers, RaidMemberKind, type Raid, type RaidMember, type RaidPlace, type RaidPrize } from './raidRoom'
 
-// Lo común a todas las salas de jefe comunitario (la de la pestaña Jefes y las de las paradas de ruta): crearlas,
+// Lo común a todas las salas de jefe comunitario (la de la pestaña Raids y las de las paradas de ruta): crearlas,
 // entrar y salir, y avanzar sus rondas.
 
 /** Minutos de juego que tardaría en caer un jefe con un solo Pokémon de su nivel (sin bots ni más jugadores), si el jefe no dice los suyos */

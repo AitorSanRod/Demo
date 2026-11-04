@@ -16,6 +16,17 @@
   animation: scene-scroll linear infinite;
   pointer-events: none;
 }
+/* Lienzos de las escenas pixel art (pixelScene/): resolución de arte escalada sin suavizado */
+.scene-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.scene-canvas.front {
+  z-index: 1;
+}
 .scene.paused .scene-layer {
   animation-play-state: paused;
 }

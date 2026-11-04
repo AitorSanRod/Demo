@@ -12,7 +12,7 @@ import { RaidRoster } from './RaidRoster'
 import { RaidScene } from './RaidScene'
 import './raid.css'
 
-/** Pestaña Ruta › Jefes: el jefe comunitario, la sala luchando contra él y tu Pokémon en ella */
+/** Pestaña Ruta › Raids: el jefe comunitario, la sala luchando contra él y tu Pokémon en ella */
 export function RaidScreen({ game }: { game: GameState }) {
   const [report, setReport] = useState<RewardItem[] | null>(null)
   const raid = game.raid

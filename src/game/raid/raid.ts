@@ -6,7 +6,7 @@ import { RAID_BOTS } from './raidBots'
 import { addPlayer, advanceRoom, newRaid, playerMembers, removePlayer, settleFall } from './raidEngine'
 import { hasRoom, presentMembers, type Raid } from './raidRoom'
 
-// El jefe de la pestaña Jefes: siempre hay uno, se manda a un Pokémon del rancho y al caer sale el siguiente.
+// El jefe de la pestaña Raids: siempre hay uno, se manda a un Pokémon del rancho y al caer sale el siguiente.
 
 /** Pokémon del jugador que pueden estar a la vez en la sala */
 export const RAID_PLAYER_SLOTS = 1

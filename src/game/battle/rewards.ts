@@ -7,14 +7,20 @@ export const TICKET_DROP_CHANCE: Record<Rarity, number> = { common: 0.05, rare: 
 /** Probabilidad de que un salvaje derrotado suelte 1 pieza de su especie, según su rareza */
 export const PIECE_DROP_CHANCE: Record<Rarity, number> = { common: 0.05, rare: 0.05, epic: 0.05, legendary: 0.5 }
 
+/** Multiplicador de todo el dinero que se gana (combates, expediciones, premios de ruta y de jefes, tickets sobrantes) */
+export const MONEY_GAIN_MULT = 1.15
+
+/** Aplica MONEY_GAIN_MULT a una cantidad de pokécuartos ganada, redondeando al entero más cercano */
+export const boostedMoney = (amount: number): number => Math.round(amount * MONEY_GAIN_MULT)
+
 /** Pokécuartos por victoria por cada nivel del rival (se redondea hacia arriba) */
 export const MONEY_PER_LEVEL = 0.5
 /** Pokécuartos extra por victoria, al azar entre ambos valores (incluidos) */
 export const MONEY_BONUS_RANGE: readonly [number, number] = [2, 3]
 
-/** Pokécuartos por victoria: nivel del rival × MONEY_PER_LEVEL + MONEY_BONUS_RANGE al azar (3–7 ₽ de Nv. 2 a 8) */
+/** Pokécuartos por victoria: nivel del rival × MONEY_PER_LEVEL + MONEY_BONUS_RANGE al azar, con MONEY_GAIN_MULT */
 export function moneyReward(enemyLevel: number, rng: Rng): number {
-  return Math.ceil(enemyLevel * MONEY_PER_LEVEL) + randInt(MONEY_BONUS_RANGE[0], MONEY_BONUS_RANGE[1], rng)
+  return boostedMoney(Math.ceil(enemyLevel * MONEY_PER_LEVEL) + randInt(MONEY_BONUS_RANGE[0], MONEY_BONUS_RANGE[1], rng))
 }
 
 /** EXP por victoria por cada nivel del rival */

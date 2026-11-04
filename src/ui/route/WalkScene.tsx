@@ -1,7 +1,8 @@
 import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 import type { Biome } from '../../data/maps'
 import { Sprite } from '../shared/common'
-import { SCALE, SCENES, type SceneLayer } from './scenery'
+import { PIXEL, pixelSceneFor, usePixelScene } from './pixelScene'
+import { SCALE, svgSceneFor, type SceneLayer } from './scenery'
 import './scene.css'
 
 interface Floater {
@@ -23,7 +24,8 @@ function layerStyle(l: SceneLayer, speed: number): CSSProperties {
 }
 
 /**
- * Escena de caminar: el Pokémon avanza hacia la derecha mientras el paisaje se desplaza en parallax.
+ * Escena de caminar: el Pokémon avanza hacia la derecha mientras el paisaje se desplaza en parallax. Los biomas con
+ * escena pixel art (`pixelScene/`) se pintan en dos lienzos animados; el resto, con las capas SVG de `scenery/`.
  * `speed` multiplica la velocidad del scroll (Pokémon más rápidos = paisaje más rápido). `children` se pinta
  * sobre el suelo (p. ej. el combate) y puede usar `--ground` para colocarse a la altura del Pokémon. Sin `speciesId` no
  * camina nadie (p. ej. en la pelea contra un jefe comunitario, que pinta a los suyos).
@@ -46,7 +48,12 @@ export function WalkScene({
   onStep?: () => void
   children?: ReactNode
 }) {
-  const scene = SCENES[biome]
+  const pixelScene = pixelSceneFor(biome)
+  const svgScene = pixelScene ? undefined : svgSceneFor(biome)
+  const { container, back, front } = usePixelScene(pixelScene, moving, speed, PIXEL)
+  const ground = pixelScene ? pixelScene.walkerBottom * PIXEL : (svgScene?.walkerBottom ?? 0) * SCALE
+  const svgLayers = (layers: SceneLayer[] = []) =>
+    layers.map((l, i) => <div key={i} className="scene-layer" style={layerStyle(l, speed)} />)
   const [floaters, setFloaters] = useState<Floater[]>([])
   const nextId = useRef(0)
 
@@ -62,22 +69,21 @@ export function WalkScene({
 
   return (
     <div
-      className={`scene ${moving ? '' : 'paused'} ${scene.surf ? 'surf' : ''}`}
-      style={{ background: scene.sky, ['--ground' as string]: `${scene.walkerBottom * SCALE}px` }}
+      ref={container}
+      className={`scene ${moving ? '' : 'paused'} ${svgScene?.surf ? 'surf' : ''}`}
+      style={{ background: svgScene?.sky, ['--ground' as string]: `${ground}px` }}
       onPointerDown={onPointerDown}
     >
-      {scene.back.map((l, i) => (
-        <div key={i} className="scene-layer" style={layerStyle(l, speed)} />
-      ))}
+      {pixelScene && <canvas ref={back} className="scene-canvas" />}
+      {svgLayers(svgScene?.back)}
       {speciesId !== undefined && (
         <div className={`scene-walker ${walkerClass}`}>
           <div className="scene-shadow" />
           <Sprite id={speciesId} size={128} />
         </div>
       )}
-      {scene.front.map((l, i) => (
-        <div key={i} className="scene-layer" style={layerStyle(l, speed)} />
-      ))}
+      {pixelScene && <canvas ref={front} className="scene-canvas front" />}
+      {svgLayers(svgScene?.front)}
       {children}
       {floaters.map((f) => (
         <span key={f.id} className="floater" style={{ left: f.x, top: f.y }}>

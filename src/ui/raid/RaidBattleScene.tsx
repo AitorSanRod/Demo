@@ -18,7 +18,7 @@ const PARTY_SPRITE_SIZE = 96
 /** Desfase del balanceo de cada Pokémon del grupo, para que no se muevan todos a la vez */
 const IDLE_PHASE_S = 0.37
 
-/** La pelea de la pestaña Jefes: su propio paisaje, en una franja de la pantalla, con la pelea dentro */
+/** La pelea de la pestaña Raids: su propio paisaje, en una franja de la pantalla, con la pelea dentro */
 export function RaidBattleScene({ raid, biome, timeScale }: { raid: Raid; biome: Biome; timeScale: number }) {
   return (
     <div className="raid-stage">

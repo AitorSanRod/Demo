@@ -50,6 +50,10 @@ describe.each(KANTO.routes)('ruta $id', (r) => {
     }
   })
 
+  it('los jefes comunitarios tienen categoría de premios', () => {
+    for (const n of r.nodes) if (n.kind === NodeKind.Raid) expect(n.boss?.tier).toBeDefined()
+  })
+
   it('desbloquea una ruta existente', () => {
     if (r.unlocks) expect(KANTO.routes.map((x) => x.id)).toContain(r.unlocks)
   })

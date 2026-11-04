@@ -9,6 +9,8 @@ interface MonSheetProps {
   hero: ReactNode
   /** Botón sobre la esquina superior derecha de la cabecera (el corazón de favorito) */
   heroCorner?: ReactNode
+  /** Botón sobre la esquina superior izquierda (la Poké Ball de compañero de viaje) */
+  heroCornerLeft?: ReactNode
   children: ReactNode
   onClose: () => void
 }
@@ -17,11 +19,12 @@ interface MonSheetProps {
  * Ficha a pantalla completa (rancho y Pokédex): la cabecera arriba, el contenido debajo y un botón redondo ✕ abajo
  * en el centro, siempre a la vista. Cubre la zona de contenido; el menú inferior sigue visible.
  */
-export function MonSheet({ label, hero, heroCorner, children, onClose }: MonSheetProps) {
+export function MonSheet({ label, hero, heroCorner, heroCornerLeft, children, onClose }: MonSheetProps) {
   return (
     <div className="mon-screen" role="dialog" aria-modal="true" aria-label={label}>
       <div className="mon-screen-top">
         {hero}
+        {heroCornerLeft && <div className="mon-hero-corner left">{heroCornerLeft}</div>}
         {heroCorner && <div className="mon-hero-corner">{heroCorner}</div>}
       </div>
       <div className="mon-card">{children}</div>

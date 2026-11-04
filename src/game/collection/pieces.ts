@@ -1,4 +1,5 @@
 import { RARITY_INFO, rarityOf, species } from '../../data/species'
+import { boostedMoney } from '../battle/rewards'
 import { TutorialStep, type GameState } from '../core/state'
 import { createMon, NEW_MON_LEVEL } from '../team/mons'
 import { ranchWithRoom } from '../team/ranches'
@@ -36,6 +37,9 @@ export function combineKind(s: GameState, speciesId: number): CombineKind {
 }
 
 /** ₽ que cuesta combinar; el inicial del tutorial es gratis y cambiar piezas por ₽ no cuesta nada */
+/** ₽ por combinar tickets de un Pokémon que ya tiene las ★ al máximo */
+export const surplusMoney = (speciesId: number): number => boostedMoney(RARITY_INFO[rarityOf(species(speciesId))].surplusMoney)
+
 export function combinePrice(s: GameState, speciesId: number): number {
   const kind = combineKind(s, speciesId)
   if (kind === CombineKind.Money || s.tutorial === TutorialStep.Combine) return 0
@@ -77,7 +81,7 @@ export function combine(s: GameState, speciesId: number): CombineResult | null {
     mon.stars++
     return { kind, speciesId, stars: mon.stars }
   }
-  const money = RARITY_INFO[rarityOf(species(speciesId))].surplusMoney
+  const money = surplusMoney(speciesId)
   s.money += money
   return { kind, speciesId, money }
 }

@@ -15,7 +15,7 @@ export interface BotPolicy {
   joinPerMinute: number
 }
 
-/** Bots de la sala del jefe de la pestaña Jefes: siempre hay de 2 a 5 */
+/** Bots de la sala del jefe de la pestaña Raids: siempre hay de 2 a 5 */
 export const RAID_BOTS: BotPolicy = { min: 2, max: 5, joinPerMinute: 0.06 }
 /** Minutos de juego que se queda un bot, al azar entre ambos */
 export const RAID_BOT_STAY_MINUTES: readonly [number, number] = [15, 90]

@@ -41,6 +41,7 @@ export const TYPE_SCENERY: Record<PokeType, string> = {
 /** Fondo de la cabecera de una ruta según su bioma (los mismos fondos de combate) */
 export const BIOME_SCENERY: Record<Biome, string> = {
   [Biome.Meadow]: meadow,
+  [Biome.PalletTown]: meadow,
   [Biome.Forest]: forest,
   [Biome.Cave]: earthycave,
   [Biome.Sea]: beach,

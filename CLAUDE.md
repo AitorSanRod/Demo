@@ -46,12 +46,12 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Avance por la ruta / combates dentro de la ruta | `game/run/run.ts` / `game/run/runBattle.ts` |
 | Stats, EXP, niveles, ★, pasos | `game/team/stats.ts` |
 | Curar, entrenar, elegir activo, descanso | `game/team/ranch.ts` + `ui/shared/sheet/CareSection.tsx`, `TrainControl.tsx` |
-| Ficha del Pokémon, un solo componente para rancho y Pokédex: paisaje por tipo, arco de EXP, PS, secciones | `ui/shared/sheet/` (`PokemonSheet` (la ficha), `MonSheet` + `MonSection`, `SpeciesHero`, `CareSection`, `MovePanel`, `MonOverview` (Datos), `TicketsSection`, `FavoriteButton` (corazón de la cabecera), `CombineResultAnimation`, `HeroLayout`, `MonHero`, `LevelUpBurst`, `StepperAction` (− / + de entrenar y crear tickets), `scenery.ts`) |
+| Ficha del Pokémon, un solo componente para rancho y Pokédex: paisaje por tipo, arco de EXP, PS, secciones | `ui/shared/sheet/` (`PokemonSheet` (la ficha), `MonSheet` + `MonSection`, `SpeciesHero`, `CareSection`, `MovePanel`, `MonOverview` (Datos), `TicketsSection`, `FavoriteButton` (corazón de la cabecera), `CompanionButton` (Poké Ball de compañero, esquina izquierda), `CombineResultAnimation`, `HeroLayout`, `MonHero`, `LevelUpBurst`, `StepperAction` (− / + de entrenar y crear tickets), `scenery.ts`) |
 | Animación de crear y evolucionar | `ui/shared/sheet/EvolutionAnimation.tsx` |
 | Espacios, varios ranchos, Caja, arrastrar | `game/team/ranches.ts` + `ui/ranch/RanchMon`, `RanchSlots`, `BoxSheet`, `ranchLooks.ts` + `ui/shared/sheet/MovePanel` |
 | Evolución | `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` |
 | Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (el selector de Pokémon es `ui/shared/MonPicker.tsx`) |
-| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Jefes, `routeRaid` paradas de ruta, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster`, `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe y «Retirarse») |
+| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Raids, `routeRaid` paradas de ruta, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster`, `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe y «Retirarse») |
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
 | Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (`DexScreen`, `DexSection` el desplegable de cada Pokédex, `DexCell`; la ficha es `PokemonSheet`, la misma que el rancho) |
@@ -59,7 +59,9 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Gacha, trituradora, MissingNo | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
 | Rancho | `ui/ranch/RanchScreen.tsx` |
 | Pantalla de ruta: lista / diálogo de comenzar / en curso / combate | `ui/route/RouteMap`, `RouteStartDialog`, `RunView`, `RouteBattle` |
-| Escena de paseo y biomas / efectos de golpe | `ui/route/WalkScene.tsx`, `scenery/` / `HitEffect.tsx` |
+| Escena de paseo / efectos de golpe | `ui/route/WalkScene.tsx` / `HitEffect.tsx` |
+| Fondos de ruta por bioma: pixel art generado en canvas / SVG de los biomas que aún no lo tienen | `ui/route/pixelScene/` (`index.ts` bioma → escena, `usePixelScene`, `engine/`, `paint/`, `elements/`, `scenes/<bioma>/`) / `ui/route/scenery/` |
+| Banco de pruebas de los fondos pixel art (`/tools/scenery-lab/` con `npm run dev`) | `tools/scenery-lab/` (skill `fondos-pixel-art`) |
 | Menú inferior y pestañas | `App.tsx` |
 | Barra superior / ajustes y notificaciones | `ui/shared/TopBar.tsx` / `ui/settings/` |
 | Sprite, barras, chips de tipo y de ataque | `ui/shared/common.tsx` |
@@ -101,7 +103,7 @@ Si cambias una mecánica o la estructura, actualiza el documento correspondiente
 ## Skills del proyecto
 
 Hay skills en `.claude/skills/` para las tareas habituales: `nuevo-contenido`, `nueva-mecanica`,
-`nueva-pantalla` y `revision-limpia`. Úsalas cuando la tarea encaje.
+`nueva-pantalla`, `revision-limpia` y `fondos-pixel-art`. Úsalas cuando la tarea encaje.
 
 ## Fuera de alcance
 

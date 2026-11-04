@@ -33,7 +33,7 @@ src/
                       tutorial
     collection/       dex (vistos, capturados, favoritos), pieces, gacha, shredder
     raid/             raidEngine (lo común a toda sala: crear, entrar, salir, avanzar, reparto), raid (jefe de la
-                      pestaña Jefes), routeRaid (jefes de las paradas de ruta), raidRoom (tipos y sala), raidCombat
+                      pestaña Raids), routeRaid (jefes de las paradas de ruta), raidRoom (tipos y sala), raidCombat
                       (rondas), raidBots (bots de la sala), raidPrizes (reparto y recogida), raidEstimate (tiempo que falta)
   ui/
     shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
@@ -44,9 +44,10 @@ src/
     starter/          Elección del inicial (primer paso del tutorial)
     ranch/            Rancho (varios ranchos, arrastre, Caja); al tocar un Pokémon abre PokemonSheet
     settings/         Menú ⚙️ y notificaciones
-    route/            Pestaña Ruta: lista de rutas y diálogo de comenzar, ruta en curso, combate, escena (scenery/ por bioma)
+    route/            Pestaña Ruta: lista de rutas y diálogo de comenzar, ruta en curso, combate, escena por bioma
+                      (pixelScene/: pixel art generado y animado en canvas; scenery/: SVG de los biomas restantes)
     expeditions/      Enviar, seguir y recoger expediciones
-    raid/             Pestaña Ruta › Jefes y la pelea contra un jefe comunitario (RaidBattleScene: la escena de ruta con
+    raid/             Pestaña Ruta › Raids y la pelea contra un jefe comunitario (RaidBattleScene: la escena de ruta con
                       el grupo en filas desordenadas, partySpot; roundReplay reparte los golpes en el tiempo), lista de
                       la sala y enviar o retirar a tu Pokémon
     gacha/            Tiradas, apertura de la Pokéball, trituradora y tienda de MissingNo
@@ -89,7 +90,7 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/collection/gacha.ts` | Tiradas (piezas) y compra de tickets |
 | `game/collection/shredder.ts` | Trituradora (piezas → trozos de MissingNo) y compra de piezas con trozos |
 | `game/raid/raidEngine.ts` | Lo común a toda sala: vida del jefe, crear sala, entrar y salir, EXP, avanzar rondas (`advanceRoom`) y reparto al caer |
-| `game/raid/raid.ts` | Jefe de la pestaña Jefes: aparición, enviar y retirar, y el siguiente al caer |
+| `game/raid/raid.ts` | Jefe de la pestaña Raids: aparición, enviar y retirar, y el siguiente al caer |
 | `game/raid/routeRaid.ts` | Jefes de las paradas de ruta: al llegar, entrar en una sala de la parada o abrir otra; retirarse (derrota); al caer, la ruta sigue |
 | `game/raid/raidRoom.ts` | Tipos de la sala (`Raid`, `RaidMember`, `RaidPrize`) y quién está dentro |
 | `game/raid/raidCombat.ts` | Una ronda: todos pegan al jefe con la fórmula de siempre y el jefe pega a uno; revivir |
@@ -177,7 +178,7 @@ para que la UI los pinte: `ui/raid/roundReplay.ts` los reparte en orden a lo lar
 `roundMsLeft`), así la pelea se ve por turnos aunque el motor la juegue de golpe. Al caer el jefe, `settleFall` tira el premio de cada Pokémon del jugador que cobra, los saca
 de la sala y devuelve los premios: cada clase de sala decide qué hace con ellos.
 
-- **Pestaña Jefes** (`GameState.raid`, `place: null`): aparece al acabar el tutorial (`ensureRaid`) y siempre hay
+- **Pestaña Raids** (`GameState.raid`, `place: null`): aparece al acabar el tutorial (`ensureRaid`) y siempre hay
   uno. Se manda a un Pokémon del rancho; al caer, el premio queda pendiente en `GameState.raidPrizes` (se recoge en
   la pestaña) y sale el siguiente de `RAID_BOSSES` con los bots que siguen dentro.
 - **Paradas de ruta** (`NodeKind.Raid`, `Run.raid`, `place` = ruta y parada): al llegar el Pokémon de la ruta

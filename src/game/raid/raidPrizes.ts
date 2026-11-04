@@ -1,4 +1,5 @@
-import { RAID_PRIZE_TABLE, RaidPrizeKind, type RaidBoss } from '../../data/raidBosses'
+import { RAID_PRIZE_TABLES, RaidPrizeKind, type RaidBoss } from '../../data/raidBosses'
+import { boostedMoney } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
 import { addPieces } from '../collection/pieces'
 import type { Rng } from '../core/random'
@@ -14,7 +15,7 @@ export const presenceShare = (m: RaidMember, fightMs: number): number => (fightM
 /** Cobra quien estuvo dentro al menos RAID_MIN_PRESENCE de la pelea o quien seguía dentro cuando cayó el jefe */
 export const earnsPrize = (m: RaidMember, fightMs: number): boolean => !m.left || m.presentMs >= fightMs * RAID_MIN_PRESENCE
 
-/** Tira cada línea de la tabla de premios por separado */
+/** Tira cada línea de la tabla de premios de la categoría del jefe por separado */
 export function rollPrize(boss: RaidBoss, rng: Rng): RaidPrize {
   const prize: RaidPrize = { bossSpeciesId: boss.speciesId, money: 0, tickets: 0, pieces: 0 }
   const field: Record<RaidPrizeKind, 'money' | 'tickets' | 'pieces'> = {
@@ -22,7 +23,8 @@ export function rollPrize(boss: RaidBoss, rng: Rng): RaidPrize {
     [RaidPrizeKind.Tickets]: 'tickets',
     [RaidPrizeKind.BossPieces]: 'pieces',
   }
-  for (const roll of RAID_PRIZE_TABLE) if (rng() < roll.chance) prize[field[roll.kind]] += roll.amount
+  for (const roll of RAID_PRIZE_TABLES[boss.tier]) if (rng() < roll.chance) prize[field[roll.kind]] += roll.amount
+  prize.money = boostedMoney(prize.money)
   return prize
 }
 
@@ -34,7 +36,7 @@ export function applyPrize(s: GameState, p: RaidPrize) {
   if (p.pieces > 0) addPieces(s, p.bossSpeciesId, p.pieces)
 }
 
-/** Entrega los premios pendientes de los jefes de la pestaña Jefes */
+/** Entrega los premios pendientes de los jefes de la pestaña Raids */
 export function collectRaidPrizes(s: GameState): RaidPrize[] {
   const prizes = s.raidPrizes
   s.raidPrizes = []

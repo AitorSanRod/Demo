@@ -99,14 +99,14 @@ export interface GameState {
   expeditions: Expedition[]
   /** Jefe comunitario activo y la sala del jugador; null hasta acabar el tutorial */
   raid: Raid | null
-  /** Premios de los jefes de la pestaña Jefes derrotados, pendientes de recoger allí */
+  /** Premios de los jefes de la pestaña Raids derrotados, pendientes de recoger allí */
   raidPrizes: RaidPrize[]
   /** Multiplicador de tiempo (x1 = tiempo real); solo se puede cambiar en desarrollo, desde la barra superior */
   timeScale: number
   lastTick: number
 }
 
-export const SAVE_VERSION = 22
+export const SAVE_VERSION = 23
 
 export function initialState(): GameState {
   return {
