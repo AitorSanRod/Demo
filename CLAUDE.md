@@ -4,8 +4,9 @@ Juego idle tipo digivice: el jugador elige el camino antes de salir y su Pokémo
 En el rancho ve a todo su equipo, cura, entrena y elige compañero; manda al resto de expedición y consigue
 Pokémon nuevos juntando piezas del gacha. PWA para móvil en vertical.
 
-Stack: Vite 8 + React 19 + TypeScript 7 + Vitest. La partida se guarda en `localStorage`, sin cuentas; solo las salas
-de los jefes comunitarios van por servidor (función de Netlify + Netlify Blobs, `netlify/`), y sin él se juegan en local.
+Stack: Vite 8 + React 19 + TypeScript 7 + Vitest. La partida se guarda en `localStorage`; por servidor (funciones de
+Netlify + Netlify Blobs, `netlify/`) van las salas de los jefes comunitarios y, con cuenta opcional (Netlify Identity),
+la partida en la nube. Sin servidor se juega todo en local.
 
 ## Comandos
 
@@ -56,6 +57,7 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (`ExpeditionScreen` lista de rutas, `ExpeditionList` las que están en curso, `ExpeditionStartDialog` elegir Pokémon y duración; el selector es `ui/shared/MonPicker.tsx`) |
 | Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Raids, `routeRaid` paradas de ruta, `stopRoom` salas de parada sin la partida, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidWaiting` (espera entre jefes), `raidBiome`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster`, `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe y «Retirarse») |
 | Salas compartidas con otros jugadores: protocolo / lo que hace el servidor / la sala de la partida enlazada / conexión, apodo y cada cuánto se consulta / función y almacén | `game/raid/online/` (`protocol`, `sharedRoom` + `roomServer` + `requests`, `linkedRoom`) / `net/` (`raidSync`, `identity`, `raidApi`) + `ui/raid/NicknameDialog`, `RaidLinkNote` / `../netlify/functions/raid.mts`, `../netlify/lib/roomStore.ts`, `../netlify.toml` (despliegue: `docs/servidor.md`) |
+| Cuenta opcional y partida en la nube: decidir subir o bajar y recuperar copia / sesión y correos / subir y bajar / pantallas / función y almacén | `game/core/cloudSave.ts` / `net/account.ts` / `net/cloudSync.ts` / `ui/account/` (`AccountDialog`, `AccountHost`, `CloudChoiceDialog`, `AccountModal`) / `../netlify/functions/save.mts`, `../netlify/lib/saveStore.ts`, plantillas de correo en `../public/emails/` |
 | Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
 | Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (`DexScreen`, `DexSection` el desplegable de cada Pokédex, `DexCell`; la ficha es `PokemonSheet`, la misma que el rancho) |
@@ -102,7 +104,7 @@ Convenciones completas en [docs/convenciones.md](docs/convenciones.md).
 - [docs/arquitectura.md](docs/arquitectura.md): capas, estructura de carpetas, store, guardado, flujo de una ruta.
 - [docs/convenciones.md](docs/convenciones.md): estilo de código, tests y checklist de revisión.
 - [docs/fondos.md](docs/fondos.md): fondos pixel art de las rutas: estilo, motor, piezas y cómo crear uno nuevo.
-- [docs/servidor.md](docs/servidor.md): servidor de salas compartidas en Netlify (plan gratuito): despliegue y consumo.
+- [docs/servidor.md](docs/servidor.md): servidor en Netlify (plan gratuito): salas compartidas, cuentas y partida en la nube; despliegue y consumo.
 
 Si cambias una mecánica o la estructura, actualiza el documento correspondiente en el mismo cambio.
 

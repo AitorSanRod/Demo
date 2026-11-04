@@ -5,7 +5,7 @@
 ```
 src/data/   Datos estáticos y consultas sobre ellos. No conoce el estado de la partida.
 src/game/   Reglas del juego. Funciones puras sobre GameState. Sin React, sin DOM (salvo core/store.ts).
-src/net/    Conexión con el servidor de salas compartidas (fetch, identidad anónima, bucle de consultas).
+src/net/    Conexión con el servidor: salas compartidas, cuenta opcional (Netlify Identity) y partida en la nube.
 src/ui/     Componentes React. Leen GameState y disparan acciones con act().
 netlify/    Servidor (función de Netlify + almacén en Netlify Blobs). Solo lee y guarda: la lógica es la de src/game.
 scripts/    Utilidades de desarrollo (regenerar pokemon.json, iconos PWA). No se empaquetan.
@@ -43,7 +43,8 @@ src/
       online/         Salas compartidas: protocol (lo que se dicen juego y servidor), linkedRoom (la sala de la
                       partida enlazada a la del servidor), sharedRoom + roomServer (lo que hace el servidor),
                       requests (validar lo que le llega)
-  net/                identity (id anónimo y apodo), raidApi (fetch a /api/raid), raidSync (bucle de consultas)
+  net/                identity (id de jugador y apodo), raidApi (fetch a /api/raid), raidSync (bucle de consultas),
+                      account (cuenta con @netlify/identity), cloudSync (partida en la nube)
   ui/
     shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
                       barra superior, bocadillos del tutorial, ErrorBoundary
@@ -51,6 +52,7 @@ src/
                       secciones (MonOverview = Datos, CareSection, TicketsSection, EvolvePanel, MovePanel)
                       y la animación de aparición/evolución
     starter/          Elección del inicial (primer paso del tutorial)
+    account/          Cuenta: entrar, crearla, recuperar la contraseña (AccountDialog), elegir partida y avisos (AccountHost)
     ranch/            Rancho (varios ranchos, arrastre, Caja); al tocar un Pokémon abre PokemonSheet
     settings/         Menú ⚙️ y notificaciones
     route/            Pestaña Ruta: lista de rutas y diálogo de comenzar, ruta en curso, combate, escena por bioma
@@ -65,7 +67,9 @@ src/
     shop/             Mejoras
 netlify/
   functions/raid.mts  POST /api/raid: lee la sala de Blobs, llama a game/raid/online/roomServer y la guarda
+  functions/save.mts  GET / POST /api/save: la partida de la cuenta con sesión (getUser de @netlify/identity)
   lib/roomStore.ts    Salas en Netlify Blobs con escritura condicional (etag)
+  lib/saveStore.ts    Partidas de las cuentas en Netlify Blobs
 ```
 
 Cada pantalla tiene su CSS en su carpeta y lo importa su componente (`RanchScreen.tsx` → `ranch.css`). Los
@@ -119,6 +123,9 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/raid/online/roomServer.ts` | Las acciones del servidor: elegir sala (`pickRoom`), entrar y ponerse al día; caducidad |
 | `game/raid/online/requests.ts` | Validación de lo que llega al servidor y limpieza del apodo |
 | `net/raidSync.ts` | Bucle que entra, consulta y avisa de las salas dejadas; cada cuánto se consulta |
+| `game/core/cloudSave.ts` | Partida en la nube: qué hacer al conectar (`cloudAction`), recuperar una copia (`stateFromSaved`), resumen y validar la subida |
+| `net/account.ts` | Cuenta opcional con Netlify Identity: sesión, enlaces de los correos, entrar, crearla, recuperar la contraseña |
+| `net/cloudSync.ts` | Subir y bajar la partida de la cuenta; conflictos entre dispositivos |
 
 ## Store y acciones
 
@@ -241,6 +248,24 @@ Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servid
   sigue en local.
 - **Concurrencia**: cada escritura lleva el etag leído (`onlyIfMatch`); si otro jugador escribió antes, se repite
   la petición entera (hasta 5 veces).
+
+## Cuentas y partida en la nube
+
+Opcionales. La cuenta es de Netlify Identity (email y contraseña; Netlify guarda las contraseñas y manda los correos
+de confirmar y recuperar). `net/account.ts` usa `@netlify/identity` en el navegador: al abrir la app procesa los
+enlaces de los correos (`handleAuthCallback`) y recupera la sesión. La sesión viaja en la cookie `nf_jwt`;
+`netlify/functions/save.mts` la comprueba con `getUser()` (contra Identity) y solo acepta subidas desde la propia web
+(`verifyRequestOrigin`).
+
+- **Una partida por cuenta**, en Blobs (`saves`, `user/<id>`): `CloudSave` = la partida, la copia del equipo (por si
+  es de otra `SAVE_VERSION`) y una revisión. Se sube encima de la revisión que el dispositivo vio por última vez
+  (`CloudLink`, en `localStorage` aparte de la partida); si en la nube hay otra más nueva, el servidor responde 409
+  con ella y el dispositivo la carga (`replaceState`): gana la última subida.
+- **Al conectar** (`cloudAction`): sin copia, se sube; si la de aquí ya es de la cuenta, se baja si hay revisión nueva
+  y si no se sube; si no, se pregunta cuál conservar (salvo que la de aquí esté sin empezar).
+- **Raids**: con sesión, el id de jugador es el de la cuenta (`setAccountId`), así los asientos son los mismos en
+  cualquier dispositivo; al cambiar de id, `raidSync` saca de las salas los asientos del anterior. El apodo se guarda
+  también en la cuenta (`user_metadata.nickname`).
 
 ## Notificaciones
 

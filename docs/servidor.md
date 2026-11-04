@@ -1,8 +1,10 @@
-# Servidor de salas compartidas (Netlify, plan gratuito)
+# Servidor en Netlify (plan gratuito)
 
-Las salas de los jefes comunitarios (pestaña Raids y paradas de ruta) se comparten entre jugadores a través de una
-función de Netlify que guarda las salas en Netlify Blobs. No hay cuentas: cada dispositivo tiene un id anónimo y un
-apodo. Todo lo demás de la partida sigue en el navegador.
+Dos cosas van por servidor, las dos con funciones de Netlify que guardan en Netlify Blobs:
+
+- **Salas compartidas** de los jefes comunitarios (pestaña Raids y paradas de ruta).
+- **Cuentas opcionales** con email y contraseña (Netlify Identity) para guardar la partida en la nube y seguirla en
+  otro dispositivo. Sin cuenta se juega igual: la partida vive en el navegador y en las raids se usa un id anónimo.
 
 Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.md#salas-compartidas-servidor).
 
@@ -11,13 +13,16 @@ Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.
 | Pieza | Dónde |
 |---|---|
 | Configuración del despliegue (build, carpeta publicada, funciones, Node 22) | `netlify.toml` |
-| La función: `POST /api/raid` | `netlify/functions/raid.mts` |
+| La función de salas: `POST /api/raid` | `netlify/functions/raid.mts` |
+| La función de partidas: `GET` / `POST /api/save` (solo con sesión) | `netlify/functions/save.mts` |
+| Las partidas en Netlify Blobs (almacén `saves`, se crea solo) | `netlify/lib/saveStore.ts` |
+| Plantillas de los correos en español | `public/emails/confirmation.html`, `public/emails/recovery.html` |
 | Las salas en Netlify Blobs (almacén `raid-rooms`, se crea solo) | `netlify/lib/roomStore.ts` |
 | Lógica del servidor (la misma del juego, con tests) | `src/game/raid/online/` |
-| Cliente: id anónimo y apodo, llamadas y cada cuánto consulta | `src/net/` |
+| Cliente: cuenta, partida en la nube, id y apodo, llamadas y cada cuánto consulta | `src/net/` |
 
-No hace falta configurar ninguna variable de entorno, clave ni base de datos: Netlify Blobs viene incluido en el
-plan gratuito y la función lo encuentra sola.
+No hace falta configurar ninguna variable de entorno, clave ni base de datos: Netlify Blobs e Identity vienen
+incluidos en el plan gratuito y las funciones los encuentran solas. Identity sí hay que activarlo (paso a paso abajo).
 
 ## Paso a paso: publicar
 
@@ -46,6 +51,36 @@ plan gratuito y la función lo encuentra sola.
 
 Desde entonces, cada `git push` a `main` vuelve a desplegar solo.
 
+## Paso a paso: activar las cuentas (Netlify Identity)
+
+Hasta hacer esto, *Ajustes › Cuenta* dirá que no se ha podido conectar con el servidor de cuentas; lo demás funciona
+igual.
+
+1. **Activa Identity.** En el panel del proyecto: *Project configuration → Identity → Enable Identity*.
+2. **Registro abierto.** En *Identity → Registration*, deja *Registration preferences* en **Open** (cualquiera puede
+   crearse una cuenta) y deja **sin** marcar *Autoconfirm*: así cada cuenta nueva tiene que confirmar el email.
+3. **Proveedores externos**: no hace falta ninguno (solo email y contraseña).
+4. **Correos en español.** En *Identity → Emails*, en cada plantilla pulsa *Edit settings*:
+   - *Confirmation template*: asunto `Confirma tu cuenta de Pokérancho`, ruta `/emails/confirmation.html`.
+   - *Recovery template*: asunto `Recupera tu contraseña de Pokérancho`, ruta `/emails/recovery.html`.
+
+   Las plantillas se publican con la web: si cambias el texto, haz push y espera al despliegue.
+5. **Pruébalo.** En la web: *Ajustes (engranaje) › Cuenta › Crear una cuenta*. Te llega un correo (mira en spam).
+   Al abrir el enlace vuelves a la web con la sesión iniciada y la partida se sube sola. En otro dispositivo, en la
+   pantalla del inicial, pulsa «¿Ya tienes cuenta? Entrar» y sigues con esa partida.
+6. **Ver las cuentas**: *Identity* en el panel lista los usuarios; desde ahí se pueden borrar o mandarles un correo
+   de recuperar contraseña. Sus partidas están en *Blobs → saves* (`user/<id>`).
+
+### Cómo se guarda la partida
+
+- Con sesión iniciada se sube cada 2 minutos con la app delante, al pasar la app a segundo plano y al pulsar
+  *Guardar ahora*. Al abrir la app o volver a ella se mira si otro dispositivo ha subido una más nueva.
+- **Gana la última partida subida.** Si juegas en dos dispositivos a la vez, cuando uno ha subido y lo intenta el
+  otro, este carga la del primero y avisa. Se pierde lo jugado en el segundo desde su última subida.
+- La primera vez que entras en un dispositivo que ya tiene partida, si la cuenta también tiene una, se pregunta cuál
+  conservar (con un resumen de cada una). En un dispositivo sin empezar se baja la de la cuenta sin preguntar.
+- Al cerrar sesión se sube lo último y la partida se queda en el dispositivo, sin cuenta.
+
 ### GitHub Pages
 
 El workflow de GitHub Pages (`.github/workflows/deploy.yml`) sigue funcionando, pero allí no hay servidor: las raids
@@ -54,11 +89,16 @@ se juegan en local, con bots. Si te quedas con Netlify, puedes desactivarlo en G
 
 ## Probar en local
 
-- `npm run dev`: solo la app. No hay servidor, así que las raids se juegan en local con bots (como antes).
-- `npx netlify dev`: la app y la función juntas en <http://localhost:8888>, con un Netlify Blobs local de pruebas.
-  La primera vez descarga la CLI de Netlify. No hace falta iniciar sesión para probar.
+- `npm run dev`: solo la app. No hay servidor, así que las raids se juegan en local con bots (como antes) y las
+  cuentas no están disponibles.
+- `npx netlify dev`: la app y las funciones juntas en <http://localhost:8888>, con un Netlify Blobs local de
+  pruebas. La primera vez descarga la CLI de Netlify. Para las cuentas hace falta además enlazar el proyecto
+  (`npx netlify login` y `npx netlify link`): en local se usa el Identity del sitio publicado.
 
 ## Lo que gasta del plan gratuito
+
+Identity está incluido en el plan gratuito. La documentación de Netlify indica usuarios activos ilimitados, aunque
+alguna fuente habla de un tope (del orden de 1 000): míralo en *Identity* dentro del panel.
 
 Netlify tiene dos esquemas de plan gratuito, según cuándo creaste la cuenta. Mira cuál es el tuyo en
 *Team settings → Billing* y el consumo en *Usage*:
@@ -83,7 +123,11 @@ horas con la app abierta en otra pestaña. Si se queda corto, sube `WATCH_SYNC_M
 `src/net/raidSync.ts` (con más tiempo entre consultas, la pelea se ve a saltos: se ve la última ronda de cada
 consulta). Cada despliegue también gasta: si vas justo, no hagas push por cada cambio pequeño.
 
-Blobs: cada sala ocupa unos pocos KB y se borra sola tras 24 h sin consultas (`ROOM_TTL_MS`).
+Las partidas en la nube suman ≈ 30 subidas por hora y jugador con la app delante (`UPLOAD_EVERY_MS` en
+`src/net/cloudSync.ts`), más una consulta al abrir o volver a la app.
+
+Blobs: cada sala ocupa unos pocos KB y se borra sola tras 24 h sin consultas (`ROOM_TTL_MS`). Cada partida, unas
+decenas de KB (máximo 1 MB, `MAX_SAVE_BYTES`).
 
 ## Mantenimiento
 
@@ -97,11 +141,11 @@ Blobs: cada sala ocupa unos pocos KB y se borra sola tras 24 h sin consultas (`R
 
 ## Límites que conviene saber
 
-- **Sin cuentas no hay protección contra trampas**: quien sepa mandar peticiones a mano puede inventarse el nivel
-  de su Pokémon. El servidor valida que los datos tengan sentido (especie existente, nivel 1–100, apodo limpio), pero
-  no puede comprobar la partida, que solo está en el navegador.
-- **El id está en el navegador**: si se borran los datos del sitio, el dispositivo es un jugador nuevo para el
-  servidor (pierde las salas en las que estaba, no la partida).
+- **No hay protección contra trampas**: la partida la juega el navegador y el servidor solo la guarda. Quien sepa
+  mandar peticiones a mano puede inventarse su partida o el nivel de su Pokémon en las raids. El servidor valida que
+  los datos tengan sentido (especie existente, nivel 1–100, apodo limpio), pero no puede comprobar la partida.
+- **Sin cuenta, todo está en el navegador**: si se borran los datos del sitio se pierde la partida y el dispositivo
+  es un jugador nuevo para las raids. Con cuenta se recupera entrando otra vez.
 - **No es tiempo real al milisegundo**: el servidor juega la sala cuando alguien consulta y cada cliente pregunta
   cada pocos segundos. Para un juego idle basta; para algo más rápido harían falta WebSockets, que el plan
   gratuito de Netlify no tiene.

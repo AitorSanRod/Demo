@@ -5,8 +5,9 @@ ruta y ruta, cuidas de tu equipo en el rancho, mandas al resto de expedición y 
 piezas del gacha.
 
 PWA con Vite + React + TypeScript, pensada para móvil en vertical. La partida se guarda en el navegador
-(`localStorage`), sin cuentas. Lo único que va por servidor son las salas compartidas de los jefes comunitarios: una
-función de Netlify con Netlify Blobs (ver [docs/servidor.md](docs/servidor.md)). Sin servidor, se juegan en local con bots.
+(`localStorage`). Por servidor van las salas compartidas de los jefes comunitarios y, con una cuenta opcional (email y
+contraseña), la partida en la nube: funciones de Netlify con Netlify Blobs e Identity (ver
+[docs/servidor.md](docs/servidor.md)). Sin servidor, todo se juega en local.
 
 ## Arrancar
 
@@ -67,7 +68,7 @@ Las reglas y todos los números de balance están en [docs/diseno.md](docs/disen
 - [docs/diseno.md](docs/diseno.md): reglas del juego y dónde está cada número de balance.
 - [docs/arquitectura.md](docs/arquitectura.md): capas, estructura de carpetas, store, guardado y flujo de una ruta.
 - [docs/convenciones.md](docs/convenciones.md): estilo de código, tests y definición de terminado.
-- [docs/servidor.md](docs/servidor.md): servidor de salas compartidas en Netlify (plan gratuito), paso a paso.
+- [docs/servidor.md](docs/servidor.md): servidor en Netlify (plan gratuito): salas compartidas y cuentas, paso a paso.
 
 ## Scripts
 
