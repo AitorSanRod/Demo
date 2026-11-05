@@ -1,57 +1,57 @@
-// Colores de Ciudad Plateada al atardecer: cielo de violeta a naranja, montañas rocosas, edificios de piedra
-// gris templada por la luz cálida, calles empedradas y farolas encendidas. Cada rampa va de oscuro a claro.
+// Colores de Ciudad Plateada de día: el cielo y las nubes del prado, montañas rocosas grises y pardas, edificios de
+// piedra gris con tejados de colores, el museo de piedra clara, el gimnasio de roca y calles de losas grises.
+// Cada rampa va de oscuro a claro.
 
-import { hex, palette, rgba } from '../../paint/pixmap'
+import { hex, palette, TRANSPARENT } from '../../paint/pixmap'
 
-/** Cielo de arriba (violeta) al horizonte (naranja claro) */
-export const SKY = palette('#3c3a78', '#5a4688', '#80508e', '#a85a8c', '#cc6a84', '#e8806e', '#f69a62', '#fbb66a')
-/** Sol bajo: halo, borde y centro */
-export const SUN = { glow: rgba('#ffd890', 0.35), rim: hex('#ffd27a'), core: hex('#fff1c4') }
-/** Nubes del atardecer: sombra violeta, rosa, salmón y canto iluminado */
-export const CLOUD = palette('#8e5c8e', '#c47a94', '#eea092', '#ffd2a6')
 /** Cordillera lejana, azulada por la distancia */
-export const FAR_MOUNTAINS = palette('#6a4e7a', '#7c5a84', '#906890', '#a6789a')
+export const FAR_MOUNTAINS = palette('#6a86a8', '#7a96b6', '#8ea8c4', '#a4bcd2')
 /** Montañas rocosas cercanas: grieta, sombra, base, luz y cara al sol */
-export const MOUNTAINS = palette('#5a3e4a', '#744c50', '#8e5c56', '#ac705c', '#cc8a66')
+export const MOUNTAINS = palette('#6a6260', '#82786e', '#9a8e7e', '#b4a690', '#cec0a4')
 
-/** Césped del atardecer: sombra, base, luz y brillo */
-export const LAWN = palette('#4a7a3c', '#5a8c42', '#6e9e48', '#88b052')
-/** Copas: hueco, sombra, base, luz y brillo */
-export const TREES = palette('#1c3826', '#284e30', '#386636', '#52803e', '#76984a')
-export const TREES_INK = hex('#142a1c')
+/** Césped: sombra, base, luz y brillo */
+export const LAWN = palette('#5aa838', '#6cbc40', '#84cc4c', '#9cd85c')
 /** Setos recortados: hueco, sombra, base, luz y brillo */
-export const HEDGE = { colors: palette('#1a3a24', '#245030', '#326838', '#4a8240', '#6c9c4c'), ink: hex('#122a1a') }
+export const HEDGE = { colors: palette('#1a5a2a', '#277534', '#3a9040', '#58aa48', '#7cc458'), ink: hex('#124420') }
 
 /** Losas de piedra de calles y aceras: sombra, base, luz y brillo; `MORTAR`, juntas */
-export const PAVING = palette('#7c7282', '#8e8492', '#9e929c', '#b2a3a6')
-export const MORTAR = hex('#5e5468')
+export const PAVING = palette('#a0a0a6', '#b0b0b4', '#bcbcbe', '#cacac8')
+export const MORTAR = hex('#86868e')
 /** Bordillo: sombra, base y canto iluminado */
-export const CURB = palette('#6e6676', '#a49aa2', '#d6c6bc')
+export const CURB = palette('#7e7e86', '#b4b4b8', '#e2e2e0')
 
-const STONE_WALL = { wall: palette('#7e7480', '#968a92', '#b6a8a8', '#d4c2b8'), wallInk: hex('#463e4c') }
-const SANDSTONE_WALL = { wall: palette('#8e7462', '#a8866e', '#c8a282', '#e2bc98'), wallInk: hex('#4e3a30') }
-/** Ventanas encendidas: marco (oscuro, base y luz) y luz de dentro (sombra, base y reflejo) */
-const LIT = { wood: palette('#3e2a28', '#5e4038', '#8a6450'), glass: palette('#c47a3a', '#f2b456', '#fff0b0'), brick: palette('#5e3a36', '#7e4e44', '#a06a58') }
-/** Ventanas que reflejan el cielo */
-const DUSK = { ...LIT, glass: palette('#6a5a96', '#c47c9a', '#ffd2b4') }
+const STONE_WALL = { wall: palette('#8c8e98', '#a4a6ae', '#c4c6cc', '#dfe0e4'), wallInk: hex('#4a4c56') }
+const WINDOWS = { wood: palette('#4a3a34', '#6e5a4e', '#9a8270'), glass: palette('#3c7cc0', '#5ea8e0', '#d8f0fc'), brick: palette('#6e6a6a', '#8e8888', '#aea8a6') }
 
-export const SLATE_HOUSE = { roof: palette('#3e4262', '#525878', '#727896'), roofInk: hex('#22243c'), ...STONE_WALL, ...LIT }
-export const TEAL_HOUSE = { roof: palette('#2a585e', '#386e72', '#56908a'), roofInk: hex('#16323a'), ...STONE_WALL, ...DUSK }
-export const RUST_HOUSE = { roof: palette('#6e342e', '#8c4438', '#b0624a'), roofInk: hex('#3a1a18'), ...SANDSTONE_WALL, ...LIT }
-/** Edificio grande (el museo): piedra arenisca y tejado de pizarra */
-export const MUSEUM = { roof: palette('#3e4262', '#525878', '#727896'), roofInk: hex('#22243c'), ...SANDSTONE_WALL, ...DUSK }
+export const RED_HOUSE = { roof: palette('#b83a2e', '#d8503a', '#f07858'), roofInk: hex('#5e1a16'), ...STONE_WALL, ...WINDOWS }
+export const BLUE_HOUSE = { roof: palette('#3a64b0', '#4a80d0', '#70a0e8'), roofInk: hex('#1a2c5c'), ...STONE_WALL, ...WINDOWS }
+export const GREEN_HOUSE = { roof: palette('#2e7a4a', '#3c955a', '#5cb070'), roofInk: hex('#143a24'), ...STONE_WALL, ...WINDOWS }
+export const SLATE_HOUSE = { roof: palette('#4c5266', '#626a80', '#80889c'), roofInk: hex('#262a38'), ...STONE_WALL, ...WINDOWS }
 
-/** Farolas: hierro (contorno, sombra, base y luz), cristal encendido (borde, base, centro) y halo */
+/** Museo: piedra clara, frontón de tejado gris y pórtico en sombra */
+export const MUSEUM = {
+  stone: palette('#a8a49a', '#c8c4b8', '#e2ded2', '#f6f4ec'),
+  ink: hex('#5a564e'),
+  roof: palette('#6a6e7c', '#8a8e9a', '#aeb2bc'),
+  shadow: palette('#3e3c44', '#5a5862'),
+}
+/** Gimnasio: sillares grises y pardos, puerta de madera oscura y peñascos */
+export const GYM = {
+  stone: palette('#5a5650', '#7e7870', '#9a9286', '#b6ae9e', '#d0c8b6'),
+  ink: hex('#3a3632'),
+  door: palette('#3a2a22', '#5a4232', '#7e5e46'),
+  rocks: { colors: palette('#4e5058', '#686a72', '#84868c', '#a2a4a8', '#c0c2c4'), ink: hex('#34363c') },
+}
+
+/** Farolas de día: hierro y cristal apagado, sin halo */
 export const LAMP = {
-  iron: palette('#1e1a28', '#302a3c', '#463e56', '#6a6080'),
-  light: palette('#e8a040', '#ffd668', '#fff6c8'),
-  glow: rgba('#ffd890', 0.28),
+  iron: palette('#2a2c36', '#3e404c', '#565866', '#787a88'),
+  light: palette('#a8b4c0', '#d8e2ea', '#f4f8fc'),
+  glow: TRANSPARENT,
 }
 
 export const FOUNTAIN = {
-  stone: palette('#867c88', '#ada0a6', '#d2c2ba'),
-  stoneInk: hex('#463e4c'),
-  water: palette('#4a6ab0', '#8a9ad0', '#ffd8c0'),
+  stone: palette('#9aa0ac', '#c4c8d0', '#e4e6ec'),
+  stoneInk: hex('#4a4e5a'),
+  water: palette('#3a8ad8', '#6ab8f0', '#d8f0ff'),
 }
-/** Madera del cartel: oscuro, sombra, base, luz y brillo */
-export const WOOD = palette('#4a2c22', '#6e4430', '#8e5a3a', '#b87a50', '#d89c6a')

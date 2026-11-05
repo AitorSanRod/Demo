@@ -1,57 +1,12 @@
-// Fondo de Ciudad Plateada al atardecer: cielo de violeta a naranja, sol bajo detrás de las montañas, nubes
-// alargadas y dos cordilleras rocosas sin contorno (la cara que mira a la izquierda, al sol, más clara).
+// Montañas de Ciudad Plateada: dos cordilleras rocosas sin contorno con picos, la cara que mira a la izquierda (la luz)
+// más clara. El cielo y las nubes son los del prado.
 
-import { cumulus } from '../../elements/clouds'
-import { between, makeRng, periodicWave, valueNoise } from '../../paint/noise'
+import { makeRng, periodicWave, valueNoise } from '../../paint/noise'
 import { Pixmap, type Color } from '../../paint/pixmap'
-import { ramp, verticalGradient } from '../../paint/shade'
-import { CLOUD, FAR_MOUNTAINS, MOUNTAINS, SKY, SUN } from './palette'
-
-/** Altura sobre el borde inferior donde el cielo llega a su tono más cálido (detrás de las montañas) */
-const HORIZON = 130
-/** Sol: radio del disco y del halo, en píxeles de arte, y ancho de la tesela (un sol por pantalla ancha) */
-const SUN_SIZE = { radius: 13, glow: 19, tile: 420 }
+import { ramp } from '../../paint/shade'
+import { FAR_MOUNTAINS, MOUNTAINS } from './palette'
 
 type Waves = readonly [cycles: number, amp: number, phase: number][]
-
-export function sky(height: number): Pixmap {
-  const pix = new Pixmap(16, height)
-  verticalGradient(pix, SKY, 0, Math.max(2, height - HORIZON), 0)
-  pix.rect(0, height - HORIZON, 16, HORIZON, SKY[SKY.length - 1])
-  return pix
-}
-
-/** Sol grande y bajo con un halo suave; la cordillera le tapa la parte de abajo */
-export function sun(): Pixmap {
-  const pix = new Pixmap(SUN_SIZE.tile, SUN_SIZE.glow * 2 + 1)
-  const cx = 70
-  const cy = SUN_SIZE.glow
-  for (let y = 0; y < pix.h; y++)
-    for (let x = cx - SUN_SIZE.glow; x <= cx + SUN_SIZE.glow; x++) {
-      const d = Math.hypot(x - cx, y - cy)
-      if (d <= SUN_SIZE.radius - 2) pix.set(x, y, SUN.core)
-      else if (d <= SUN_SIZE.radius) pix.set(x, y, SUN.rim)
-      else if (d <= SUN_SIZE.glow) pix.set(x, y, SUN.glow)
-    }
-  return pix
-}
-
-/** Nubes bajas y alargadas teñidas por el atardecer */
-export function clouds(seed: number): Pixmap {
-  const rng = makeRng(seed)
-  const pix = new Pixmap(380, 50)
-  cumulus(pix, rng, { x: 120, baseY: 46, width: 120, height: 18 }, CLOUD)
-  cumulus(pix, rng, { x: 300, baseY: 30, width: 60, height: 9 }, CLOUD)
-  return pix
-}
-
-/** Nubecillas sueltas en lo alto */
-export function wisps(seed: number): Pixmap {
-  const rng = makeRng(seed + 1)
-  const pix = new Pixmap(300, 40)
-  for (let i = 0; i < 3; i++) cumulus(pix, rng, { x: i * 100 + between(rng, 0, 50), baseY: Math.round(between(rng, 10, 36)), width: between(rng, 14, 26), height: between(rng, 3, 5) }, CLOUD)
-  return pix
-}
 
 /**
  * Cordillera rocosa: picos (la suma de ondas con el valor absoluto de una de ellas) y caras planas a dos tonos según

@@ -2,6 +2,7 @@
 // jardines con valla blanca junto al camino.
 
 import { flowerBed, picketFence } from '../../elements/fence'
+import { chimneyTop, house } from '../../elements/house'
 import { houseRow, type TownStyle } from '../../elements/houseRow'
 import { bush } from '../../elements/shrubs'
 import { makeRng } from '../../paint/noise'
@@ -9,10 +10,12 @@ import { Pixmap } from '../../paint/pixmap'
 import { GRASS, NEAR_TREES, NEAR_TREES_INK, TRUNK, TRUNK_INK } from '../meadow/palette'
 import { BED_FLOWERS, BIG_BUILDING, BLUE_HOUSE, FENCE, GARDEN_BUSH, LAWN, MORTAR, ORANGE_HOUSE, PAVING, RED_HOUSE, SAND, SAND_INK, SOIL } from './palette'
 
+/** Edificio grande: ancho a escala 1, en píxeles de arte */
+const BIG_WIDTH = 104
+
 const STYLE: TownStyle = {
   houses: [ORANGE_HOUSE, BLUE_HOUSE, RED_HOUSE],
-  /** Edificio grande: ancho a escala 1, en píxeles de arte */
-  big: { palette: BIG_BUILDING, width: 104 },
+  big: [{ draw: (scale) => house(BIG_BUILDING, BIG_WIDTH, scale), chimney: (scale) => chimneyTop(BIG_WIDTH, scale) }],
   lawn: LAWN,
   trees: { leaves: { colors: NEAR_TREES, ink: NEAR_TREES_INK }, trunk: { colors: TRUNK, ink: TRUNK_INK } },
   street: { fill: SAND[1], top: SAND[0], ink: SAND_INK },

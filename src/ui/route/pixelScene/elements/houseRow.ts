@@ -11,11 +11,17 @@ import { walkway, type WalkwayPalette } from './walkway'
 /** Ancho de una casa normal a escala 1, en píxeles de arte */
 const HOUSE_WIDTH = 64
 
+/** Edificio especial de la fila: cómo se dibuja a una escala y, si tiene chimenea, dónde sale el humo */
+export interface Landmark {
+  draw: (scale: number) => Pixmap
+  chimney?: (scale: number) => { x: number; y: number }
+}
+
 /** Colores y piezas de un pueblo o una ciudad */
 export interface TownStyle {
   houses: readonly HousePalette[]
-  /** Edificio grande (segundo de la fila, si la fila lo lleva): paleta y ancho a escala 1 */
-  big: { palette: HousePalette; width: number }
+  /** Edificios especiales, si la fila los lleva: van en los puestos 2.º, 4.º… de la fila */
+  big: readonly Landmark[]
   /** Césped de oscuro a claro */
   lawn: readonly Color[]
   trees: TreePalette
@@ -55,14 +61,18 @@ export function houseRow(seed: number, row: Row, style: TownStyle): { pixmap: Pi
   const pix = new Pixmap(row.width, row.height)
   const top = lawn(pix, rng, row.lawn, row.grass.map((i) => style.lawn[i]), seed)
   const images = Array.from({ length: row.houses }, (_, i) => {
-    const big = row.bigBuilding && i === 1
-    const palette = big ? style.big.palette : pick(rng, style.houses)
-    const width = big ? style.big.width : HOUSE_WIDTH
+    const special = row.bigBuilding && i % 2 === 1 ? style.big[(i - 1) / 2] : undefined
+    if (special) {
+      const scale = between(rng, ...row.scale)
+      const chimney = special.chimney?.(scale)
+      return { image: special.draw(scale), chimney, smokes: chimney !== undefined && rng() < style.smokeChance }
+    }
+    const palette = pick(rng, style.houses)
     const scale = between(rng, ...row.scale)
     const floors = style.floors ? Math.round(between(rng, style.floors[0] - 0.49, style.floors[1] + 0.49)) : 1
-    return { image: house(palette, width, scale, floors), chimney: chimneyTop(width, scale), smokes: rng() < style.smokeChance }
+    return { image: house(palette, HOUSE_WIDTH, scale, floors), chimney: chimneyTop(HOUSE_WIDTH, scale), smokes: rng() < style.smokeChance }
   })
-  if (!images.some((entry) => entry.smokes)) pick(rng, images).smokes = true
+  if (!images.some((entry) => entry.smokes)) pick(rng, images.filter((entry) => entry.chimney)).smokes = true
   const free = row.width - images.reduce((sum, { image }) => sum + image.w, 0)
   const weights = images.map(() => between(rng, 0.5, 1.5))
   const total = weights.reduce((a, b) => a + b, 0)
@@ -85,7 +95,7 @@ export function houseRow(seed: number, row: Row, style: TownStyle): { pixmap: Pi
     const base = laneY(door) - Math.round(between(rng, 3, 6))
     walkway(pix, door, base, image.w * 0.12, laneY(door), style.walkway)
     pix.stamp(image, hx, base - image.h)
-    if (smokes) emitters.push({ x: hx + chimney.x, y: base - image.h + chimney.y })
+    if (smokes && chimney) emitters.push({ x: hx + chimney.x, y: base - image.h + chimney.y })
   }
   const widest = gaps.indexOf(Math.max(...gaps))
   broadTree(pix, rng, placed[widest].x - gaps[widest] * 0.4, pix.h - 2, row.tree[1], 8, style.trees)

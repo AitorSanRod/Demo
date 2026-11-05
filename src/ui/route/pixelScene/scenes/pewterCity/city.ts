@@ -1,21 +1,22 @@
-// Planos de la ciudad: dos filas de edificios de piedra de varias plantas sobre césped (ver elements/houseRow),
-// y el paseo junto al camino con farolas, setos recortados y algún árbol.
+// Planos de la ciudad: dos filas de edificios de piedra de varias plantas sobre césped (ver elements/houseRow), con
+// el museo y el gimnasio en la fila cercana, y el paseo junto al camino con farolas, setos recortados y algún árbol.
 
+import { gym } from '../../elements/gym'
 import { houseRow, type TownStyle } from '../../elements/houseRow'
 import { lamppost } from '../../elements/lamppost'
+import { museum } from '../../elements/museum'
 import { trimmedHedge } from '../../elements/shrubs'
 import { broadTree } from '../../elements/trees'
 import { between, makeRng } from '../../paint/noise'
 import { Pixmap } from '../../paint/pixmap'
-import { TRUNK, TRUNK_INK } from '../meadow/palette'
-import { HEDGE, LAMP, LAWN, MORTAR, MUSEUM, PAVING, RUST_HOUSE, SLATE_HOUSE, TEAL_HOUSE, TREES, TREES_INK } from './palette'
+import { NEAR_TREES, NEAR_TREES_INK, TRUNK, TRUNK_INK } from '../meadow/palette'
+import { BLUE_HOUSE, GREEN_HOUSE, GYM, HEDGE, LAMP, LAWN, MORTAR, MUSEUM, PAVING, RED_HOUSE, SLATE_HOUSE } from './palette'
 
-const TREE_PALETTE = { leaves: { colors: TREES, ink: TREES_INK }, trunk: { colors: TRUNK, ink: TRUNK_INK } }
+const TREE_PALETTE = { leaves: { colors: NEAR_TREES, ink: NEAR_TREES_INK }, trunk: { colors: TRUNK, ink: TRUNK_INK } }
 
 const STYLE: TownStyle = {
-  houses: [SLATE_HOUSE, TEAL_HOUSE, RUST_HOUSE],
-  /** El museo: ancho a escala 1, en píxeles de arte */
-  big: { palette: MUSEUM, width: 120 },
+  houses: [RED_HOUSE, BLUE_HOUSE, GREEN_HOUSE, SLATE_HOUSE],
+  big: [{ draw: (scale) => museum(MUSEUM, scale) }, { draw: (scale) => gym(GYM, scale) }],
   lawn: LAWN,
   trees: TREE_PALETTE,
   street: { fill: PAVING[1], top: PAVING[0], ink: MORTAR },

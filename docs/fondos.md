@@ -5,7 +5,7 @@ generan por código al abrir la primera ruta de cada bioma (semilla fija, siempr
 `<canvas>`. El mismo código se usa en el juego y en el banco de pruebas.
 
 Escenas hechas: **Prado** (bioma `Meadow`: Ruta 1 y Ruta 1 - Final), **Pueblo Paleta** (`PalletTown`, solo esa ruta),
-**Bosque Verde** (`Forest`) y **Ciudad Plateada** (`PewterCity`, ciudad de piedra al atardecer). Cueva (`Cave`) y mar (`Sea`) siguen con el paisaje SVG antiguo de `ui/route/scenery/`.
+**Bosque Verde** (`Forest`) y **Ciudad Plateada** (`PewterCity`, ciudad de piedra de día con el museo y el gimnasio). Cueva (`Cave`) y mar (`Sea`) siguen con el paisaje SVG antiguo de `ui/route/scenery/`.
 
 ## Índice
 
@@ -205,14 +205,15 @@ Parallax habitual: nubes 0,02–0,03 · colinas 0,05–0,1 · plano lejano 0,1�
 | `grass` | `grassField`, `scatterTufts` + `tuftFrames` (matas que se mecen), `daisy`, `flower` |
 | `leaves` | `makeClump` + `leafFrames`: matas de hojas que se mecen, estilo `FERN_LEAVES` o `BROAD_LEAVES` |
 | `house` | `house(palette, width, scale, floors)` (plantas con cornisa entre ellas) con tejado de tejas, ladrillo y sombra del alero (luz arriba a la izquierda, contorno solo abajo y a la derecha); `chimneyTop` para el humo. Chimenea, puerta y ventanas (alféizar, sombra y reflejo), en `houseOpenings` |
-| `houseRow` | `houseRow(seed, row, style)`: fila de casas sin solape sobre césped, con calle, caminitos (`walkway`) y árboles en los huecos; `TownStyle` pone colores, paletas y plantas (pueblo o ciudad) |
+| `houseRow` | `houseRow(seed, row, style)`: fila de casas sin solape sobre césped, con calle, caminitos (`walkway`) y árboles en los huecos; `TownStyle` pone colores, paletas, plantas y los edificios especiales (`big`, en los puestos 2.º, 4.º…) |
+| `museum`, `gym` | Museo de frontón y columnas con escalinata; gimnasio de sillares con cuerpo central, emblema de roca y peñascos |
 | `lamppost` | `lamppost`: farola de hierro con farol encendido y halo semitransparente solo sobre lo vacío |
 | `rocks` | `spike` (estalactita o estalagmita), `boulder` (peñasco de varias bolas), `crystals` (racimo de cristales con halo), `rockMass` (pared de roca de fondo sin contorno) |
 | `fence` | `picketFence` (valla blanca con postes en los extremos), `flowerBed` (parterre de flores de tallo alto) |
 | `fountain`, `log`, `mushroom`, `signpost` | Fuente de plaza, tronco hueco, seta, cartel de madera con fuente 3×5 (añadir letras a `GLYPHS` si faltan) |
 
 Piezas propias de cada escena que pueden servir de modelo: `meadow/plain.ts` (llanura en dos planos con árboles por
-profundidad), `palletTown/town.ts` y `pewterCity/city.ts` (filas de casas con `houseRow`), `pewterCity/backdrop.ts` (atardecer: sol bajo y cordilleras rocosas con picos), `palletTown/ground.ts` (plaza
+profundidad), `palletTown/town.ts` y `pewterCity/city.ts` (filas de casas con `houseRow`), `pewterCity/backdrop.ts` (cordilleras rocosas con picos), `palletTown/ground.ts` (plaza
 por baldosas con borde escalonado), `forest/backdrop.ts` (planos de árboles con matorral; copas y rayos alineados),
 `forest/ground.ts` (tierra húmeda con raíces).
 
