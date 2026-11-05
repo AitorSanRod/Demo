@@ -12,10 +12,10 @@ import { createRoom, seatPlayer, type SharedRoom } from './sharedRoom'
 export const T0 = 1_000_000
 export const rng = seqRng(0.5)
 
-export const TAB: RoomChannel = { slot: RoomSlot.Tab, bossIndex: 0 }
+export const TAB: RoomChannel = { slot: RoomSlot.Tab, cycle: 0 }
 
 /** La parada de jefe comunitario de la ruta de pruebas */
-export function stopChannel(): RoomChannel {
+export function stopChannel(): Extract<RoomChannel, { slot: typeof RoomSlot.Route }> {
   const r = route(RouteId.BosqueVerde)
   return { slot: RoomSlot.Route, routeId: r.id, nodeId: r.nodes.find((n) => n.kind === NodeKind.Raid)!.id }
 }

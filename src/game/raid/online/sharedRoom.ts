@@ -37,6 +37,8 @@ export interface SharedRoom {
   nextSeat: number
   /** Hora real (ms) hasta la que está jugada la sala */
   updatedAt: number
+  /** El jefe se escapó: el ciclo pasó al siguiente sin que cayera (ver raidCycle.ts). La sala ya no se juega */
+  closed: boolean
 }
 
 const seatKey = (playerId: string, uid: string) => `${playerId}/${uid}`
@@ -52,9 +54,9 @@ export const playersIn = (room: SharedRoom): number => playerMembers(room.raid).
 export function createRoom(channel: RoomChannel, id: string, now: number, bossHp: number | null, rng: Rng): SharedRoom {
   const raid =
     channel.slot === RoomSlot.Tab
-      ? newRaid(raidBossAt(channel.bossIndex), null, { felled: channel.bossIndex })
+      ? newRaid(raidBossAt(channel.cycle), null, { felled: channel.cycle })
       : stopRoom(node(route(channel.routeId), channel.nodeId), { routeId: channel.routeId, nodeId: channel.nodeId }, bossHp, rng, () => [])
-  return { id, channel, raid, seats: {}, nextSeat: 0, updatedAt: now }
+  return { id, channel, raid, seats: {}, nextSeat: 0, updatedAt: now, closed: false }
 }
 
 /** Ganchos del servidor: las pasivas que mandó cada jugador y la cuenta de rondas de EXP de cada asiento */
@@ -77,6 +79,7 @@ const advanceShared = (room: SharedRoom, ms: number, rng: Rng, hooks: RoomHooks)
  * se queda así, para que cada jugador vea la caída y cobre
  */
 export function catchUp(room: SharedRoom, now: number, rng: Rng) {
+  if (room.closed) return
   const behind = Math.min(Math.max(0, now - room.updatedAt), ROOM_MAX_CATCHUP_MS)
   room.updatedAt = now
   let left: number | null = Math.min(behind, ROOM_PLAYED_ROUNDS * RAID_ROUND_MS)
@@ -107,7 +110,7 @@ function refreshSeat(room: SharedRoom, seat: Seat, nickname: string, mon: MonSna
  * Pokémon salen: cada jugador lleva uno por sala. false si no cabe
  */
 export function seatPlayer(room: SharedRoom, playerId: string, nickname: string, mon: MonSnapshot): boolean {
-  if (room.raid.hp === 0) return false
+  if (room.raid.hp === 0 || room.closed) return false
   const key = seatKey(playerId, mon.uid)
   for (const other of seatsOf(room, playerId)) if (other.uid !== mon.uid) memberOf(room, other).left = true
   const seat = room.seats[key]
@@ -146,5 +149,5 @@ export function viewFor(room: SharedRoom, playerId: string): RoomView {
   }
   raid.lastRound = raid.lastRound.map((h) => ({ ...h, from: h.from === BOSS_ID ? h.from : idOf(h.from), to: h.to === BOSS_ID ? h.to : idOf(h.to) }))
   const exp = Object.fromEntries([...mine.values()].map((seat) => [seat.uid, seat.expRounds]))
-  return { roomId: room.id, raid, exp }
+  return { roomId: room.id, raid, exp, closed: room.closed }
 }

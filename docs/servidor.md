@@ -99,7 +99,7 @@ Worker (*pokerancho → Logs*), útil para probar.
 
 ## Cambiar la base de datos
 
-Un cambio de tablas es un fichero nuevo en `migrations/` (`0002_….sql`); nunca se edita uno ya aplicado. Antes de
+Un cambio de tablas es un fichero nuevo en `migrations/` (`0003_….sql`, el siguiente número libre); nunca se edita uno ya aplicado. Antes de
 hacer push del código que lo usa, aplícalo con `npm run db:migrate` (y `npm run db:migrate:local` para probar).
 
 ## Lo que gasta del plan gratuito

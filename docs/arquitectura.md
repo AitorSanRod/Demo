@@ -43,8 +43,10 @@ src/
                       falta), stopRoom (salas de parada sin la partida)
       online/         Salas compartidas: protocol (lo que se dicen juego y servidor), linkedRoom (la sala de la
                       partida enlazada a la del servidor), sharedRoom + roomServer (lo que hace el servidor),
-                      requests (validar lo que le llega)
+                      raidCycle + tabRooms (el jefe de la pestaña Raids por ciclos), skipAhead (resumir salas
+                      viejas), requests (validar lo que le llega)
   net/                identity (id de jugador y apodo), raidApi (fetch a /api/raid), raidSync (bucle de consultas),
+                      raidFeed (la pestaña Raids según el servidor),
                       account (cuenta: /api/auth), cloudSync (partida en la nube)
   ui/
     shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
@@ -68,11 +70,12 @@ src/
     shop/             Mejoras
 worker/
   index.ts            Entrada: /api/raid, /api/save y /api/auth/* (la web la sirve Cloudflare sin pasar por aquí)
-  raid.ts             POST /api/raid: lee las salas de D1, llama a game/raid/online/roomServer y las guarda
+  raid.ts             POST /api/raid: salas de ruta y ponerse al día (lee de D1, llama a game/raid/online y guarda)
+  raidTab.ts          La pestaña Raids: su ciclo (tabla raid_cycle), entrar y la acción feed
   save.ts             GET / POST /api/save: la partida de la cuenta con sesión
   auth/               Cuentas: routes (rutas), credentials (crear y entrar), links (correos: confirmar y recuperar),
                       session (cookie), crypto (PBKDF2 y tokens)
-  db/                 Consultas a D1: rooms, saves, users (cuentas, sesiones y enlaces)
+  db/                 Consultas a D1: rooms, cycle, saves, users (cuentas, sesiones y enlaces)
   mail.ts             Correos con Brevo
   test/               D1 de pruebas sobre node:sqlite y un Worker de pruebas con cookie
 ```
@@ -128,6 +131,9 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/raid/online/roomServer.ts` | Las acciones del servidor: elegir sala (`pickRoom`), entrar y ponerse al día; caducidad |
 | `game/raid/online/requests.ts` | Validación de lo que llega al servidor y limpieza del apodo |
 | `net/raidSync.ts` | Bucle que entra, consulta y avisa de las salas dejadas; cada cuánto se consulta |
+| `game/raid/online/raidCycle.ts` | El jefe de la pestaña Raids por ciclos: cuándo se cierra, cuándo pasa al siguiente (con tope), qué sala va al frontal |
+| `game/raid/online/tabRooms.ts` | Las salas de la pestaña Raids en el servidor: ponerlas al día con su ciclo, sala principal, entrar y la respuesta `feed` |
+| `net/raidFeed.ts` | La pestaña Raids según el servidor: jefe, frontal, lista de salas y hora del servidor |
 | `game/raid/online/skipAhead.ts` | Resumir de golpe lo que una sala lleva sin consultar (el Worker tiene poca CPU por petición) |
 | `game/core/accountRules.ts` | Lo que comparten web y servidor de cuentas: email, contraseña, códigos de error |
 | `game/core/cloudSave.ts` | Partida en la nube: qué hacer al conectar (`cloudAction`), recuperar una copia (`stateFromSaved`), resumen y validar la subida |
@@ -241,10 +247,23 @@ Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servid
   resume con el ritmo de la sala (`skipAhead`, con `roomPace` de `raidEstimate.ts`).
 - **Sin cuentas.** Cada dispositivo tiene un id anónimo y un apodo (`net/identity.ts`, en `localStorage` aparte de
   la partida). Cada uno ve la sala con sus Pokémon por su uid y los demás como `guest` (`viewFor`).
-- **Entrar** (`joinRoom`): la sala de ese jefe en la que ya estuvo el jugador; si no, la que tenga más jugadores;
-  si está llena, sale un bot para hacerle sitio. Las salas solo de bots, caídas, llenas de jugadores o (en parada)
-  con el jefe por debajo de `ROUTE_RAID_JOIN_MIN_HP` no se ofrecen. Si no vale ninguna, sala nueva (en parada, en
-  marcha con la vida que pide el cliente, `bossHp`).
+- **Pestaña Raids por ciclos** (`raidCycle.ts`, `tabRooms.ts`, `worker/raidTab.ts`, tabla `raid_cycle`): el jefe lo
+  decide el servidor, igual para todos; los móviles no simulan nada de la pestaña (`GameState.raidServer`) salvo su
+  propia sala. En cada ciclo hay un jefe (`raidBossAt(número)`), una sala principal (con bots, aunque no juegue nadie)
+  y las que se abran al llenarse. Cuando cae en la primera sala, el ciclo se cierra: empieza la espera
+  (`CYCLE_COOLDOWN_MS`), ya no se abren salas (solo se puede entrar en las que aún pelean con jugadores) y el frontal
+  pasa a ellas. El siguiente aparece cuando ha pasado la espera y no queda ninguna sala con jugadores en pie, o al
+  llegar al tope (`CYCLE_MAX_EXTRA_MS`): entonces el jefe se escapa de las que quedaban (`closed`, sin premio). Cada
+  petición pone al día como mucho `ROOMS_PER_REQUEST` salas (las pedidas y la pendiente más vieja).
+- **Frontal y lista** (acción `feed`, `net/raidFeed.ts`): el servidor devuelve el jefe del ciclo, la sala del frontal
+  (la que el jugador eligió mirar; si no, la de más jugadores; si no, la principal), las salas del jefe y las de las
+  paradas de ruta con jugadores (columnas `players` y `summary` de `rooms`), y su hora, con la que se cuentan las
+  esperas. La UI enseña la sala propia si la hay (`GameState.raid`) y, si no, la del frontal; entrar desde ahí
+  (`joinServerRaid`) pide esa sala (`targetRoomId`). Al caer el jefe, el siguiente no se crea en el móvil.
+- **Entrar en una parada** (`joinStopRoom`): la sala de ese jefe en la que ya estuvo el jugador; si no, la que tenga
+  más jugadores; si está llena, sale un bot para hacerle sitio. Las salas solo de bots, caídas, llenas de jugadores o
+  con el jefe por debajo de `ROUTE_RAID_JOIN_MIN_HP` no se ofrecen. Si no vale ninguna, sala nueva (en marcha con la
+  vida que pide el cliente, `bossHp`).
 - **En la partida** (`online/linkedRoom.ts`): `joinRaid` y `enterRouteRaid` dejan la sala esperando sitio
   (`Raid.remote.roomId` null) y se sigue jugando en local. `net/raidSync.ts` pide entrar; con la respuesta la sala
   local pasa a ser el reflejo de la del servidor (`applyView`) y `tick` ya no la juega (solo corre su reloj para la

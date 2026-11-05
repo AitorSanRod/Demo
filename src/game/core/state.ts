@@ -111,12 +111,17 @@ export interface GameState {
   raidPrizes: RaidPrize[]
   /** Salas compartidas del servidor que el jugador ha dejado sin que el servidor lo sepa aún (ver net/raidSync.ts) */
   roomsToLeave: string[]
+  /**
+   * La pestaña Raids la lleva el servidor (net/raidFeed.ts lo sabe al hablar con él): sin un Pokémon propio dentro no
+   * se juega nada aquí y el jefe que se ve es el del servidor. false: sin servidor, todo en local con bots
+   */
+  raidServer: boolean
   /** Multiplicador de tiempo (x1 = tiempo real); solo se puede cambiar en desarrollo, desde la barra superior */
   timeScale: number
   lastTick: number
 }
 
-export const SAVE_VERSION = 26
+export const SAVE_VERSION = 27
 
 export function initialState(): GameState {
   return {
@@ -142,6 +147,7 @@ export function initialState(): GameState {
     raid: null,
     raidPrizes: [],
     roomsToLeave: [],
+    raidServer: false,
     timeScale: 1,
     lastTick: Date.now(),
   }

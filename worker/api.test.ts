@@ -4,6 +4,7 @@ import { cloudUpload } from '../src/game/core/cloudSave'
 import { initialState } from '../src/game/core/state'
 import { chooseStarter } from '../src/game/core/test-utils'
 import { RaidAction, RoomSlot } from '../src/game/raid/online/protocol'
+import { stopChannel } from '../src/game/raid/online/online-test-utils'
 import { MailKind, sendMail } from './mail'
 import { testWorker } from './test/api'
 
@@ -44,13 +45,41 @@ describe('partida en la nube', () => {
 
 describe('salas compartidas', () => {
   const mon = (uid: string) => ({ uid, speciesId: STARTERS[0], level: 15, stars: 0, hpFraction: 1, passives: [] })
-  const join = (playerId: string, uid: string) => ({
+  const join = (playerId: string, uid: string, channel: object = { slot: RoomSlot.Tab }) => ({
     action: RaidAction.Join,
     playerId,
     nickname: playerId,
-    channel: { slot: RoomSlot.Tab, bossIndex: 0 },
+    channel,
+    targetRoomId: null,
     mon: mon(uid),
     bossHp: null,
+  })
+  const feed = (playerId: string) => ({ action: RaidAction.Feed, playerId, nickname: playerId, watchRoomId: null })
+
+  it('la pestaña Raids la decide el servidor: sin nadie jugando, el frontal es la sala principal del jefe actual', async () => {
+    const api = testWorker()
+    const { feed: f } = (await api.call('/api/raid', { body: feed('player-aaaa') })).data
+    expect(f).toMatchObject({ bossIndex: 0, phase: 'active', nextAt: null, routeRooms: [] })
+    expect(f.rooms).toHaveLength(1)
+    expect(f.featured.roomId).toBe(f.rooms[0].roomId)
+    const again = (await api.call('/api/raid', { body: feed('player-bbbb') })).data.feed
+    expect(again.featured.roomId).toBe(f.featured.roomId)
+  })
+
+  it('quien entra sin elegir sala va a la del frontal, y la lista lo cuenta', async () => {
+    const api = testWorker()
+    const front = (await api.call('/api/raid', { body: feed('player-aaaa') })).data.feed.featured
+    const view = (await api.call('/api/raid', { body: join('player-aaaa', 'a1') })).data.view
+    expect(view.roomId).toBe(front.roomId)
+    const { rooms } = (await api.call('/api/raid', { body: feed('player-bbbb') })).data.feed
+    expect(rooms).toMatchObject([{ roomId: front.roomId, players: 1 }])
+  })
+
+  it('las salas de las paradas de ruta con jugadores salen aparte, solo para mirar', async () => {
+    const api = testWorker()
+    await api.call('/api/raid', { body: join('player-aaaa', 'a1', stopChannel()) })
+    const { routeRooms } = (await api.call('/api/raid', { body: feed('player-bbbb') })).data.feed
+    expect(routeRooms).toMatchObject([{ players: 1, place: { routeId: stopChannel().routeId } }])
   })
 
   it('dos jugadores que entran contra el mismo jefe acaban en la misma sala y se ven', async () => {

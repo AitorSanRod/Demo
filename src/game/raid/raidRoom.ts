@@ -64,10 +64,12 @@ export interface RoomLink {
   exp: Record<string, number>
   /** Mientras entra en una parada: vida del jefe (fracción) si el servidor tiene que abrir una sala en marcha; null, nueva */
   openHp: number | null
+  /** Mientras entra en la pestaña Raids: la sala elegida (la del frontal o una de la lista); null, la que diga el servidor */
+  target: string | null
 }
 
 /** Enlace de una sala que espera sitio en una compartida del servidor */
-export const pendingLink = (openHp: number | null = null): RoomLink => ({ roomId: null, exp: {}, openHp })
+export const pendingLink = (openHp: number | null = null, target: string | null = null): RoomLink => ({ roomId: null, exp: {}, openHp, target })
 
 /** Un jefe comunitario y una sala luchando contra él */
 export interface Raid {

@@ -1,9 +1,8 @@
 import { NodeKind, node, route } from '../../../data/maps'
 import type { PassiveRef } from '../../../data/passives'
-import { RAID_BOSSES } from '../../../data/raidBosses'
 import { species } from '../../../data/species'
 import { TYPE_INFO, type PokeType } from '../../../data/types'
-import { DEFAULT_NICKNAME, NICKNAME_MAX, RaidAction, RoomSlot, type MonSnapshot, type RaidRequest, type RoomChannel } from './protocol'
+import { DEFAULT_NICKNAME, NICKNAME_MAX, RaidAction, RoomSlot, type JoinChannel, type MonSnapshot, type RaidRequest } from './protocol'
 
 // Lo que llega al servidor viene de cualquiera: se comprueba todo y se descarta lo que no encaje.
 
@@ -62,15 +61,19 @@ function isRaidStop(routeId: string, nodeId: string): boolean {
   }
 }
 
-function parseChannel(v: unknown): RoomChannel | null {
+/** El jefe que se pide: el de la pestaña Raids (el que diga el servidor) o el de una parada de ruta que exista */
+function parseChannel(v: unknown): JoinChannel | null {
   if (!isObject(v)) return null
-  if (v.slot === RoomSlot.Tab) return isInt(v.bossIndex, 0, RAID_BOSSES.length - 1) ? { slot: RoomSlot.Tab, bossIndex: v.bossIndex } : null
+  if (v.slot === RoomSlot.Tab) return { slot: RoomSlot.Tab }
   if (v.slot !== RoomSlot.Route || typeof v.routeId !== 'string' || typeof v.nodeId !== 'string') return null
   return isRaidStop(v.routeId, v.nodeId) ? { slot: RoomSlot.Route, routeId: route(v.routeId).id, nodeId: v.nodeId } : null
 }
 
 const parseBossHp = (v: unknown): number | null | undefined =>
   v === null ? null : typeof v === 'number' && v > 0 && v <= 1 ? v : undefined
+
+/** Id de sala opcional: null si no viene; undefined si viene mal */
+const parseRoomId = (v: unknown): string | null | undefined => (v === null || v === undefined ? null : matches(v, ROOM_ID) ? v : undefined)
 
 /** La petición si es válida; null si falta o sobra algo */
 export function parseRequest(body: unknown): RaidRequest | null {
@@ -80,7 +83,13 @@ export function parseRequest(body: unknown): RaidRequest | null {
     const channel = parseChannel(body.channel)
     const mon = parseMon(body.mon)
     const bossHp = parseBossHp(body.bossHp)
-    return channel && mon && bossHp !== undefined ? { action: RaidAction.Join, ...who, channel, mon, bossHp } : null
+    const targetRoomId = parseRoomId(body.targetRoomId)
+    if (!channel || !mon || bossHp === undefined || targetRoomId === undefined) return null
+    return { action: RaidAction.Join, ...who, channel, targetRoomId, mon, bossHp }
+  }
+  if (body.action === RaidAction.Feed) {
+    const watchRoomId = parseRoomId(body.watchRoomId)
+    return watchRoomId === undefined ? null : { action: RaidAction.Feed, ...who, watchRoomId }
   }
   if (body.action !== RaidAction.Sync || !matches(body.roomId, ROOM_ID)) return null
   const mon = body.mon === null ? null : parseMon(body.mon)

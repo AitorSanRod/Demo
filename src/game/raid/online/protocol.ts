@@ -1,6 +1,6 @@
 import type { RouteId } from '../../../data/maps'
 import type { PassiveRef } from '../../../data/passives'
-import type { Raid } from '../raidRoom'
+import type { Raid, RaidPlace } from '../raidRoom'
 
 // Lo que se dicen el juego y el servidor de salas compartidas (worker/raid.ts). Sin cuentas: cada
 // dispositivo se identifica con un id anónimo al azar y un apodo.
@@ -9,12 +9,18 @@ import type { Raid } from '../raidRoom'
 export const RoomSlot = { Tab: 'tab', Route: 'route' } as const
 export type RoomSlot = (typeof RoomSlot)[keyof typeof RoomSlot]
 
-/** Contra qué jefe es la sala: el de la pestaña Raids (por su posición en RAID_BOSSES) o el de una parada de ruta */
-export type RoomChannel =
-  | { slot: typeof RoomSlot.Tab; bossIndex: number }
-  | { slot: typeof RoomSlot.Route; routeId: RouteId; nodeId: string }
+type RouteChannel = { slot: typeof RoomSlot.Route; routeId: RouteId; nodeId: string }
 
-export const RaidAction = { Join: 'join', Sync: 'sync' } as const
+/**
+ * Contra qué jefe es la sala: el del ciclo `cycle` de la pestaña Raids (lo decide el servidor, ver raidCycle.ts) o el
+ * de una parada de ruta
+ */
+export type RoomChannel = { slot: typeof RoomSlot.Tab; cycle: number } | RouteChannel
+
+/** El jefe que pide el jugador al entrar: el de la pestaña Raids que haya ahora o el de una parada de ruta */
+export type JoinChannel = { slot: typeof RoomSlot.Tab } | RouteChannel
+
+export const RaidAction = { Join: 'join', Sync: 'sync', Feed: 'feed' } as const
 export type RaidAction = (typeof RaidAction)[keyof typeof RaidAction]
 
 /** Lo que el servidor necesita del Pokémon para que luche como en la partida */
@@ -34,10 +40,14 @@ interface PlayerRequest {
   nickname: string
 }
 
-/** Entrar en una sala del jefe: la del jugador si ya estuvo, una con jugadores si cabe (echando a un bot) o una nueva */
+/**
+ * Entrar en una sala del jefe: `targetRoomId` si se eligió una (pestaña Raids) y cabe; si no, la del jugador si ya
+ * estuvo, una con jugadores si cabe (echando a un bot), la principal o una nueva
+ */
 export interface JoinRequest extends PlayerRequest {
   action: typeof RaidAction.Join
-  channel: RoomChannel
+  channel: JoinChannel
+  targetRoomId: string | null
   mon: MonSnapshot
   /** Paradas de ruta: vida del jefe (fracción) si hay que abrir una sala en marcha; null, sala nueva */
   bossHp: number | null
@@ -50,21 +60,66 @@ export interface SyncRequest extends PlayerRequest {
   mon: MonSnapshot | null
 }
 
-export type RaidRequest = JoinRequest | SyncRequest
+/** Lo que hay ahora en la pestaña Raids; `watchRoomId`, la sala que el jugador ha elegido mirar (null: la del frontal) */
+export interface FeedRequest extends PlayerRequest {
+  action: typeof RaidAction.Feed
+  watchRoomId: string | null
+}
+
+export type RaidRequest = JoinRequest | SyncRequest | FeedRequest
 
 /**
  * La sala vista por un jugador: sus Pokémon con su uid y `RaidMemberKind.Player`, los de los demás como `Guest`.
- * `exp` son las rondas de EXP que lleva cada uno de sus Pokémon en la sala (por uid)
+ * `exp` son las rondas de EXP que lleva cada uno de sus Pokémon en la sala (por uid). `closed`: el jefe se escapó
+ * (el ciclo pasó al siguiente antes de que cayera)
  */
 export interface RoomView {
   roomId: string
   raid: Raid
   exp: Record<string, number>
+  closed: boolean
 }
 
-/** Respuesta del servidor: la sala, o null si ya no existe */
+/** Una sala en la lista de salas */
+export interface RoomSummary {
+  roomId: string
+  bossSpeciesId: number
+  bossLevel: number
+  hpFraction: number
+  /** Jugadores con un Pokémon dentro (sin contar bots) */
+  players: number
+  bots: number
+  /** Parada de ruta de la sala; null para las de la pestaña Raids */
+  place: RaidPlace | null
+  /** Se puede entrar ahora */
+  open: boolean
+}
+
+/** Fase del ciclo del jefe de la pestaña Raids (ver raidCycle.ts) */
+export const CyclePhase = { Active: 'active', Closing: 'closing' } as const
+export type CyclePhase = (typeof CyclePhase)[keyof typeof CyclePhase]
+
+/** La pestaña Raids según el servidor */
+export interface RaidFeed {
+  /** Hora real del servidor: con ella cada móvil cuenta igual las esperas */
+  serverNow: number
+  /** Posición en RAID_BOSSES del jefe del ciclo actual */
+  bossIndex: number
+  phase: CyclePhase
+  /** Cerrándose: hora real a partir de la cual puede aparecer el siguiente jefe (si ya no quedan salas pendientes) */
+  nextAt: number | null
+  /** La sala que se ve en el frontal; null si no queda ninguna en pie (se espera al siguiente jefe) */
+  featured: RoomView | null
+  /** Salas del jefe actual de la pestaña Raids */
+  rooms: RoomSummary[]
+  /** Salas de las paradas de ruta con jugadores dentro (solo para mirar) */
+  routeRooms: RoomSummary[]
+}
+
+/** Respuesta del servidor: la sala (null si ya no existe o no hay jefe al que entrar) o la pestaña Raids */
 export interface RaidResponse {
-  view: RoomView | null
+  view?: RoomView | null
+  feed?: RaidFeed
 }
 
 /** Letras como mucho de un apodo */
@@ -72,5 +127,8 @@ export const NICKNAME_MAX = 14
 /** Apodo de quien aún no ha elegido uno */
 export const DEFAULT_NICKNAME = 'Entrenador'
 
+/** Prefijo de las salas de las paradas de ruta en el almacén */
+export const ROUTE_CHANNEL_PREFIX = 'route/'
+
 /** Carpeta del almacén con las salas de un mismo jefe */
-export const channelKey = (c: RoomChannel): string => (c.slot === RoomSlot.Tab ? `tab/${c.bossIndex}` : `route/${c.routeId}/${c.nodeId}`)
+export const channelKey = (c: RoomChannel): string => (c.slot === RoomSlot.Tab ? `tab/${c.cycle}` : `${ROUTE_CHANNEL_PREFIX}${c.routeId}/${c.nodeId}`)

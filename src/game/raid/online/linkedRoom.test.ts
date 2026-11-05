@@ -4,7 +4,7 @@ import { activeMon, initialState, type GameState } from '../../core/state'
 import { chooseStarter, seqRng } from '../../core/test-utils'
 import { startRun, walk } from '../../run/run'
 import { gainExp } from '../../team/stats'
-import { advanceRaid, joinRaid, leaveRaid, RAID_COOLDOWN_MS } from '../raid'
+import { advanceRaid, joinRaid, joinServerRaid, leaveRaid } from '../raid'
 import { sparringSpecies, raidState } from '../raid-test-utils'
 import { RAID_ROUND_MS } from '../raidCombat'
 import { raidExpPerRound } from '../raidEngine'
@@ -13,18 +13,20 @@ import { currentRouteRaid, retreatRouteRaid, ROUTE_RAID_RUNNING_CHANCE } from '.
 import { applyView, forgetRoom, roomRequest } from './linkedRoom'
 import { newId, rng, T0 } from './online-test-utils'
 import { RaidAction, RoomSlot, type JoinRequest, type RoomView } from './protocol'
-import { joinRoom, syncRoom } from './roomServer'
+import { firstCycle } from './raidCycle'
+import { joinStopRoom, syncRoom } from './roomServer'
 import { catchUp, viewFor, type SharedRoom } from './sharedRoom'
+import { joinTabRoom, updateCycle } from './tabRooms'
 
 vi.mock('../../../data/maps/kantoMaps', () => import('../../core/test-map'))
 
 const ME = 'player-me-0001'
 
-/** Hace de servidor: atiende la petición de entrar de la sala de `slot` y aplica la respuesta */
-function joinOnServer(s: GameState, slot: RoomSlot): SharedRoom {
-  const req = roomRequest(s, slot) as Omit<JoinRequest, 'playerId' | 'nickname'>
-  const room = joinRoom([], { ...req, playerId: ME, nickname: 'Yo' }, T0, rng, newId)
-  applyView(s, slot, null, viewFor(room, ME))
+/** Hace de servidor en una parada: atiende la petición de entrar y aplica la respuesta */
+function joinStopOnServer(s: GameState): SharedRoom {
+  const req = roomRequest(s, RoomSlot.Route) as JoinRequest
+  const room = joinStopRoom([], { ...req, playerId: ME, nickname: 'Yo' } as never, T0, rng, newId)
+  applyView(s, RoomSlot.Route, null, viewFor(room, ME))
   return room
 }
 
@@ -35,11 +37,22 @@ function serverView(s: GameState, slot: RoomSlot, room: SharedRoom, ms = 0): Roo
   return syncRoom(room, { ...req, action: RaidAction.Sync, roomId: room.id, playerId: ME, nickname: 'Yo' } as never, room.updatedAt, rng)
 }
 
+/**
+ * Con servidor: el jugador ve la sala principal del ciclo en el frontal, manda a su Pokémon a ella y el servidor lo
+ * sienta allí
+ */
 function linkedTab() {
   const { s, mon } = raidState()
-  joinRaid(s, mon.uid)
-  const room = joinOnServer(s, RoomSlot.Tab)
-  return { s, mon, room }
+  s.raidServer = true
+  s.raid = null
+  const cycle = firstCycle()
+  const { rooms } = updateCycle(cycle, [], [], T0, rng, newId)
+  const front = viewFor(rooms[0], ME)
+  joinServerRaid(s, mon.uid, front.raid, front.roomId)
+  const req = roomRequest(s, RoomSlot.Tab) as JoinRequest
+  const { room } = joinTabRoom(cycle, rooms, { ...req, playerId: ME, nickname: 'Yo' }, T0, rng, newId)
+  applyView(s, RoomSlot.Tab, null, viewFor(room!, ME))
+  return { s, mon, room: room! }
 }
 
 function linkedStop() {
@@ -49,7 +62,7 @@ function linkedStop() {
   s.unlockedRoutes.push(RouteId.BosqueVerde)
   startRun(s, RouteId.BosqueVerde)
   walk(s, Number.MAX_SAFE_INTEGER, seqRng(ROUTE_RAID_RUNNING_CHANCE + (1 - ROUTE_RAID_RUNNING_CHANCE) / 2))
-  const room = joinOnServer(s, RoomSlot.Route)
+  const room = joinStopOnServer(s)
   return { s, mon: activeMon(s)!, room }
 }
 
@@ -88,20 +101,37 @@ describe('sala enlazada al servidor', () => {
     expect({ level: mon.level, exp: mon.exp }).toEqual({ level: expected.level, exp: expected.exp })
   })
 
-  it('si el jefe cae en el servidor, el premio queda pendiente y llega el siguiente jefe en local', () => {
+  it('si el jefe cae en el servidor, el premio queda pendiente y el siguiente jefe lo pone el servidor', () => {
     const { s, room } = linkedTab()
     room.raid.hp = 0
     applyView(s, RoomSlot.Tab, room.id, serverView(s, RoomSlot.Tab, room))
     expect(s.raidPrizes).toHaveLength(1)
-    expect(s.raid).toMatchObject({ startsInMs: RAID_COOLDOWN_MS, remote: null })
+    expect(s.raid).toBeNull()
+    advanceRaid(s, 5 * RAID_ROUND_MS)
+    expect(s.raid).toBeNull()
   })
 
-  it('si el servidor ya no tiene la sala, sigue jugándose en local', () => {
+  it('si el jefe se escapa (el ciclo pasó al siguiente), el Pokémon vuelve al rancho sin premio', () => {
+    const { s, room, mon } = linkedTab()
+    room.closed = true
+    applyView(s, RoomSlot.Tab, room.id, serverView(s, RoomSlot.Tab, room))
+    expect(s.raidPrizes).toHaveLength(0)
+    expect(s.raid).toBeNull()
+    expect(roomRequest(s, RoomSlot.Tab)).toBeNull()
+    expect(mon.hp).toBeGreaterThan(0)
+  })
+
+  it('si el servidor ya no tiene la sala de la pestaña Raids, se deja (el frontal es del servidor)', () => {
     const { s, room } = linkedTab()
     expect(applyView(s, RoomSlot.Tab, room.id, null)).toBe(true)
-    const round = s.raid!.round
+    expect(s.raid).toBeNull()
+  })
+
+  it('con servidor y sin un Pokémon propio dentro, aquí no se juega ninguna sala de la pestaña Raids', () => {
+    const { s } = raidState()
+    s.raidServer = true
     advanceRaid(s, 5 * RAID_ROUND_MS)
-    expect(s.raid!.round).toBeGreaterThan(round)
+    expect(s.raid).toBeNull()
   })
 
   it('una respuesta de otra sala se descarta', () => {

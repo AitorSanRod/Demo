@@ -76,3 +76,43 @@
 .nickname-input {
   margin-top: 10px;
 }
+
+/* Con servidor: pestañas «Jefe» y «Salas», premio pendiente y aviso de que el jefe ya cayó en otra sala */
+.raid-tabs {
+  margin: 8px 16px 0;
+}
+.raid-prize-bar {
+  padding: 8px 16px 0;
+}
+.raid-closing {
+  margin: 0 0 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--card-2);
+}
+
+/* Lista de salas (RaidRooms) */
+.raid-room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.raid-room {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.raid-room.current {
+  border-color: var(--accent);
+}
+.raid-room-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}

@@ -1,16 +1,17 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
 
-// D1 para los tests: el SQLite de Node con la misma migración que la base de datos de verdad. Solo lo que usa el
+// D1 para los tests: el SQLite de Node con las mismas migraciones que la base de datos de verdad, en orden. Solo lo que usa el
 // Worker (prepare, bind, first, all, run, batch).
 
-const MIGRATION = fileURLToPath(new URL('../../migrations/0001_init.sql', import.meta.url).href)
+const MIGRATIONS = fileURLToPath(new URL('../../migrations/', import.meta.url).href)
 
 export function fakeD1(): D1Database {
   const db = new DatabaseSync(':memory:')
   db.exec('PRAGMA foreign_keys = ON')
-  db.exec(readFileSync(MIGRATION, 'utf8'))
+  for (const file of readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort()) db.exec(readFileSync(join(MIGRATIONS, file), 'utf8'))
 
   const statement = (sql: string, params: SQLInputValue[] = []) => ({
     bind: (...values: SQLInputValue[]) => statement(sql, values),

@@ -17,10 +17,14 @@ import { RaidLinkNote } from './RaidLinkNote'
 
 const percent = (fraction: number) => `${Math.floor(fraction * 100)}%`
 
-/** Tu Pokémon en la sala: su participación y retirarlo, o elegir a uno del rancho y mandarlo */
-export function RaidJoin({ game, raid }: { game: GameState; raid: Raid }) {
-  const mine = playerMembers(raid)[0]
-  return mine ? <InRaid game={game} raid={raid} uid={mine.id} /> : <JoinPicker game={game} raid={raid} />
+/**
+ * Tu Pokémon en la sala: su participación y retirarlo, o elegir a uno del rancho y mandarlo. `onJoin`: cómo se manda
+ * (con servidor, a la sala que se está viendo); sin él, a la sala de la partida
+ */
+export function RaidJoin({ game, raid, onJoin }: { game: GameState; raid: Raid; onJoin?: (uid: string) => void }) {
+  // Solo cuenta como tuyo si está en la partida de este dispositivo (con cuenta, puede estar luchando desde otro)
+  const mine = playerMembers(raid).find((m) => findMon(game, m.id))
+  return mine ? <InRaid game={game} raid={raid} uid={mine.id} /> : <JoinPicker game={game} raid={raid} onJoin={onJoin} />
 }
 
 function InRaid({ game, raid, uid }: { game: GameState; raid: Raid; uid: string }) {
@@ -63,16 +67,17 @@ function InRaid({ game, raid, uid }: { game: GameState; raid: Raid; uid: string 
   )
 }
 
-function JoinPicker({ game, raid }: { game: GameState; raid: Raid }) {
+function JoinPicker({ game, raid, onJoin }: { game: GameState; raid: Raid; onJoin?: (uid: string) => void }) {
   const home = game.owned.filter((m) => monPlace(game, m.uid) === MonPlace.Ranch)
   const [selectedUid, setSelectedUid] = useState('')
   // La primera vez se elige el apodo con el que te verán los demás jugadores
   const [naming, setNaming] = useState(false)
   const mon = home.find((m) => m.uid === selectedUid) ?? home[0]
-  const blocker = mon ? raidBlocker(game, mon.uid) : 'No queda ningún Pokémon en el rancho.'
+  const blocker = mon ? raidBlocker(game, mon.uid, raid) : 'No queda ningún Pokémon en el rancho.'
   const send = () => {
     setNaming(false)
-    act((s) => joinRaid(s, mon.uid))
+    if (onJoin) onJoin(mon.uid)
+    else act((s) => joinRaid(s, mon.uid))
   }
   const secured = raid.members.some((m) => m.kind === RaidMemberKind.Player && earnsPrize(m, raid.elapsedMs))
 

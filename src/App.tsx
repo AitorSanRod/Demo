@@ -4,6 +4,7 @@ import { combinableCount } from './game/collection/pieces'
 import { TutorialStep } from './game/core/state'
 import { startAccount } from './net/account'
 import { startCloudSync } from './net/cloudSync'
+import { startRaidFeed } from './net/raidFeed'
 import { startRaidSync } from './net/raidSync'
 import { AccountHost } from './ui/account/AccountHost'
 import { act, useGame } from './game/core/store'
@@ -44,6 +45,7 @@ export default function App() {
   }, [])
   // Salas compartidas de los jefes comunitarios: entrar, ponerse al día y avisar al salir
   useEffect(startRaidSync, [])
+  useEffect(startRaidFeed, [])
   // Cuenta opcional: sesión, enlaces de los correos y partida en la nube
   useEffect(() => {
     void startAccount()

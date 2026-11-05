@@ -1,17 +1,19 @@
 import type { Rng } from '../../core/random'
 import { hasRoom, presentMembers, RaidMemberKind } from '../raidRoom'
 import { ROUTE_RAID_JOIN_MIN_HP } from '../stopRoom'
-import { RoomSlot, type JoinRequest, type RoomView, type SyncRequest } from './protocol'
+import { RoomSlot, type JoinChannel, type JoinRequest, type RoomView, type SyncRequest } from './protocol'
 import { catchUp, createRoom, playersIn, seatPlayer, seatsOf, unseatPlayer, viewFor, type SharedRoom } from './sharedRoom'
 
-// Las dos acciones del servidor de salas, sin el almacén: el servidor carga las salas, llama aquí y guarda lo que cambie.
+// Las acciones del servidor de salas, sin el almacén: el servidor carga las salas, llama aquí y guarda lo que cambie.
+// Las de la pestaña Raids van además por ciclos (tabRooms.ts).
 
 /** Una sala sin consultas en este tiempo (ms reales) se borra: nadie la mira ni va a cobrar de ella */
 export const ROOM_TTL_MS = 24 * 60 * 60 * 1000
 
 export const isExpired = (room: SharedRoom, now: number): boolean => now - room.updatedAt > ROOM_TTL_MS
 
-const canMakeRoom = (room: SharedRoom) => hasRoom(room.raid) || presentMembers(room.raid).some((m) => m.kind === RaidMemberKind.Bot)
+/** Cabe alguien más: hay hueco o un bot que echar */
+export const canMakeRoom = (room: SharedRoom) => hasRoom(room.raid) || presentMembers(room.raid).some((m) => m.kind === RaidMemberKind.Bot)
 
 /**
  * Se puede entrar si el jefe sigue en pie (en una parada, por encima de ROUTE_RAID_JOIN_MIN_HP), hay hueco o un bot
@@ -31,8 +33,11 @@ export function pickRoom(rooms: SharedRoom[], playerId: string): SharedRoom | nu
   return known ?? open.sort((a, b) => playersIn(b) - playersIn(a))[0] ?? null
 }
 
-/** Entrar: se ponen al día las salas de ese jefe y el Pokémon se sienta en la elegida o en una nueva (`newId`) */
-export function joinRoom(rooms: SharedRoom[], req: JoinRequest, now: number, rng: Rng, newId: () => string): SharedRoom {
+/** Petición de entrar en la sala de una parada de ruta */
+type StopJoinRequest = JoinRequest & { channel: Extract<JoinChannel, { slot: typeof RoomSlot.Route }> }
+
+/** Entrar en una parada: se ponen al día sus salas y el Pokémon se sienta en la elegida o en una nueva (`newId`) */
+export function joinStopRoom(rooms: SharedRoom[], req: StopJoinRequest, now: number, rng: Rng, newId: () => string): SharedRoom {
   for (const room of rooms) catchUp(room, now, rng)
   const room = pickRoom(rooms, req.playerId) ?? createRoom(req.channel, newId(), now, req.bossHp, rng)
   seatPlayer(room, req.playerId, req.nickname, req.mon)

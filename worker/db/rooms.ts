@@ -1,11 +1,17 @@
-import { channelKey, type RoomChannel } from '../../src/game/raid/online/protocol'
-import type { SharedRoom } from '../../src/game/raid/online/sharedRoom'
+import { channelKey, ROUTE_CHANNEL_PREFIX, type RoomChannel, type RoomSummary } from '../../src/game/raid/online/protocol'
+import { ROOM_TTL_MS } from '../../src/game/raid/online/roomServer'
+import { playersIn, type SharedRoom } from '../../src/game/raid/online/sharedRoom'
+import { roomSummary } from '../../src/game/raid/online/tabRooms'
 
 // Las salas compartidas en D1 (tabla rooms). Cada escritura comprueba la versión leída: si otro jugador escribió la
-// sala entre medias, no se guarda y la petición se repite.
+// sala entre medias, no se guarda y la petición se repite. Con cada sala se guardan sus jugadores y su resumen, para
+// listarlas sin abrir su JSON.
+
+/** Salas de ruta que se listan como mucho */
+const MAX_LISTED_ROUTE_ROOMS = 30
 
 /** Una sala tal y como se leyó; `version` null: aún no está guardada */
-interface StoredRoom {
+export interface StoredRoom {
   room: SharedRoom
   version: number | null
 }
@@ -28,17 +34,36 @@ export async function loadChannel(db: D1Database, channel: RoomChannel): Promise
   return results.map(fromRow)
 }
 
+/** Resúmenes de las salas de las paradas de ruta con jugadores dentro y consultadas hace poco */
+export async function loadRouteSummaries(db: D1Database, now: number): Promise<RoomSummary[]> {
+  const { results } = await db
+    .prepare('SELECT summary FROM rooms WHERE channel LIKE ? AND players > 0 AND updated_at > ? ORDER BY players DESC LIMIT ?')
+    .bind(`${ROUTE_CHANNEL_PREFIX}%`, now - ROOM_TTL_MS, MAX_LISTED_ROUTE_ROOMS)
+    .all<{ summary: string | null }>()
+  return results.flatMap((r) => (r.summary ? [JSON.parse(r.summary) as RoomSummary] : []))
+}
+
 /** Guarda la sala si nadie la ha cambiado desde que se leyó (o si es nueva); false si otro llegó antes */
 export async function saveRoom(db: D1Database, { room, version }: StoredRoom): Promise<boolean> {
   const data = JSON.stringify(room)
+  const players = room.closed ? 0 : playersIn(room)
+  const summary = JSON.stringify(roomSummary(room, false))
   const statement =
     version === null
       ? db
-          .prepare('INSERT INTO rooms (id, channel, data, version, updated_at) VALUES (?, ?, ?, 1, ?) ON CONFLICT (id) DO NOTHING')
-          .bind(room.id, channelKey(room.channel), data, room.updatedAt)
-      : db.prepare('UPDATE rooms SET data = ?, version = version + 1, updated_at = ? WHERE id = ? AND version = ?').bind(data, room.updatedAt, room.id, version)
+          .prepare('INSERT INTO rooms (id, channel, data, version, updated_at, players, summary) VALUES (?, ?, ?, 1, ?, ?, ?) ON CONFLICT (id) DO NOTHING')
+          .bind(room.id, channelKey(room.channel), data, room.updatedAt, players, summary)
+      : db
+          .prepare('UPDATE rooms SET data = ?, version = version + 1, updated_at = ?, players = ?, summary = ? WHERE id = ? AND version = ?')
+          .bind(data, room.updatedAt, players, summary, room.id, version)
   const { meta } = await statement.run()
   return meta.changes === 1
+}
+
+/** Guarda varias salas (las que se han leído llevan su versión en `versions`); false si alguna la cambió otro antes */
+export async function saveRooms(db: D1Database, rooms: SharedRoom[], versions: Map<SharedRoom, number>): Promise<boolean> {
+  for (const room of rooms) if (!(await saveRoom(db, { room, version: versions.get(room) ?? null }))) return false
+  return true
 }
 
 export async function deleteRooms(db: D1Database, roomIds: string[]) {
