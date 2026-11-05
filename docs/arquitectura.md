@@ -234,8 +234,10 @@ para que la UI los pinte: `ui/raid/roundReplay.ts` los reparte en orden a lo lar
 `roundMsLeft`), así la pelea se ve por turnos aunque el motor la juegue de golpe. Al caer el jefe, `settleFall` tira el premio de cada Pokémon del jugador que cobra, los saca
 de la sala y devuelve los premios: cada clase de sala decide qué hace con ellos.
 
-- **Pestaña Raids** (`GameState.raid`, `place: null`): aparece al acabar el tutorial (`ensureRaid`) y siempre hay
-  uno. Se manda a un Pokémon del rancho; al caer, el premio queda pendiente en `GameState.raidPrizes` (se recoge en
+- **Pestaña Raids** (`GameState.raids`, una sala por rotación, `place: null`): sin servidor solo se juega la
+  ordenada (`LOCAL_ROTATION`), que aparece al acabar el tutorial (`ensureRaid`) y siempre tiene jefe; con servidor se
+  puede tener un Pokémon en la sala de cada rotación a la vez. Se manda a un Pokémon del rancho (`raidRoomBlocker` dice
+  si se puede entrar en la sala y `monRaidBlocker` qué Pokémon pueden ir: el selector solo enseña esos); al caer, el premio queda pendiente en `GameState.raidPrizes` (se recoge en
   la pestaña) y sale el siguiente de `RAID_BOSSES` con los bots que siguen dentro.
 - **Paradas de ruta** (`NodeKind.Raid`, `Run.raid`, `place` = ruta y parada): al llegar el Pokémon de la ruta
   (`arrive` → `enterRouteRaid`), entra en una sala; mientras no haya servidor, a veces se simula que ya había una en
@@ -275,8 +277,8 @@ Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servid
 - **Frontal y lista** (acción `feed`, `net/raidFeed.ts`): el servidor devuelve, por rotación, el jefe del ciclo, la sala del frontal
   (la que el jugador eligió mirar; si no, la de más jugadores; si no, la principal), las salas del jefe y las de las
   paradas de ruta con jugadores (columnas `players` y `summary` de `rooms`), y su hora, con la que se cuentan las
-  esperas. La UI enseña la sala propia si la hay (`GameState.raid`) y, si no, la del frontal; entrar desde ahí
-  (`joinServerRaid`) pide esa sala (`targetRoomId`, cuyo id dice su rotación: `roomRotation`; sin ella, la rotación donde ya estuvo o la ordenada). Al caer el jefe, el siguiente no se crea en el móvil.
+  esperas. La UI enseña en cada rotación la sala propia si la hay (`GameState.raids[rotación]`) y, si no, la del frontal; entrar desde ahí
+  (`joinServerRaid`) pide esa sala (`targetRoomId`, cuyo id dice su rotación: `roomRotation`; sin ella, la del canal, `channel.rotation`; sin ninguna, la rotación donde ya estuvo o la ordenada). En la partida, cada sala enlazada se nombra con `RoomKey` (su rotación o la ruta, `linkedRoom.ts`). Al caer el jefe, el siguiente no se crea en el móvil.
 - **Entrar en una parada** (`joinStopRoom`): la sala de ese jefe en la que ya estuvo el jugador; si no, la que tenga
   más jugadores; si está llena, sale un bot para hacerle sitio. Las salas solo de bots, caídas, llenas de jugadores o
   con el jefe por debajo de `ROUTE_RAID_JOIN_MIN_HP` no se ofrecen. Si no vale ninguna, sala nueva (en marcha con la

@@ -27,8 +27,11 @@ export type RouteChannel = { slot: typeof RoomSlot.Route; routeId: RouteId; node
 export type TabChannel = { slot: typeof RoomSlot.Tab; rotation: RaidRotation; cycle: number }
 export type RoomChannel = TabChannel | RouteChannel
 
-/** El jefe que pide el jugador al entrar: el de la pestaña Raids que haya ahora o el de una parada de ruta */
-export type JoinChannel = { slot: typeof RoomSlot.Tab } | RouteChannel
+/**
+ * El jefe que pide el jugador al entrar: el que haya ahora en una rotación de la pestaña Raids o el de una parada de
+ * ruta. Sin `rotation` (clientes de antes de poder estar en las dos), la decide el servidor (ver tabRooms.joinRotation)
+ */
+export type JoinChannel = { slot: typeof RoomSlot.Tab; rotation?: RaidRotation } | RouteChannel
 
 export const RaidAction = { Join: 'join', Sync: 'sync', Feed: 'feed' } as const
 export type RaidAction = (typeof RaidAction)[keyof typeof RaidAction]

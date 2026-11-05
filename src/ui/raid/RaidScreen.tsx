@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { GameState } from '../../game/core/state'
-import { raidBossAt } from '../../game/raid/raid'
-import { tabRoomRotation } from '../../game/raid/online/linkedRoom'
+import { raidBossAt, tabRaidRotations } from '../../game/raid/raid'
 import { RAID_ROTATIONS, roomRotation, type RaidRotation } from '../../game/raid/online/protocol'
 import { useRaidFeed, type FeedState } from '../../net/raidFeed'
 import { Sprite } from '../shared/common'
@@ -18,8 +17,9 @@ type RaidTab = RaidRotation | typeof ROOMS_TAB
 /** Tamaño del jefe en la pestaña de su rotación */
 const TAB_SPRITE_SIZE = 24
 
-/** La pestaña con la que se abre: la rotación de la sala de tu Pokémon o la de la sala que mirabas */
-const firstTab = (game: GameState, feed: FeedState): RaidTab => (game.raid ? tabRoomRotation(game.raid) : roomRotation(feed.watchRoomId))
+/** La pestaña con la que se abre: la rotación de la sala que mirabas o, si no, la primera en la que esté tu Pokémon */
+const firstTab = (game: GameState, feed: FeedState): RaidTab =>
+  feed.watchRoomId ? roomRotation(feed.watchRoomId) : (tabRaidRotations(game)[0] ?? roomRotation(null))
 
 /**
  * Pestaña Ruta › Raids. Con servidor, los jefes y las salas son los suyos, iguales para todos: una pestaña por rotación

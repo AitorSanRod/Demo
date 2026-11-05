@@ -1,6 +1,6 @@
 import type { Rng } from '../../core/random'
 import { presentMembers, RaidMemberKind } from '../raidRoom'
-import { roomRotation, type JoinRequest, type RaidRotation, type RotationFeed, type RoomSummary } from './protocol'
+import { roomRotation, RoomSlot, type JoinRequest, type RaidRotation, type RotationFeed, type RoomSummary } from './protocol'
 import {
   advanceCycle,
   cycleBoss,
@@ -102,11 +102,12 @@ function tabRoomFor(c: RaidCycle, rooms: SharedRoom[], req: JoinRequest, now: nu
 }
 
 /**
- * La rotación en la que entra el jugador: la de la sala que ha elegido; si no eligió ninguna, la de la sala en la que
- * ya estuvo; si no, la ordenada
+ * La rotación en la que entra el jugador: la de la sala que ha elegido o la que pide; si no dice ninguna, la de la sala
+ * en la que ya estuvo; si no, la ordenada
  */
 export function joinRotation(rotations: { cycle: RaidCycle; rooms: SharedRoom[] }[], req: JoinRequest): RaidRotation {
   if (req.targetRoomId) return roomRotation(req.targetRoomId)
+  if (req.channel.slot === RoomSlot.Tab && req.channel.rotation) return req.channel.rotation
   return rotations.find((r) => ownRoom(r.rooms, req.playerId))?.cycle.rotation ?? roomRotation(null)
 }
 

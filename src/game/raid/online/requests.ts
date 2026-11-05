@@ -2,7 +2,7 @@ import { NodeKind, node, route } from '../../../data/maps'
 import type { PassiveRef } from '../../../data/passives'
 import { species } from '../../../data/species'
 import { TYPE_INFO, type PokeType } from '../../../data/types'
-import { DEFAULT_NICKNAME, NICKNAME_MAX, RaidAction, RoomSlot, type JoinChannel, type MonSnapshot, type RaidRequest } from './protocol'
+import { DEFAULT_NICKNAME, NICKNAME_MAX, RAID_ROTATIONS, RaidAction, RoomSlot, type JoinChannel, type RaidRotation, type MonSnapshot, type RaidRequest } from './protocol'
 
 // Lo que llega al servidor viene de cualquiera: se comprueba todo y se descarta lo que no encaje.
 
@@ -61,10 +61,12 @@ function isRaidStop(routeId: string, nodeId: string): boolean {
   }
 }
 
-/** El jefe que se pide: el de la pestaña Raids (el que diga el servidor) o el de una parada de ruta que exista */
+const isRotation = (v: unknown): v is RaidRotation => RAID_ROTATIONS.includes(v as RaidRotation)
+
+/** El jefe que se pide: el de una rotación de la pestaña Raids (el que diga el servidor) o el de una parada de ruta que exista */
 function parseChannel(v: unknown): JoinChannel | null {
   if (!isObject(v)) return null
-  if (v.slot === RoomSlot.Tab) return { slot: RoomSlot.Tab }
+  if (v.slot === RoomSlot.Tab) return isRotation(v.rotation) ? { slot: RoomSlot.Tab, rotation: v.rotation } : { slot: RoomSlot.Tab }
   if (v.slot !== RoomSlot.Route || typeof v.routeId !== 'string' || typeof v.nodeId !== 'string') return null
   return isRaidStop(v.routeId, v.nodeId) ? { slot: RoomSlot.Route, routeId: route(v.routeId).id, nodeId: v.nodeId } : null
 }

@@ -3,7 +3,7 @@ import { species, SPECIES } from '../../data/species'
 import { effectiveness } from '../../data/types'
 import { initialState } from '../core/state'
 import { chooseStarter } from '../core/test-utils'
-import { ensureRaid } from './raid'
+import { ensureRaid, LOCAL_ROTATION } from './raid'
 
 const hurts = (from: number, to: number) => effectiveness(signatureMove(from).type, species(to).types) > 0
 
@@ -15,7 +15,7 @@ export function raidState() {
   const s = initialState()
   s.tutorial = null
   ensureRaid(s)
-  const raid = s.raid!
+  const raid = s.raids[LOCAL_ROTATION]!
   chooseStarter(s, sparringSpecies(raid.boss.speciesId))
   const mon = s.owned[0]
   mon.level = Math.max(mon.level, raid.boss.minLevel ?? 0)

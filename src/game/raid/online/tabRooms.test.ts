@@ -41,4 +41,11 @@ describe('entrar en una rotación de la pestaña Raids', () => {
     expect(joinRotation(all, join(7))).toBe(RaidRotation.Random)
     expect(joinRotation(all, join(8))).toBe(RaidRotation.Ordered)
   })
+
+  it('sin elegir sala, la rotación que pide el jugador manda sobre la de la sala en la que ya estuvo', () => {
+    const all = boards()
+    seatPlayers(all[1].rooms[0], 1, 7)
+    const ordered = { ...join(7), channel: { slot: RoomSlot.Tab, rotation: RaidRotation.Ordered } } as const
+    expect(joinRotation(all, ordered)).toBe(RaidRotation.Ordered)
+  })
 })

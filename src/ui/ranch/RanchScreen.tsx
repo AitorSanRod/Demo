@@ -1,19 +1,19 @@
 import { useRef, useState } from 'react'
-import { findMon, MonPlace, monPlace, type GameState } from '../../game/core/state'
+import { findMon, type GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { moveBlocker, moveMon, placeMon, ranchCount } from '../../game/team/ranches'
 import { SettingsMenu } from '../settings/SettingsMenu'
 import { PokemonSheet } from '../shared/sheet/PokemonSheet'
 import { BoxSheet } from './BoxSheet'
 import { RanchMenu } from './RanchMenu'
-import { RanchMon, type RanchDrop } from './RanchMon'
+import type { RanchDrop } from './RanchMon'
+import { RanchPage } from './RanchPage'
 import { RanchSlots } from './RanchSlots'
-import { ranchFilter } from './ranchLooks'
 import './ranch.css'
 import './ranch-controls.css'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
-import { useSwipe } from '../shared/useSwipe'
+import { neighborStyle, useRanchCarousel } from './useRanchCarousel'
 
 /** Milisegundos que se ve el aviso de por qué no se ha podido soltar un Pokémon */
 const NOTICE_MS = 2500
@@ -27,7 +27,6 @@ export function RanchScreen({ game }: { game: GameState }) {
   const noticeTimer = useRef<number | undefined>(undefined)
   const count = ranchCount(game)
   const ranch = Math.min(view, count - 1)
-  const home = game.owned.filter((m) => m.ranch === ranch && monPlace(game, m.uid) === MonPlace.Ranch)
   const mon = selectedUid ? findMon(game, selectedUid) : undefined
   const close = () => {
     setSelectedUid(null)
@@ -44,31 +43,23 @@ export function RanchScreen({ game }: { game: GameState }) {
     if (blocker) return showNotice(blocker)
     act((s) => moveMon(s, uid, null))
   }
-  const turn = (step: number) => setView((ranch + step + count) % count)
-  const swipe = useSwipe((step) => count > 1 && turn(step))
+  const carousel = useRanchCarousel(count, ranch, setView)
+  const pageProps = { game, selectedUid, onSelect: setSelectedUid, onDrop }
 
   return (
     <div className="screen ranch">
       <div className="ranch-field">
-        <div className="ranch-ground" style={{ filter: ranchFilter(ranch, game.ranchTypeOf[ranch]) }} {...swipe} />
-        {home.map((m) => (
-          <RanchMon
-            key={m.uid}
-            mon={m}
-            selected={m.uid === selectedUid}
-            active={m.uid === game.activeUid}
-            onClick={() => setSelectedUid(m.uid)}
-            onDrop={(drop) => onDrop(m.uid, drop)}
-          />
-        ))}
-        {home.length === 0 && (
-          <p className="ranch-empty small">{game.owned.length === 0 ? 'Aún no tienes Pokémon.' : 'No hay ningún Pokémon en este rancho.'}</p>
-        )}
+        <div className={`ranch-track ${carousel.settling ? 'settling' : ''}`} {...carousel.trackProps}>
+          <RanchPage key={ranch} ranch={ranch} swipe={carousel.swipe} {...pageProps} />
+          {carousel.neighbor && (
+            <RanchPage key={carousel.neighbor.ranch} ranch={carousel.neighbor.ranch} style={neighborStyle(carousel.neighbor.side)} {...pageProps} />
+          )}
+        </div>
         <RanchSlots game={game} ranch={ranch} />
         {count > 1 && (
           <>
-            <button className="ranch-arrow left" onClick={() => turn(-1)} aria-label="Rancho anterior" />
-            <button className="ranch-arrow right" onClick={() => turn(1)} aria-label="Rancho siguiente" />
+            <button className="ranch-arrow left" onClick={() => carousel.turn(-1)} aria-label="Rancho anterior" />
+            <button className="ranch-arrow right" onClick={() => carousel.turn(1)} aria-label="Rancho siguiente" />
           </>
         )}
         {notice && <p className="ranch-notice small">{notice}</p>}

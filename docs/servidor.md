@@ -137,7 +137,7 @@ Lo que consulta cada jugador (solo con la app delante; cerrada, el servidor sigu
 | Situación | Peticiones por hora |
 |---|---|
 | Mirando la pelea de un jefe (cada 5 s) | ≈ 720 |
-| App abierta en otra pestaña con un Pokémon en una sala (cada 60 s) | ≈ 60 |
+| App abierta en otra pestaña con un Pokémon en una sala (cada 60 s; se puede estar en una sala de cada rotación de Raids y en la de la ruta) | ≈ 60 por sala |
 | Con cuenta: subir la partida (cada 2 min) | ≈ 30 |
 | Sin Pokémon en salas y sin cuenta | 0 |
 

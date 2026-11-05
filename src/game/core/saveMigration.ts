@@ -22,7 +22,7 @@ type Save = Record<string, unknown>
 export const SAVE_MIGRATIONS: Partial<Record<number, (save: Save) => void>> = {}
 
 /** Lo que se descarta al cambiar de versión: la ruta y la sala de raid en curso (el Pokémon vuelve al rancho) */
-const IN_PROGRESS: (keyof GameState)[] = ['run', 'raid', 'raidServer', 'timeScale']
+const IN_PROGRESS: (keyof GameState)[] = ['run', 'raids', 'raidServer', 'timeScale']
 /** Ranchos que puede llegar a tener el jugador: el primero más todos los de la tienda */
 const MAX_RANCHES = 1 + UPGRADES.ranches.prices.length
 

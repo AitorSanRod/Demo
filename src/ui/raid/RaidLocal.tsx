@@ -1,5 +1,5 @@
 import type { GameState } from '../../game/core/state'
-import { raidWaiting } from '../../game/raid/raid'
+import { LOCAL_ROTATION, raidWaiting } from '../../game/raid/raid'
 import { presentMembers, RAID_ROOM_SIZE } from '../../game/raid/raidRoom'
 import { MonSection } from '../shared/sheet/MonSheet'
 import { RaidJoin } from './RaidJoin'
@@ -9,7 +9,7 @@ import { RaidWaiting } from './RaidWaiting'
 
 /** Sin servidor: el jefe de la pestaña Raids se juega en local, con bots (la sala de la partida) */
 export function RaidLocal({ game }: { game: GameState }) {
-  const raid = game.raid
+  const raid = game.raids[LOCAL_ROTATION]
   if (!raid) return null
   if (raidWaiting(raid)) return <RaidWaiting game={game} raid={raid} />
   return (
@@ -20,7 +20,7 @@ export function RaidLocal({ game }: { game: GameState }) {
           <RaidRoster raid={raid} timeScale={game.timeScale} />
         </MonSection>
         <MonSection title="Tu Pokémon">
-          <RaidJoin game={game} raid={raid} />
+          <RaidJoin game={game} raid={raid} rotation={LOCAL_ROTATION} />
         </MonSection>
       </div>
     </>

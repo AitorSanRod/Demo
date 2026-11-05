@@ -3,6 +3,7 @@ import type { Potion } from '../../data/potions'
 import type { RanchTypeId } from '../../data/ranchTypes'
 import type { Stone } from '../../data/stones'
 import type { BattleRecord } from '../battle/battle'
+import { RaidRotation } from '../raid/online/protocol'
 import type { Raid, RaidPrize } from '../raid/raidRoom'
 import type { UpgradeId } from '../team/upgrades'
 
@@ -125,8 +126,11 @@ export interface GameState {
   completedRoutes: string[]
   run: Run | null
   expeditions: Expedition[]
-  /** Jefe comunitario activo y la sala del jugador; null hasta acabar el tutorial */
-  raid: Raid | null
+  /**
+   * Salas de la pestaña Raids, una por rotación de jefes (se puede luchar en las dos a la vez). Sin servidor solo se
+   * juega la ordenada; con él, solo están las salas con un Pokémon del jugador dentro
+   */
+  raids: TabRaids
   /** Premios de los jefes de la pestaña Raids derrotados, pendientes de recoger allí */
   raidPrizes: RaidPrize[]
   /** Salas compartidas del servidor que el jugador ha dejado sin que el servidor lo sepa aún (ver net/raidSync.ts) */
@@ -143,7 +147,12 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 30
+export const SAVE_VERSION = 31
+
+export type TabRaids = Record<RaidRotation, Raid | null>
+
+/** Ninguna sala en la pestaña Raids */
+export const noTabRaids = (): TabRaids => ({ [RaidRotation.Ordered]: null, [RaidRotation.Random]: null })
 
 export function initialState(): GameState {
   return {
@@ -166,7 +175,7 @@ export function initialState(): GameState {
     completedRoutes: [],
     run: null,
     expeditions: [],
-    raid: null,
+    raids: noTabRaids(),
     raidPrizes: [],
     roomsToLeave: [],
     routeRaidStreaks: {},
@@ -191,7 +200,7 @@ export type MonPlace = (typeof MonPlace)[keyof typeof MonPlace]
 export function monPlace(s: GameState, uid: string): MonPlace {
   if (s.run && uid === s.activeUid) return MonPlace.Run
   if (s.expeditions.some((e) => e.uid === uid)) return MonPlace.Expedition
-  if (s.raid?.members.some((m) => m.id === uid && !m.left)) return MonPlace.Raid
+  if (Object.values(s.raids).some((r) => r?.members.some((m) => m.id === uid && !m.left))) return MonPlace.Raid
   if (findMon(s, uid)?.ranch === null) return MonPlace.Box
   return MonPlace.Ranch
 }

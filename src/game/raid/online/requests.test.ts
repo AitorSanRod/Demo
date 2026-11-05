@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { player, snap, stopChannel } from './online-test-utils'
-import { DEFAULT_NICKNAME, NICKNAME_MAX, RaidAction, RoomSlot } from './protocol'
+import { DEFAULT_NICKNAME, NICKNAME_MAX, RaidAction, RaidRotation, RoomSlot, type JoinRequest } from './protocol'
 import { cleanNickname, parseRequest } from './requests'
 
 vi.mock('../../../data/maps/kantoMaps', () => import('../../core/test-map'))
@@ -20,6 +20,13 @@ describe('peticiones al servidor de salas', () => {
   it('acepta una petición de entrar bien formada', () => {
     expect(parseRequest(join())).toEqual(join())
     expect(parseRequest(join({ channel: stopChannel(), bossHp: 0.5 }))).toMatchObject({ channel: stopChannel(), bossHp: 0.5 })
+  })
+
+  it('entrar en la pestaña Raids puede decir la rotación; una que no existe se ignora', () => {
+    const random = { slot: RoomSlot.Tab, rotation: RaidRotation.Random }
+    expect(parseRequest(join({ channel: random }))).toMatchObject({ channel: random })
+    const unknown = parseRequest(join({ channel: { slot: RoomSlot.Tab, rotation: 'otra' } })) as JoinRequest
+    expect(unknown.channel).toEqual({ slot: RoomSlot.Tab })
   })
 
   it('rechaza lo que no encaja', () => {

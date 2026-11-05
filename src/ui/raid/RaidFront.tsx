@@ -2,7 +2,6 @@ import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { joinServerRaid, raidBossAt } from '../../game/raid/raid'
 import { newRaid } from '../../game/raid/raidEngine'
-import { tabRoomRotation } from '../../game/raid/online/linkedRoom'
 import { CyclePhase, type RotationFeed } from '../../game/raid/online/protocol'
 import { presentMembers, RAID_ROOM_SIZE, type Raid } from '../../game/raid/raidRoom'
 import { featuredRaid, serverNow, watchRoom, type FeedState } from '../../net/raidFeed'
@@ -28,7 +27,7 @@ function waitingRaid(state: FeedState, board: RotationFeed): Raid {
  */
 export function RaidFront({ game, state, board }: { game: GameState; state: FeedState; board: RotationFeed | null }) {
   if (!board) return <p className="notice">{state.failing ? 'Sin conexión con el servidor de raids: reintentando…' : 'Buscando al jefe…'}</p>
-  const own = game.raid && tabRoomRotation(game.raid) === board.rotation ? game.raid : null
+  const own = game.raids[board.rotation]
   const featured = featuredRaid(state, board)
   const shown = own ?? featured
   if (!shown) return <RaidWaiting game={game} raid={waitingRaid(state, board)} />
@@ -55,7 +54,7 @@ export function RaidFront({ game, state, board }: { game: GameState; state: Feed
           <RaidRoster raid={shown} timeScale={game.timeScale} />
         </MonSection>
         <MonSection title="Tu Pokémon">
-          <RaidJoin game={game} raid={shown} onJoin={joinShown} />
+          <RaidJoin game={game} raid={shown} rotation={board.rotation} onJoin={joinShown} />
         </MonSection>
       </div>
     </>

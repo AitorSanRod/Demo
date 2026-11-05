@@ -24,7 +24,6 @@ const shownRoomId = (board: RotationFeed, ownId: string | null | undefined) =>
 export function RaidRooms({ game, state, onWatch }: { game: GameState; state: FeedState; onWatch: (rotation: RaidRotation) => void }) {
   const feed = state.feed
   if (!feed) return <p className="notice">{state.failing ? 'Sin conexión con el servidor de raids: reintentando…' : 'Buscando salas…'}</p>
-  const ownId = game.raid?.remote?.roomId
   const look = (roomId: string, rotation: RaidRotation) => {
     watchRoom(roomId)
     onWatch(rotation)
@@ -39,7 +38,7 @@ export function RaidRooms({ game, state, onWatch }: { game: GameState; state: Fe
           ) : (
             <div className="raid-room-list">
               {board.rooms.map((r) => (
-                <RoomRow key={r.roomId} room={r} current={r.roomId === shownRoomId(board, ownId)}>
+                <RoomRow key={r.roomId} room={r} current={r.roomId === shownRoomId(board, game.raids[board.rotation]?.remote?.roomId)}>
                   <button className="btn small" onClick={() => look(r.roomId, board.rotation)}>
                     {r.open ? 'Ver' : 'Llena'}
                   </button>

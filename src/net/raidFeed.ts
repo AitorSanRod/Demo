@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { act, getState } from '../game/core/store'
-import { switchToLocalRaids, switchToServerRaids } from '../game/raid/raid'
-import { DEFAULT_NICKNAME, RaidAction, type RaidFeed, type RotationFeed } from '../game/raid/online/protocol'
+import { switchToLocalRaids, switchToServerRaids, tabRaidRotations } from '../game/raid/raid'
+import { DEFAULT_NICKNAME, RAID_ROTATIONS, RaidAction, type RaidFeed, type RotationFeed } from '../game/raid/online/protocol'
 import type { Raid } from '../game/raid/raidRoom'
 import { nickname, playerId } from './identity'
 import { postFeed, RaidApiError } from './raidApi'
@@ -12,7 +12,7 @@ import { postFeed, RaidApiError } from './raidApi'
 
 /** Milisegundos reales entre consultas con la pestaña en pantalla, mirando una sala ajena */
 const FEED_WATCH_MS = 5_000
-/** Lo mismo con un Pokémon propio en una sala: su pelea ya la consulta raidSync; aquí solo la lista */
+/** Lo mismo con un Pokémon propio en la sala de cada rotación: sus peleas ya las consulta raidSync; aquí solo la lista */
 const FEED_OWN_ROOM_MS = 15_000
 /** Cada cuánto se mira si toca consultar */
 const LOOP_MS = 1_000
@@ -39,7 +39,7 @@ function update(patch: Partial<FeedState>) {
   listeners.forEach((l) => l())
 }
 
-const interval = () => (getState().raid ? FEED_OWN_ROOM_MS : FEED_WATCH_MS)
+const interval = () => (tabRaidRotations(getState()).length === RAID_ROTATIONS.length ? FEED_OWN_ROOM_MS : FEED_WATCH_MS)
 
 async function step() {
   const due = Date.now() - lastAt >= interval()

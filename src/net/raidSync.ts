@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { act, getState } from '../game/core/store'
-import { applyView, dropLink, forgetRoom, presenceKey, ROOM_SLOTS, roomAt, roomRequest } from '../game/raid/online/linkedRoom'
-import { DEFAULT_NICKNAME, RaidAction, type RoomSlot } from '../game/raid/online/protocol'
+import { applyView, dropLink, forgetRoom, presenceKey, ROOM_KEYS, roomAt, roomRequest, type RoomKey } from '../game/raid/online/linkedRoom'
+import { DEFAULT_NICKNAME, RaidAction } from '../game/raid/online/protocol'
 import { nickname, playerId } from './identity'
 import { postRaid, RaidApiError } from './raidApi'
 
@@ -18,7 +18,7 @@ const LOOP_MS = 1_000
 
 let watchers = 0
 let busy = false
-const lastSync: Partial<Record<RoomSlot, number>> = {}
+const lastSync: Partial<Record<RoomKey, number>> = {}
 
 let online: boolean | null = null
 const listeners = new Set<() => void>()
@@ -30,30 +30,30 @@ function setOnline(value: boolean) {
 
 const who = () => ({ playerId: playerId(), nickname: nickname() ?? DEFAULT_NICKNAME })
 const syncEvery = () => (watchers > 0 ? WATCH_SYNC_MS : BACKGROUND_SYNC_MS)
-const syncNow = () => ROOM_SLOTS.forEach((slot) => delete lastSync[slot])
+const syncNow = () => ROOM_KEYS.forEach((key) => delete lastSync[key])
 
-async function syncSlot(slot: RoomSlot, now: number, hidden: boolean) {
-  const req = roomRequest(getState(), slot)
+async function syncRoom(key: RoomKey, now: number, hidden: boolean) {
+  const req = roomRequest(getState(), key)
   if (!req) return
   const joining = req.action === RaidAction.Join
-  if (!joining && (hidden || now - (lastSync[slot] ?? 0) < syncEvery())) return
-  lastSync[slot] = now
+  if (!joining && (hidden || now - (lastSync[key] ?? 0) < syncEvery())) return
+  lastSync[key] = now
   const sentRoomId = joining ? null : req.roomId
-  const presence = presenceKey(getState(), slot)
+  const presence = presenceKey(getState(), key)
   try {
     const view = await postRaid({ ...req, ...who() })
     setOnline(true)
     act((s) => {
       // Si ha entrado o salido mientras, la respuesta ya no vale: la próxima consulta lo pondrá al día
-      if (!joining && presenceKey(s, slot) !== presence) return
-      const applied = applyView(s, slot, sentRoomId, view)
+      if (!joining && presenceKey(s, key) !== presence) return
+      const applied = applyView(s, key, sentRoomId, view)
       if (joining && !applied && view) s.roomsToLeave.push(view.roomId)
     })
   } catch (e) {
     if (!(e instanceof RaidApiError)) throw e
     setOnline(false)
     // Sin servidor no se espera más: la sala se juega en local, como antes
-    if (joining) act((s) => roomAt(s, slot)?.remote?.roomId === null && dropLink(s, slot))
+    if (joining) act((s) => roomAt(s, key)?.remote?.roomId === null && dropLink(s, key))
   }
 }
 
@@ -75,8 +75,8 @@ async function leaveAsPreviousPlayer() {
   const previous = lastPlayerId
   lastPlayerId = playerId()
   if (!previous || previous === lastPlayerId) return
-  for (const slot of ROOM_SLOTS) {
-    const req = roomRequest(getState(), slot)
+  for (const key of ROOM_KEYS) {
+    const req = roomRequest(getState(), key)
     if (req?.action === RaidAction.Sync) await postRaid({ ...req, mon: null, playerId: previous, nickname: who().nickname })
   }
 }
@@ -95,7 +95,7 @@ async function step() {
       await flushLeaves().catch(ignoreNetwork)
     }
     const now = Date.now()
-    for (const slot of ROOM_SLOTS) await syncSlot(slot, now, hidden)
+    for (const key of ROOM_KEYS) await syncRoom(key, now, hidden)
   } finally {
     busy = false
   }

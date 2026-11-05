@@ -8,6 +8,26 @@
 .ranch-field {
   position: absolute;
   inset: 0;
+  background: var(--page);
+}
+/* Tira de ranchos como fotos de una galería (useRanchCarousel): sigue al dedo y, al soltar, se desliza sola hasta el
+   de al lado; entre uno y otro queda un hueco oscuro */
+.ranch-track {
+  --ranch-gap: 10px;
+  position: absolute;
+  inset: 0;
+}
+.ranch-track.settling {
+  transition: transform 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.ranch-page {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+/* El rancho que se asoma no se toca: solo se ve llegar */
+.ranch-page.peek {
+  pointer-events: none;
 }
 /* El fondo va en su propia capa para que el tono de cada rancho no tiña a los Pokémon. Deslizar sobre él a los
    lados pasa de rancho (useSwipe), así que el navegador no hace sus gestos */
