@@ -12,6 +12,15 @@ export const ROOM_TTL_MS = 24 * 60 * 60 * 1000
 
 export const isExpired = (room: SharedRoom, now: number): boolean => now - room.updatedAt > ROOM_TTL_MS
 
+/** La pelea de la sala ha terminado: el jefe ha caído o se ha escapado */
+const isOver = (room: SharedRoom): boolean => room.raid.hp === 0 || room.closed
+
+/**
+ * Sala de parada terminada y sin nadie dentro: todos sus jugadores ya saben cómo acabó (o se fueron antes) y se borra.
+ * Las de la pestaña Raids no: las lleva el ciclo (tabRooms.ts)
+ */
+export const isSettled = (room: SharedRoom): boolean => room.channel.slot === RoomSlot.Route && isOver(room) && playersIn(room) === 0
+
 /** Cabe alguien más: hay hueco o un bot que echar */
 export const canMakeRoom = (room: SharedRoom) => hasRoom(room.raid) || presentMembers(room.raid).some((m) => m.kind === RaidMemberKind.Bot)
 
@@ -44,10 +53,15 @@ export function joinStopRoom(rooms: SharedRoom[], req: StopJoinRequest, now: num
   return room
 }
 
-/** Ponerse al día: se juega la sala hasta ahora y el jugador queda dentro o fuera según lo que pida */
+/**
+ * Ponerse al día: se juega la sala hasta ahora y el jugador queda dentro o fuera según lo que pida. En una parada
+ * terminada sale al verlo: con esta respuesta su ruta ya sigue y la sala no le hace falta
+ */
 export function syncRoom(room: SharedRoom, req: SyncRequest, now: number, rng: Rng): RoomView {
   catchUp(room, now, rng)
   if (req.mon) seatPlayer(room, req.playerId, req.nickname, req.mon)
   else unseatPlayer(room, req.playerId)
-  return viewFor(room, req.playerId)
+  const view = viewFor(room, req.playerId)
+  if (room.channel.slot === RoomSlot.Route && isOver(room)) unseatPlayer(room, req.playerId)
+  return view
 }

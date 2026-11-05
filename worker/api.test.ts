@@ -5,6 +5,8 @@ import { initialState } from '../src/game/core/state'
 import { chooseStarter } from '../src/game/core/test-utils'
 import { RaidAction, RoomSlot } from '../src/game/raid/online/protocol'
 import { stopChannel } from '../src/game/raid/online/online-test-utils'
+import { ROOM_MAX_CATCHUP_MS } from '../src/game/raid/online/sharedRoom'
+import { deleteIdleStopRooms } from './db/rooms'
 import { MailKind, sendMail } from './mail'
 import { testWorker } from './test/api'
 
@@ -88,6 +90,28 @@ describe('salas compartidas', () => {
     await api.env.DB.prepare("UPDATE rooms SET data = json_set(data, '$.raid.hp', 0) WHERE id = ?").bind(view.roomId).run()
     await api.call('/api/raid', { body: { action: RaidAction.Sync, playerId: 'player-aaaa', nickname: 'A', roomId: view.roomId, mon: mon('a1') } })
     expect((await api.call('/api/raid', { body: feed('player-bbbb') })).data.feed.routeRooms).toEqual([])
+  })
+
+  it('la tarea programada borra las salas de ruta sin jugadores que nadie toca en ROOM_MAX_CATCHUP_MS', async () => {
+    const api = testWorker()
+    const { view } = (await api.call('/api/raid', { body: join('player-aaaa', 'a1', stopChannel()) })).data
+    const leave = { action: RaidAction.Sync, playerId: 'player-aaaa', nickname: 'A', roomId: view.roomId, mon: null }
+    await api.call('/api/raid', { body: leave })
+    const room = () => api.env.DB.prepare('SELECT id FROM rooms WHERE id = ?').bind(view.roomId).first()
+    await deleteIdleStopRooms(api.env.DB, Date.now())
+    expect(await room()).not.toBeNull()
+    await deleteIdleStopRooms(api.env.DB, Date.now() + ROOM_MAX_CATCHUP_MS + 1)
+    expect(await room()).toBeNull()
+  })
+
+  it('una sala de ruta terminada se borra cuando su último jugador ve cómo acabó', async () => {
+    const api = testWorker()
+    const { view } = (await api.call('/api/raid', { body: join('player-aaaa', 'a1', stopChannel()) })).data
+    await api.env.DB.prepare("UPDATE rooms SET data = json_set(data, '$.raid.hp', 0) WHERE id = ?").bind(view.roomId).run()
+    const sync = { action: RaidAction.Sync, playerId: 'player-aaaa', nickname: 'A', roomId: view.roomId, mon: mon('a1') }
+    const seen = (await api.call('/api/raid', { body: sync })).data.view
+    expect(seen.raid.hp).toBe(0)
+    expect(await api.env.DB.prepare('SELECT id FROM rooms WHERE id = ?').bind(view.roomId).first()).toBeNull()
   })
 
   it('dos jugadores que entran contra el mismo jefe acaban en la misma sala y se ven', async () => {

@@ -24,7 +24,7 @@ Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.
 | Cuentas: `/api/auth/*` (crear, confirmar, entrar, salir, recuperar, apodo) | `worker/auth/` + `worker/db/users.ts` |
 | Obsequio diario: `GET` / `POST /api/gift` (solo con sesión) | `worker/gift.ts` + `worker/db/gifts.ts` |
 | Notificaciones push: `/api/push/*` y el envío (VAPID, cifrado) | `worker/push/` |
-| Tarea programada cada minuto (raids sin nadie mirando, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
+| Tarea programada cada minuto (raids sin nadie mirando, borrar paradas viejas, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
 | Correos (Brevo) y su texto | `worker/mail.ts` |
 | Lógica del juego que usa el servidor (con tests) | `src/game/raid/online/`, `src/game/core/cloudSave.ts`, `accountRules.ts` |
 | Cliente: cuenta, partida en la nube, id y apodo, cada cuánto consulta | `src/net/` |

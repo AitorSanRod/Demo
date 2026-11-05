@@ -3,7 +3,7 @@ import { presentMembers, RAID_ROOM_SIZE, RaidMemberKind } from '../raidRoom'
 import { ROUTE_RAID_JOIN_MIN_HP } from '../stopRoom'
 import { fillWithBots, newId, player, rng, seatPlayers, snap, stopChannel, T0, tabRoom } from './online-test-utils'
 import { RaidAction, type JoinRequest } from './protocol'
-import { isExpired, joinStopRoom, pickRoom, ROOM_TTL_MS, syncRoom } from './roomServer'
+import { isExpired, isSettled, joinStopRoom, pickRoom, ROOM_TTL_MS, syncRoom } from './roomServer'
 import { createRoom, playersIn, seatPlayer, unseatPlayer } from './sharedRoom'
 
 vi.mock('../../../data/maps/kantoMaps', () => import('../../core/test-map'))
@@ -84,6 +84,25 @@ describe('entrar en una parada y ponerse al día', () => {
     expect(playersIn(room)).toBe(0)
     syncRoom(room, { ...sync, mon: snap('mon1') }, T0, rng)
     expect(playersIn(room)).toBe(1)
+  })
+
+  it('en una parada terminada, quien la consulta ve cómo acabó y sale; sin nadie dentro, queda para borrar', () => {
+    const room = joinStopRoom([], joinReq(1), T0, rng, newId)
+    joinStopRoom([room], joinReq(2), T0, rng, newId)
+    room.raid.hp = 0
+    const sync = (n: number) => ({ action: RaidAction.Sync, playerId: player(n), nickname: `J${n}`, roomId: room.id, mon: snap(`mon${n}`) }) as const
+    const view = syncRoom(room, sync(1), T0, rng)
+    expect(view.raid.members.some((m) => m.kind === RaidMemberKind.Player && !m.left)).toBe(true)
+    expect(playersIn(room)).toBe(1)
+    expect(isSettled(room)).toBe(false)
+    syncRoom(room, sync(2), T0, rng)
+    expect(isSettled(room)).toBe(true)
+  })
+
+  it('una sala de la pestaña Raids nunca queda para borrar por sí sola', () => {
+    const room = tabRoom()
+    room.raid.hp = 0
+    expect(isSettled(room)).toBe(false)
   })
 
   it('una sala caduca si nadie la consulta en ROOM_TTL_MS', () => {

@@ -292,6 +292,10 @@ Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servid
 - **Sin servidor** (`npm run dev`, sin red): si la petición de entrar falla, la sala sigue en local
   como antes, con bots locales. Si una sala enlazada deja de responder se reintenta; si el servidor ya no la tiene,
   sigue en local.
+- **Limpieza de las paradas**: al consultar una sala de parada terminada (jefe caído o escapado), el jugador ve cómo
+  acabó y sale (`syncRoom`); cuando ya no queda nadie dentro (`isSettled`), la sala se borra en vez de guardarse. La
+  tarea programada borra además las salas de parada sin jugadores que nadie ha tocado en `ROOM_MAX_CATCHUP_MS`
+  (`deleteIdleStopRooms`). Así la lista «Salas › Ruta» solo enseña peleas en curso con jugadores.
 - **Concurrencia**: cada sala lleva una versión; la escritura es `UPDATE … WHERE version = <la leída>` y, si otro
   jugador escribió antes, no cambia nada y se repite la petición entera (hasta 5 veces).
 

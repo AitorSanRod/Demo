@@ -1,9 +1,9 @@
 import { channelKey, RaidAction, RoomSlot, type JoinRequest, type RaidRequest, type RaidResponse, type RoomView, type SyncRequest } from '../src/game/raid/online/protocol'
 import { parseRequest } from '../src/game/raid/online/requests'
-import { isExpired, joinStopRoom, syncRoom } from '../src/game/raid/online/roomServer'
+import { isExpired, isSettled, joinStopRoom, syncRoom } from '../src/game/raid/online/roomServer'
 import { fallPush } from '../src/game/raid/online/raidPushes'
 import { viewFor } from '../src/game/raid/online/sharedRoom'
-import { deleteRooms, loadChannel, loadRoom, saveRoom } from './db/rooms'
+import { deleteRoom, deleteRooms, loadChannel, loadRoom, saveRoom } from './db/rooms'
 import type { Env } from './env'
 import { json, readJson } from './http'
 import { notifyRaid } from './push/notify'
@@ -60,7 +60,9 @@ async function sync(db: D1Database, req: SyncRequest): Promise<RoomView | null |
   }
   const standing = stored.room.raid.hp > 0
   const view = syncRoom(stored.room, req, now, Math.random)
-  if (!(await saveRoom(db, stored))) return CONFLICT
+  // Una parada terminada de la que ya han salido todos no se guarda: se borra
+  const kept = isSettled(stored.room) ? await deleteRoom(db, stored) : await saveRoom(db, stored)
+  if (!kept) return CONFLICT
   if (!(await noteTabFall(db, stored.room, now))) return CONFLICT
   const fell = standing && stored.room.raid.hp === 0 ? fallPush(stored.room, now) : null
   if (fell) await notifyRaid(db, [fell], req.playerId)

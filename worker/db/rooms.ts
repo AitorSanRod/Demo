@@ -1,5 +1,6 @@
 import { channelKey, ROUTE_CHANNEL_PREFIX, type RoomChannel, type RoomSummary } from '../../src/game/raid/online/protocol'
 import { ROOM_TTL_MS } from '../../src/game/raid/online/roomServer'
+import { ROOM_MAX_CATCHUP_MS } from '../../src/game/raid/online/sharedRoom'
 import { playersIn, type SharedRoom } from '../../src/game/raid/online/sharedRoom'
 import { roomSummary } from '../../src/game/raid/online/tabRooms'
 
@@ -65,6 +66,24 @@ export async function saveRoom(db: D1Database, { room, version }: StoredRoom): P
 export async function saveRooms(db: D1Database, rooms: SharedRoom[], versions: Map<SharedRoom, number>): Promise<boolean> {
   for (const room of rooms) if (!(await saveRoom(db, { room, version: versions.get(room) ?? null }))) return false
   return true
+}
+
+/** Borra la sala si nadie la ha cambiado desde que se leyó; false si otro llegó antes */
+export async function deleteRoom(db: D1Database, { room, version }: StoredRoom): Promise<boolean> {
+  if (version === null) return true
+  const { meta } = await db.prepare('DELETE FROM rooms WHERE id = ? AND version = ?').bind(room.id, version).run()
+  return meta.changes === 1
+}
+
+/**
+ * Borra las salas de parada sin jugadores dentro (terminadas o solo con bots) que nadie ha tocado en
+ * ROOM_MAX_CATCHUP_MS: quien siguiera con la app cerrada más tiempo ya no se pone al día con ella, sigue en local
+ */
+export async function deleteIdleStopRooms(db: D1Database, now: number) {
+  await db
+    .prepare('DELETE FROM rooms WHERE channel LIKE ? AND players = 0 AND updated_at < ?')
+    .bind(`${ROUTE_CHANNEL_PREFIX}%`, now - ROOM_MAX_CATCHUP_MS)
+    .run()
 }
 
 export async function deleteRooms(db: D1Database, roomIds: string[]) {
