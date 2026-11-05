@@ -4,19 +4,25 @@ import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
 import './route.css'
 
-/** Tarjeta de una línea sobre la imagen de la zona de la ruta, difuminada: base de la lista de rutas y de expediciones */
-export function RouteRow({ route: r, locked = false, children }: { route: Route; locked?: boolean; children: ReactNode }) {
+/**
+ * Tarjeta de una línea sobre una imagen difuminada (`focusY`: qué franja se ve, en % de su alto): base de las listas
+ * de rutas, de expediciones y de la sala de un jefe
+ */
+export function BackdropRow({ image, focusY = 50, className = '', children }: { image?: string; focusY?: number; className?: string; children: ReactNode }) {
   return (
-    <div className={`card route-row ${locked ? 'locked' : ''}`}>
-      {r.backdrop && (
-        <span
-          className="route-backdrop"
-          style={{ backgroundImage: `url(${r.backdrop.image})`, backgroundPositionY: `${r.backdrop.focusY}%` }}
-          aria-hidden="true"
-        />
-      )}
+    <div className={`card route-row ${className}`}>
+      {image && <span className="route-backdrop" style={{ backgroundImage: `url(${image})`, backgroundPositionY: `${focusY}%` }} aria-hidden="true" />}
       {children}
     </div>
+  )
+}
+
+/** Línea sobre la imagen de la zona de la ruta */
+export function RouteRow({ route: r, locked = false, children }: { route: Route; locked?: boolean; children: ReactNode }) {
+  return (
+    <BackdropRow image={r.backdrop?.image} focusY={r.backdrop?.focusY} className={locked ? 'locked' : ''}>
+      {children}
+    </BackdropRow>
   )
 }
 

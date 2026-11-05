@@ -275,7 +275,9 @@ Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servid
   con el jefe por debajo de `ROUTE_RAID_JOIN_MIN_HP` no se ofrecen. Si no vale ninguna, sala nueva (en marcha con la
   vida que pide el cliente, `bossHp`).
 - **En la partida** (`online/linkedRoom.ts`): `joinRaid` y `enterRouteRaid` dejan la sala esperando sitio
-  (`Raid.remote.roomId` null) y se sigue jugando en local. `net/raidSync.ts` pide entrar; con la respuesta la sala
+  (`Raid.remote.roomId` null, `isSearching`): la de la pestaña se sigue jugando en local; la de una parada se queda
+  quieta, sin bots, y la ruta muestra «Buscando entrenadores…» (`RaidSearching`) hasta que el servidor contesta, para
+  entrar antes en una sala con jugadores que en una de bots. `net/raidSync.ts` pide entrar; con la respuesta la sala
   local pasa a ser el reflejo de la del servidor (`applyView`) y `tick` ya no la juega (solo corre su reloj para la
   animación). Cada consulta manda el Pokémon que el jugador quiere dentro (o ninguno, para retirarse) y su nivel; la
   respuesta trae la sala y las rondas de EXP contadas, y lo que pase se resuelve con las mismas funciones que en

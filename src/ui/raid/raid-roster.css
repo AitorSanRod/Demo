@@ -1,0 +1,66 @@
+/* Lista de la sala (RaidRoster): líneas como las de rutas y expediciones (route-row), con el paisaje del tipo detrás */
+.raid-roster {
+  gap: 8px;
+}
+.raid-row.route-row {
+  min-height: 60px;
+  padding: 6px 12px;
+  animation: raid-row-enter 0.35s ease-out;
+}
+.raid-row-info {
+  min-width: 0;
+}
+.raid-row-info > * {
+  display: block;
+}
+.raid-row-info strong {
+  overflow: hidden;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Pokémon y nivel sobre la imagen: en una píldora para que se lean, como en expediciones */
+.raid-row-pill {
+  width: fit-content;
+  margin: 2px 0 3px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  color: var(--text);
+}
+.raid-row.player {
+  border: 2px solid var(--accent);
+}
+.raid-row.bot .route-backdrop {
+  filter: blur(1.5px) grayscale(0.6);
+}
+.raid-row.down .raid-row-sprite {
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.6;
+}
+.raid-tag {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.raid-tag.mine {
+  background: var(--accent);
+  color: #fff;
+}
+.raid-tag.bot {
+  padding-left: 4px;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  color: var(--muted);
+}
+
+@keyframes raid-row-enter {
+  from {
+    transform: translateX(-12px);
+    opacity: 0;
+  }
+}

@@ -16,6 +16,8 @@ import {
 import { recordRouteRaidFall, ROUTE_RAID_REPEAT_MONEY_MULT } from './routeRaidStreak'
 import { ROUTE_RAID_FIRST_BOT_MS, ROUTE_RAID_JOIN_MIN_HP } from './stopRoom'
 import { sparringSpecies } from './raid-test-utils'
+import { dropLink } from './online/linkedRoom'
+import { RoomSlot } from './online/protocol'
 
 vi.mock('../../data/maps/kantoMaps', () => import('../core/test-map'))
 
@@ -24,14 +26,21 @@ const raidNode = () => route(RAID_ROUTE).nodes.find((n) => n.kind === NodeKind.R
 const NEW_ROOM = seqRng(ROUTE_RAID_RUNNING_CHANCE + (1 - ROUTE_RAID_RUNNING_CHANCE) / 2)
 const RUNNING_ROOM = seqRng(0)
 
-/** Ruta en marcha que acaba de llegar a la parada del jefe comunitario, con un Pokémon que puede herirle */
-function arriveAtRaid(rng = NEW_ROOM) {
+/** Llega a la parada del jefe comunitario, con un Pokémon que puede herirle, y sigue buscando sala en el servidor */
+function arriveSearching(rng = NEW_ROOM) {
   const s = initialState()
   chooseStarter(s, sparringSpecies(raidNode().boss!.speciesId))
   s.unlockedRoutes.push(RAID_ROUTE)
   startRun(s, RAID_ROUTE)
   walk(s, Number.MAX_SAFE_INTEGER, rng)
   return { s, mon: activeMon(s)!, raid: currentRouteRaid(s)! }
+}
+
+/** Llega a la parada sin servidor: la sala se juega en local, con bots */
+function arriveAtRaid(rng = NEW_ROOM) {
+  const arrived = arriveSearching(rng)
+  dropLink(arrived.s, RoomSlot.Route)
+  return arrived
 }
 
 /** El Pokémon del jugador cae en la próxima ronda y era su última vida */
@@ -49,6 +58,19 @@ describe('jefe comunitario de ruta', () => {
     expect(raid.boss).toEqual(raidNode().boss)
     expect(raid.members.map((m) => m.id)).toEqual([mon.uid])
     expect(raid.hp).toBe(raid.maxHp)
+  })
+
+  it('al llegar busca primero sala en el servidor y, mientras, la sala local no se mueve ni entran bots', () => {
+    const { s, raid } = arriveSearching()
+    const before = structuredClone(raid)
+    advanceRouteRaid(s, ROUTE_RAID_FIRST_BOT_MS * 10, seqRng(0))
+    expect(s.run!.raid).toEqual(before)
+  })
+
+  it('si no hay servidor, la sala local se juega y entran bots', () => {
+    const { s, raid } = arriveAtRaid()
+    advanceRouteRaid(s, ROUTE_RAID_FIRST_BOT_MS * 10, seqRng(0))
+    expect(raid.members.some((m) => m.kind === RaidMemberKind.Bot)).toBe(true)
   })
 
   it('a veces se llega a una sala ya en marcha, con gente dentro y el jefe por encima del mínimo', () => {

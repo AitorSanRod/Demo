@@ -34,7 +34,8 @@ function arrivalHp(s: GameState, rng: Rng): number | null {
 
 /**
  * Al llegar a la parada: la ruta se para y el Pokémon entra, con ROUTE_RAID_LIVES vidas, en una sala ya en marcha o en
- * una nueva. Queda esperando sitio en una sala compartida del servidor (ver online/linkedRoom.ts); mientras, lucha aquí
+ * una nueva. Antes busca sitio en una sala compartida del servidor, que da preferencia a las que tienen jugadores (ver
+ * online/linkedRoom.ts); mientras, la sala local espera quieta, y solo si no hay servidor se lucha en ella con bots
  */
 export function enterRouteRaid(s: GameState, r: Route, n: RouteNode, rng: Rng) {
   const run = s.run!

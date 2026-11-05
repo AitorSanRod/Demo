@@ -3,7 +3,7 @@ import { legSteps, node, route } from '../../data/maps'
 import { species } from '../../data/species'
 import type { GameState, OwnedMon, Run } from '../../game/core/state'
 import { act } from '../../game/core/store'
-import { playerMembers } from '../../game/raid/raidEngine'
+import { isSearching, playerMembers } from '../../game/raid/raidEngine'
 import type { Raid } from '../../game/raid/raidRoom'
 import { currentRouteRaid } from '../../game/raid/routeRaid'
 import { endRun, tapRun } from '../../game/run/run'
@@ -16,7 +16,7 @@ import { RewardOverlay } from '../shared/RewardOverlay'
 import { battleFrame, fighterClass } from './battleFrame'
 import { RouteBattle } from './RouteBattle'
 import { RaidBattle } from '../raid/RaidBattleScene'
-import { RaidHudLine, RetreatButton } from './RouteRaidHud'
+import { RaidHudLine, RaidSearching, RetreatButton } from './RouteRaidHud'
 import { HealStop } from './HealStop'
 import { WalkScene } from './WalkScene'
 import './run.css'
@@ -37,6 +37,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
   const r = route(run.routeId)
   const spm = stepsPerMinute(mon)
   const routeRaid = currentRouteRaid(game)
+  const searching = routeRaid !== null && isSearching(routeRaid)
   const battle = run.battleMsLeft > 0 && run.lastBattle ? run.lastBattle : null
   const frame = battle && battleFrame(battle, run.battleMsLeft)
   const walking = run.phase === 'walking' && !battle && !run.heal
@@ -51,8 +52,8 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
     <div className={`screen run ${defeated ? 'defeated' : ''}`}>
       <WalkScene
         biome={r.biome}
-        // En la pelea del jefe comunitario el Pokémon va con el grupo, no caminando
-        speciesId={routeRaid ? undefined : mon.speciesId}
+        // En la pelea del jefe comunitario el Pokémon va con el grupo, no caminando (mientras se busca sala, espera solo)
+        speciesId={routeRaid && !searching ? undefined : mon.speciesId}
         moving={walking}
         speed={Math.min(1.8, Math.max(0.6, spm / 22))}
         walkerClass={battle ? `battling ${playerClass}` : run.heal ? 'healing' : ''}
@@ -60,7 +61,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
       >
         {battle && frame && <RouteBattle record={battle} frame={frame} />}
         {run.heal && <HealStop key={run.stop} heal={run.heal} />}
-        {routeRaid && <RaidBattle raid={routeRaid} timeScale={game.timeScale} />}
+        {routeRaid && (searching ? <RaidSearching raid={routeRaid} /> : <RaidBattle raid={routeRaid} timeScale={game.timeScale} />)}
       </WalkScene>
 
       <div className="run-hud">
@@ -89,7 +90,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
       {walking && <div className="tap-hint">Toca para avanzar más rápido</div>}
       {run.heal && <div className="tap-hint">Parada de curación</div>}
       {battle && <div className="tap-hint">¡Combate! Toca para acelerarlo</div>}
-      {routeRaid && <div className="tap-hint">¡Jefe comunitario! Los que acaban la ruta se unen a la pelea</div>}
+      {routeRaid && !searching && <div className="tap-hint">¡Jefe comunitario! Los que acaban la ruta se unen a la pelea</div>}
 
       {ended && !battle && <RunSummary run={run} mon={mon} />}
     </div>

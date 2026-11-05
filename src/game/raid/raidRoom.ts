@@ -123,3 +123,10 @@ export const outOfLives = (m: RaidMember): boolean => m.lives === 0
 export const presentMembers = (raid: Raid): RaidMember[] => raid.members.filter((m) => !m.left)
 
 export const hasRoom = (raid: Raid): boolean => presentMembers(raid).length < RAID_ROOM_SIZE
+
+/** Orden de la lista de la sala: primero los Pokémon del jugador, después los de otros jugadores y al final los bots */
+const ROSTER_ORDER: Record<RaidMemberKind, number> = { [RaidMemberKind.Player]: 0, [RaidMemberKind.Guest]: 1, [RaidMemberKind.Bot]: 2 }
+
+/** Los que están en la sala, en el orden de la lista (dentro de cada grupo, por orden de llegada) */
+export const rosterMembers = (raid: Raid): RaidMember[] =>
+  presentMembers(raid).sort((a, b) => ROSTER_ORDER[a.kind] - ROSTER_ORDER[b.kind])
