@@ -1,36 +1,27 @@
 import { useState } from 'react'
 import { RARITY_INFO, rarityOf, species, type Rarity } from '../../data/species'
-import { isSeen, knownName } from '../../game/collection/dex'
-import { canCombine } from '../../game/collection/pieces'
-import {
-  raritySelection,
-  selectionShards,
-  shardsPerPiece,
-  SHARDS_PER_PIECE,
-  shreddableStock,
-  shredSelection,
-  type ShredSelection,
-} from '../../game/collection/shredder'
+import { raritySelection, selectionShards, SHARDS_PER_PIECE, shreddableStock, shredSelection, type ShredSelection } from '../../game/collection/shredder'
 import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
-import { Sprite } from '../shared/common'
-import { ShardBalance } from './ShardBalance'
-import { ICON } from '../shared/icons'
 import { HeartIcon } from '../shared/HeartIcon'
+import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
+import { BigAction } from '../shared/sheet/MonSheet'
+import { RarityFoldout } from './RarityFoldout'
+import { RARITIES } from './rarityTitles'
+import { ShardBalance } from './ShardBalance'
+import { ShredCell } from './ShredCell'
 
-const RATES = (Object.keys(SHARDS_PER_PIECE) as Rarity[])
-  .map((r) => `${RARITY_INFO[r].name} ${SHARDS_PER_PIECE[r]}`)
-  .join(' · ')
-
-/** Lista de piezas: se marcan las que se quieren triturar y no se tritura nada hasta confirmar */
+/** Tickets de Pokémon por rareza: se marcan los que se quieren triturar y no se tritura nada hasta confirmar */
 export function Shredder({ game }: { game: GameState }) {
   const [selection, setSelection] = useState<ShredSelection>({})
   const [message, setMessage] = useState('')
   const stock = shreddableStock(game)
   const protectedCount = game.favorites.filter((id) => (game.pieces[id] ?? 0) > 0).length
   const selectedPieces = Object.values(selection).reduce((a, b) => a + b, 0)
-  const shards = selectionShards(selection)
+  const rarityOfStock = (speciesId: number) => rarityOf(species(speciesId))
+  // Se abre el desplegable de la rareza más común que tenga tickets
+  const firstRarity = RARITIES.find((r) => stock.some(({ speciesId }) => rarityOfStock(speciesId) === r))
 
   const select = (speciesId: number, count: number) => setSelection((sel) => ({ ...sel, [speciesId]: count }))
   const selectRarity = (rarity: Rarity) => setSelection((sel) => ({ ...sel, ...raritySelection(game, rarity) }))
@@ -45,8 +36,7 @@ export function Shredder({ game }: { game: GameState }) {
     <>
       <ShardBalance game={game} />
       <p className="small muted">
-        Marca los tickets de Pokémon que quieras triturar y confirma. Trozos por ticket: {RATES}. Úsalos en la pestaña
-        MissingNo para comprar tickets del Pokémon que quieras.
+        Toca un Pokémon para marcar sus tickets uno a uno y confirma abajo. Los trozos se gastan en la pestaña MissingNo.
       </p>
       {protectedCount > 0 && (
         <p className="small muted">
@@ -56,78 +46,62 @@ export function Shredder({ game }: { game: GameState }) {
       )}
       {message && <p className="highlight small">{message}</p>}
       {stock.length === 0 && <p className="card small muted">No tienes tickets de Pokémon para triturar. Consíguelos en el gacha.</p>}
-      {stock.length > 0 && <RarityButtons game={game} onSelect={selectRarity} />}
-      {stock.map(({ speciesId, count }) => {
-        const sp = species(speciesId)
-        const name = knownName(game, speciesId)
-        const marked = selection[speciesId] ?? 0
+      {RARITIES.map((rarity) => {
+        const rows = stock.filter(({ speciesId }) => rarityOfStock(speciesId) === rarity)
+        if (rows.length === 0) return null
+        const tickets = rows.reduce((sum, r) => sum + r.count, 0)
+        const allMarked = rows.every(({ speciesId, count }) => (selection[speciesId] ?? 0) >= count)
         return (
-          <div
-            key={speciesId}
-            className={`card shred-row ${marked > 0 ? 'marked' : ''}`}
-            style={{ ['--rarity' as string]: RARITY_INFO[rarityOf(sp)].color }}
-          >
-            <Sprite id={speciesId} size={48} animated={false} silhouette={!isSeen(game, speciesId)} />
-            <div className="grow small">
-              <strong>{name}</strong>
-              <span className="muted">
-                <ItemIcon item={ICON.Piece} size={14} /> {count} · <ItemIcon item={ICON.Shard} size={14} /> {shardsPerPiece(speciesId)} por ticket
-                {canCombine(game, speciesId) && ' · se pueden combinar'}
+          <RarityFoldout
+            key={rarity}
+            kicker="Trituradora"
+            rarity={rarity}
+            art={ICON.Shredder}
+            aside={
+              <span className="with-icon">
+                <ItemIcon item={ICON.Shard} size={16} /> {SHARDS_PER_PIECE[rarity]} por ticket
               </span>
-              {marked > 0 && <span className="shred-marked">Para triturar: {marked}</span>}
+            }
+            defaultOpen={rarity === firstRarity}
+          >
+            <div className="dex-grid">
+              {rows.map(({ speciesId, count }) => (
+                <ShredCell
+                  key={speciesId}
+                  game={game}
+                  speciesId={speciesId}
+                  count={count}
+                  marked={selection[speciesId] ?? 0}
+                  onMark={(n) => select(speciesId, n)}
+                />
+              ))}
             </div>
-            <button className="btn small" disabled={marked >= count} onClick={() => select(speciesId, marked + 1)}>
-              Triturar 1
+            <button
+              className="btn shred-all"
+              style={{ ['--rarity' as string]: RARITY_INFO[rarity].color }}
+              disabled={allMarked}
+              onClick={() => selectRarity(rarity)}
+            >
+              Marcar los {tickets} {tickets === 1 ? 'ticket' : 'tickets'}
             </button>
-            <button className="btn small" disabled={marked >= count} onClick={() => select(speciesId, count)}>
-              Todas
-            </button>
-            {marked > 0 && (
-              <button className="hud-close" onClick={() => select(speciesId, 0)} aria-label={`Desmarcar ${name}`}>
-                ✕
-              </button>
-            )}
-          </div>
+          </RarityFoldout>
         )
       })}
       {selectedPieces > 0 && (
         <div className="card shred-confirm">
-          <span className="small grow">
-            {selectedPieces} {selectedPieces === 1 ? 'ticket' : 'tickets'} → <strong className="with-icon"><ItemIcon item={ICON.Shard} size={16} /> {shards}</strong>
-          </span>
+          <BigAction
+            icon={ICON.Shredder}
+            label={`Triturar ${selectedPieces} ${selectedPieces === 1 ? 'ticket' : 'tickets'}`}
+            price={selectionShards(selection)}
+            priceIcon={ICON.Shard}
+            className="primary"
+            onClick={confirm}
+          />
           <button className="btn small" onClick={() => setSelection({})}>
-            Cancelar
-          </button>
-          <button className="btn primary small" onClick={confirm}>
-            Confirmar
+            Desmarcar todo
           </button>
         </div>
       )}
     </>
-  )
-}
-
-const RARITY_PLURAL: Record<Rarity, string> = { common: 'comunes', rare: 'raros', epic: 'épicos', legendary: 'legendarios' }
-
-/** Marca de una vez todas las piezas (no favoritas) de una rareza; sigue haciendo falta confirmar */
-function RarityButtons({ game, onSelect }: { game: GameState; onSelect: (rarity: Rarity) => void }) {
-  return (
-    <div className="rarity-buttons">
-      {(Object.keys(RARITY_INFO) as Rarity[]).map((r) => {
-        const pieces = Object.values(raritySelection(game, r)).reduce((a, b) => a + b, 0)
-        return (
-          <button
-            key={r}
-            className="btn small rarity-all"
-            style={{ ['--rarity' as string]: RARITY_INFO[r].color }}
-            disabled={pieces === 0}
-            onClick={() => onSelect(r)}
-            aria-label={`Marcar todos los ${RARITY_PLURAL[r]} (${pieces})`}
-          >
-            {pieces}
-          </button>
-        )
-      })}
-    </div>
   )
 }

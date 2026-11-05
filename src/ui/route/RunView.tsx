@@ -7,6 +7,7 @@ import { isSearching, playerMembers } from '../../game/raid/raidEngine'
 import type { Raid } from '../../game/raid/raidRoom'
 import { currentRouteRaid } from '../../game/raid/routeRaid'
 import { endRun, tapRun } from '../../game/run/run'
+import { landmarkInView } from '../../game/run/runLandmark'
 import { maxHp, stepsPerMinute } from '../../game/team/stats'
 import { Bar } from '../shared/common'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
@@ -47,6 +48,8 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
   const playerClass = battle && frame ? fighterClass(battle, frame, 'player') : ''
   const defeated = run.phase === 'fainted' || playerClass === 'fainted'
   const ended = run.phase === 'complete' || run.phase === 'fainted'
+  const inView = landmarkInView(run)
+  const landmark = inView && { key: `${run.routeId}:${inView.stop}`, id: inView.landmark }
 
   return (
     <div className={`screen run ${defeated ? 'defeated' : ''}`}>
@@ -58,6 +61,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
         speed={Math.min(1.8, Math.max(0.6, spm / 22))}
         walkerClass={battle ? `battling ${playerClass}` : run.heal ? 'healing' : ''}
         onStep={walking || battle ? () => act(tapRun) : undefined}
+        landmark={landmark}
       >
         {battle && frame && <RouteBattle record={battle} frame={frame} />}
         {run.heal && <HealStop key={run.stop} heal={run.heal} />}

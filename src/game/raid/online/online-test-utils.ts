@@ -4,18 +4,18 @@ import { raidBossAt } from '../raid'
 import { sparringSpecies } from '../raid-test-utils'
 import { addBot } from '../raidBots'
 import { presentMembers, RAID_ROOM_SIZE } from '../raidRoom'
-import { RoomSlot, type MonSnapshot, type RoomChannel } from './protocol'
-import { createRoom, seatPlayer, type SharedRoom } from './sharedRoom'
+import { RaidRotation, RoomSlot, type MonSnapshot, type RouteChannel, type TabChannel } from './protocol'
+import { createTabRoom, seatPlayer, type SharedRoom } from './sharedRoom'
 
 // Piezas comunes de los tests de salas compartidas (con el mapa de pruebas: vi.mock de kantoMaps en cada test)
 
 export const T0 = 1_000_000
 export const rng = seqRng(0.5)
 
-export const TAB: RoomChannel = { slot: RoomSlot.Tab, cycle: 0 }
+export const TAB: TabChannel = { slot: RoomSlot.Tab, rotation: RaidRotation.Ordered, cycle: 0 }
 
 /** La parada de jefe comunitario de la ruta de pruebas */
-export function stopChannel(): Extract<RoomChannel, { slot: typeof RoomSlot.Route }> {
+export function stopChannel(): RouteChannel {
   const r = route(RouteId.BosqueVerde)
   return { slot: RoomSlot.Route, routeId: r.id, nodeId: r.nodes.find((n) => n.kind === NodeKind.Raid)!.id }
 }
@@ -32,7 +32,7 @@ export function snap(uid: string, overrides: Partial<MonSnapshot> = {}): MonSnap
 let nextId = 0
 export const newId = () => `test/${nextId++}`
 
-export const tabRoom = (now = T0) => createRoom(TAB, newId(), now, null, rng)
+export const tabRoom = (now = T0) => createTabRoom(TAB, raidBossAt(0), newId(), now)
 
 /** Rellena con bots hasta que no quepa nadie más */
 export function fillWithBots(room: SharedRoom) {

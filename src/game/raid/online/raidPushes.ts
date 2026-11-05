@@ -2,8 +2,7 @@ import { route } from '../../../data/maps'
 import { species } from '../../../data/species'
 import { PushTopic, type PushJob } from '../../core/push'
 import { earnsPrize } from '../raidPrizes'
-import { raidBossAt } from '../raid'
-import type { RaidCycle } from './raidCycle'
+import { cycleBoss, type RaidCycle } from './raidCycle'
 import { RoomSlot } from './protocol'
 import type { SharedRoom } from './sharedRoom'
 
@@ -54,8 +53,9 @@ export function escapePush(room: SharedRoom, now: number): RaidPush | null {
   }
 }
 
-/** Ha aparecido el jefe de un ciclo nuevo: se avisa a todos */
+/** Ha aparecido el jefe de un ciclo nuevo de una rotación: se avisa a todos */
 export function newBossPush(cycle: RaidCycle, now: number): RaidPush {
-  const name = species(raidBossAt(cycle.number).speciesId).name
-  return { to: 'all', job: { topic: PushTopic.Raid, key: `boss:${cycle.number}`, dueAt: now, title: '¡Nuevo jefe en Raids!', body: `${name} acaba de aparecer. ¡A por él!` } }
+  const name = species(cycleBoss(cycle).speciesId).name
+  const key = `boss:${cycle.rotation}:${cycle.number}`
+  return { to: 'all', job: { topic: PushTopic.Raid, key, dueAt: now, title: '¡Nuevo jefe en Raids!', body: `${name} acaba de aparecer. ¡A por él!` } }
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Rarity, RARITY_INFO } from '../../data/species'
 import { isSeen, knownName } from '../../game/collection/dex'
-import { buyTicket, maxTicketsToBuy, pull, TICKET_PRICE, type PieceDrop } from '../../game/collection/gacha'
+import { buyTicket, maxTicketsToBuy, pull, TICKET_PRICE, type PieceDrop, type PullResult } from '../../game/collection/gacha'
 import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { Sprite } from '../shared/common'
@@ -9,13 +9,18 @@ import { RewardOverlay, type RewardItem } from '../shared/RewardOverlay'
 import { CaptureBall } from './CaptureBall'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
+import { BigAction } from '../shared/sheet/MonSheet'
 import { StepperAction } from '../shared/sheet/StepperAction'
+import { GachaRates } from './GachaRates'
 
 type Phase = 'idle' | 'capturing' | 'rewards'
 
+/** Tickets de la tirada múltiple */
+const MULTI_PULL = 10
+
 /** Máquina de tiradas: gasta tickets y abre la Pokéball con las piezas */
 export function GachaMachine({ game }: { game: GameState }) {
-  const [drops, setDrops] = useState<PieceDrop[]>([])
+  const [drops, setDrops] = useState<PullResult>({ pieces: [], money: [] })
   const [phase, setPhase] = useState<Phase>('idle')
   // Al tirar tocando la Pokéball no hay caída: ya está ahí y empieza a balancearse
   const [fromBall, setFromBall] = useState(false)
@@ -26,7 +31,7 @@ export function GachaMachine({ game }: { game: GameState }) {
 
   const roll = (count: number, tappedBall = false) => {
     const res = act((s) => pull(s, count))
-    if (res.length === 0) return
+    if (res.pieces.length === 0 && res.money.length === 0) return
     setFromBall(tappedBall)
     setDrops(res)
     setPhase('capturing')
@@ -34,20 +39,10 @@ export function GachaMachine({ game }: { game: GameState }) {
 
   return (
     <>
-      <div className="card">
-        <div className="label">Probabilidades por ticket</div>
-        {(Object.keys(RARITY_INFO) as Rarity[]).map((r) => (
-          <div key={r} className="row between small">
-            <span style={{ color: RARITY_INFO[r].color }}>● {RARITY_INFO[r].name}</span>
-            <span className="muted">{(RARITY_INFO[r].rate * 100).toFixed(0)}%</span>
-          </div>
-        ))}
-      </div>
-
       <div className="card gacha-machine">
         <div className="gacha-stage">
           {phase === 'capturing' ? (
-            <CaptureBall glow={RARITY_INFO[bestRarity(drops)].color} drop={!fromBall} onOpen={() => setPhase('rewards')} />
+            <CaptureBall glow={RARITY_INFO[bestRarity(drops.pieces)].color} drop={!fromBall} onOpen={() => setPhase('rewards')} />
           ) : (
             // Tocar la Pokéball equivale a «Tirar x1»; sin tickets se ve desactivada
             <button
@@ -60,14 +55,24 @@ export function GachaMachine({ game }: { game: GameState }) {
             </button>
           )}
         </div>
-        <div className="row gap center">
-          <button className="btn primary" disabled={!canPullOne} onClick={() => roll(1)}>
-            Tirar x1 <ItemIcon item={ICON.Ticket} size={24} />
-          </button>
-          <button className="btn primary" disabled={phase !== 'idle' || game.tickets < 10} onClick={() => roll(10)}>
-            Tirar x10 <ItemIcon item={ICON.Ticket} size={24} />
-          </button>
-        </div>
+        <BigAction
+          icon={ICON.Gacha}
+          label="Tirar x1"
+          price={1}
+          priceIcon={ICON.Ticket}
+          disabled={!canPullOne}
+          className="primary"
+          onClick={() => roll(1)}
+        />
+        <BigAction
+          icon={ICON.Gacha}
+          label={`Tirar x${MULTI_PULL}`}
+          price={MULTI_PULL}
+          priceIcon={ICON.Ticket}
+          disabled={phase !== 'idle' || game.tickets < MULTI_PULL}
+          className="primary"
+          onClick={() => roll(MULTI_PULL)}
+        />
         <StepperAction
           icon={ICON.Ticket}
           label={(n) => (n > 0 ? `Comprar ${n} ${n === 1 ? 'ticket' : 'tickets'}` : 'Comprar tickets')}
@@ -82,11 +87,12 @@ export function GachaMachine({ game }: { game: GameState }) {
           }}
         />
       </div>
+      <GachaRates />
 
       {phase === 'rewards' && (
         <RewardOverlay
           title="¡Tickets conseguidos!"
-          items={pieceRewards(game, drops)}
+          items={[...moneyRewards(drops.money), ...pieceRewards(game, drops.pieces)]}
           fadeIn={false}
           onClose={() => setPhase('idle')}
         />
@@ -97,6 +103,18 @@ export function GachaMachine({ game }: { game: GameState }) {
 
 function bestRarity(drops: PieceDrop[]): Rarity {
   return drops.reduce<Rarity>((best, d) => (RARITY_INFO[d.rarity].rate < RARITY_INFO[best].rate ? d.rarity : best), Rarity.Common)
+}
+
+/** Agrupa el dinero por premio («+₽ 250 ×2»), antes que las piezas */
+function moneyRewards(money: number[]): RewardItem[] {
+  const counts = new Map<number, number>()
+  for (const amount of money) counts.set(amount, (counts.get(amount) ?? 0) + 1)
+  return [...counts].map(([amount, count]) => ({
+    key: `money-${amount}`,
+    icon: <ItemIcon item={ICON.Money} size={96} />,
+    title: count > 1 ? `+₽ ${amount} ×${count}` : `+₽ ${amount}`,
+    color: '#d8a020',
+  }))
 }
 
 /** Agrupa las piezas por especie («Pidgey ×2»); las más raras salen al final y las no vistas, en silueta */

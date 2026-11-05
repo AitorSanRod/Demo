@@ -1,6 +1,7 @@
 // Prado (bioma Meadow, hecho a partir de Ruta 1): colinas al fondo, plantas al borde del camino y un camino ancho.
 // Las capas van de la más lejana a la más cercana.
 
+import { StopLandmark } from '../../../../../data/maps'
 import type { SceneDef, SceneLayer } from '../../engine/types'
 import { house } from '../../elements/house'
 import { signpost } from '../../elements/signpost'
@@ -48,8 +49,8 @@ export function meadowScene(seed: number): SceneDef {
     ],
     particles: meadowParticles(seed),
     landmarks: [
-      { id: 'sign', label: 'Cartel', pixmap: signpost('RUTA 1', WOOD, GRASS), parallax: 1, bottom: DIRT_TOP - 8, afterLayer: 'path' },
-      { id: 'house', label: 'Casa', pixmap: house(HOUSE), parallax: 0.75, bottom: PATH.height - 4, afterLayer: 'near-trees' },
+      { id: StopLandmark.Sign, label: 'Cartel', pixmap: signpost('RUTA 1', WOOD, GRASS), parallax: 1, bottom: DIRT_TOP - 8, afterLayer: 'path' },
+      { id: StopLandmark.House, label: 'Casa', pixmap: house(HOUSE), parallax: 0.75, bottom: PATH.height - 4, afterLayer: 'near-trees' },
     ],
   }
 }

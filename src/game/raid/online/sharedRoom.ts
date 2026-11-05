@@ -1,7 +1,7 @@
 import type { PassiveRef } from '../../../data/passives'
 import { node, route } from '../../../data/maps'
+import type { RaidBoss } from '../../../data/raidBosses'
 import type { Rng } from '../../core/random'
-import { raidBossAt } from '../raid'
 import { RAID_BOTS } from '../raidBots'
 import { advanceRoom, newRaid, playerMembers, PLAYER_TRAINER, type RoomHooks } from '../raidEngine'
 import { BOSS_ID, hasRoom, newMember, outOfLives, presentMembers, RaidMemberKind, type Raid, type RaidMember } from '../raidRoom'
@@ -9,7 +9,7 @@ import { RAID_ROUND_MS } from '../raidCombat'
 import { ROUTE_RAID_LIVES } from '../routeRaid'
 import { advanceStopRoom, stopRoom } from '../stopRoom'
 import { ROOM_PLAYED_ROUNDS, skipAhead } from './skipAhead'
-import { RoomSlot, type MonSnapshot, type RoomChannel, type RoomView } from './protocol'
+import { RoomSlot, type MonSnapshot, type RoomChannel, type RoomView, type RouteChannel, type TabChannel } from './protocol'
 
 // Una sala compartida tal y como la guarda el servidor: la sala del motor de siempre más quién es quién. El servidor
 // la pone al día con el tiempo real cada vez que alguien la consulta (catchUp); nadie la juega mientras tanto.
@@ -50,14 +50,25 @@ const memberOf = (room: SharedRoom, seat: Seat): RaidMember => room.raid.members
 /** Jugadores con algún Pokémon dentro ahora */
 export const playersIn = (room: SharedRoom): number => playerMembers(room.raid).length
 
-/** Sala nueva del jefe de `channel`; en una parada, `bossHp` (fracción) abre una ya en marcha */
-export function createRoom(channel: RoomChannel, id: string, now: number, bossHp: number | null, rng: Rng): SharedRoom {
-  const raid =
-    channel.slot === RoomSlot.Tab
-      ? newRaid(raidBossAt(channel.cycle), null, { felled: channel.cycle })
-      : stopRoom(node(route(channel.routeId), channel.nodeId), { routeId: channel.routeId, nodeId: channel.nodeId }, bossHp, rng, () => [])
-  return { id, channel, raid, seats: {}, nextSeat: 0, updatedAt: now, closed: false }
+const emptyRoom = (channel: RoomChannel, id: string, now: number, raid: Raid): SharedRoom => ({
+  id,
+  channel,
+  raid,
+  seats: {},
+  nextSeat: 0,
+  updatedAt: now,
+  closed: false,
+})
+
+/** Sala nueva del jefe de una parada; `bossHp` (fracción) abre una ya en marcha */
+export function createRoom(channel: RouteChannel, id: string, now: number, bossHp: number | null, rng: Rng): SharedRoom {
+  const place = { routeId: channel.routeId, nodeId: channel.nodeId }
+  return emptyRoom(channel, id, now, stopRoom(node(route(channel.routeId), channel.nodeId), place, bossHp, rng, () => []))
 }
+
+/** Sala nueva de la pestaña Raids contra `boss`, el jefe del ciclo de su carpeta */
+export const createTabRoom = (channel: TabChannel, boss: RaidBoss, id: string, now: number): SharedRoom =>
+  emptyRoom(channel, id, now, newRaid(boss, null, { felled: channel.cycle }))
 
 /** Ganchos del servidor: las pasivas que mandó cada jugador y la cuenta de rondas de EXP de cada asiento */
 function serverHooks(room: SharedRoom): RoomHooks {

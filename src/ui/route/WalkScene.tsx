@@ -1,8 +1,7 @@
-import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
+import { useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import type { Biome } from '../../data/maps'
 import { Sprite } from '../shared/common'
-import { PIXEL, pixelSceneFor, usePixelScene } from './pixelScene'
-import { SCALE, svgSceneFor, type SceneLayer } from './scenery'
+import { PIXEL, pixelSceneFor, usePixelScene, type SceneLandmark } from './pixelScene'
 import './scene.css'
 
 interface Floater {
@@ -11,24 +10,13 @@ interface Floater {
   y: number
 }
 
-function layerStyle(l: SceneLayer, speed: number): CSSProperties {
-  const w = l.w * SCALE
-  return {
-    backgroundImage: l.image,
-    backgroundSize: `${w}px ${l.h * SCALE}px`,
-    height: l.h * SCALE,
-    [l.anchor]: l.offset * SCALE,
-    ['--tile' as string]: `${w}px`,
-    animationDuration: `${w / (l.speed * speed)}s`,
-  }
-}
-
 /**
- * Escena de caminar: el Pokémon avanza hacia la derecha mientras el paisaje se desplaza en parallax. Los biomas con
- * escena pixel art (`pixelScene/`) se pintan en dos lienzos animados; el resto, con las capas SVG de `scenery/`.
+ * Escena de caminar: el Pokémon avanza hacia la derecha mientras el paisaje pixel art del bioma (`pixelScene/`) se
+ * desplaza en parallax, pintado en dos lienzos animados (detrás y delante del Pokémon).
  * `speed` multiplica la velocidad del scroll (Pokémon más rápidos = paisaje más rápido). `children` se pinta
  * sobre el suelo (p. ej. el combate) y puede usar `--ground` para colocarse a la altura del Pokémon. Sin `speciesId` no
- * camina nadie (p. ej. en la pelea contra un jefe comunitario, que pinta a los suyos).
+ * camina nadie (p. ej. en la pelea contra un jefe comunitario, que pinta a los suyos). `landmark`: elemento de la
+ * parada a la que se acerca o en la que está (cartel, casa…), que entra una vez por parada.
  */
 export function WalkScene({
   biome,
@@ -37,6 +25,7 @@ export function WalkScene({
   speed,
   walkerClass = '',
   onStep,
+  landmark = null,
   children,
 }: {
   biome: Biome
@@ -46,14 +35,12 @@ export function WalkScene({
   /** Animación del Pokémon (p. ej. al atacar en un combate) */
   walkerClass?: string
   onStep?: () => void
+  landmark?: SceneLandmark | null
   children?: ReactNode
 }) {
-  const pixelScene = pixelSceneFor(biome)
-  const svgScene = pixelScene ? undefined : svgSceneFor(biome)
-  const { container, back, front } = usePixelScene(pixelScene, moving, speed, PIXEL)
-  const ground = pixelScene ? pixelScene.walkerBottom * PIXEL : (svgScene?.walkerBottom ?? 0) * SCALE
-  const svgLayers = (layers: SceneLayer[] = []) =>
-    layers.map((l, i) => <div key={i} className="scene-layer" style={layerStyle(l, speed)} />)
+  const scene = pixelSceneFor(biome)
+  const { container, back, front } = usePixelScene(scene, moving, speed, PIXEL, landmark)
+  const ground = scene.walkerBottom * PIXEL
   const [floaters, setFloaters] = useState<Floater[]>([])
   const nextId = useRef(0)
 
@@ -70,20 +57,18 @@ export function WalkScene({
   return (
     <div
       ref={container}
-      className={`scene ${moving ? '' : 'paused'} ${(pixelScene ?? svgScene)?.surf ? 'surf' : ''}`}
-      style={{ background: svgScene?.sky, ['--ground' as string]: `${ground}px` }}
+      className={`scene ${moving ? '' : 'paused'} ${scene.surf ? 'surf' : ''}`}
+      style={{ ['--ground' as string]: `${ground}px` }}
       onPointerDown={onPointerDown}
     >
-      {pixelScene && <canvas ref={back} className="scene-canvas" />}
-      {svgLayers(svgScene?.back)}
+      <canvas ref={back} className="scene-canvas" />
       {speciesId !== undefined && (
         <div className={`scene-walker ${walkerClass}`}>
           <div className="scene-shadow" />
           <Sprite id={speciesId} size={128} />
         </div>
       )}
-      {pixelScene && <canvas ref={front} className="scene-canvas front" />}
-      {svgLayers(svgScene?.front)}
+      <canvas ref={front} className="scene-canvas front" />
       {children}
       {floaters.map((f) => (
         <span key={f.id} className="floater" style={{ left: f.x, top: f.y }}>

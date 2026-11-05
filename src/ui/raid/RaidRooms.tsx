@@ -2,46 +2,53 @@ import type { ReactNode } from 'react'
 import { node, route } from '../../data/maps'
 import { species } from '../../data/species'
 import type { GameState } from '../../game/core/state'
-import type { RoomSummary } from '../../game/raid/online/protocol'
+import type { RaidRotation, RoomSummary, RotationFeed } from '../../game/raid/online/protocol'
 import { watchRoom, type FeedState } from '../../net/raidFeed'
 import { Bar, Sprite } from '../shared/common'
 import { MonSection } from '../shared/sheet/MonSheet'
+import { ROTATION_LABEL } from './rotations'
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 /** Parada de ruta de la sala, para leerla: «Ruta 1 · Claro del bosque» */
 const stopLabel = (r: RoomSummary) => (r.place ? `${route(r.place.routeId).name} · ${node(route(r.place.routeId), r.place.nodeId).name}` : null)
 
+/** La sala que se ve en el frontal de la rotación: la de tu Pokémon si es de esta; si no, la que diga el servidor */
+const shownRoomId = (board: RotationFeed, ownId: string | null | undefined) =>
+  board.rooms.some((r) => r.roomId === ownId) ? ownId : board.featured?.roomId
+
 /**
- * Pestaña «Salas» de Raids: las del jefe actual (se pueden ver en el frontal y entrar desde allí) y, solo para mirar,
- * las de las paradas de ruta con jugadores dentro
+ * Pestaña «Salas» de Raids: las de los jefes de cada rotación (se pueden ver en el frontal de su pestaña y entrar desde
+ * allí) y, solo para mirar, las de las paradas de ruta con jugadores dentro
  */
-export function RaidRooms({ game, state, onWatch }: { game: GameState; state: FeedState; onWatch: () => void }) {
+export function RaidRooms({ game, state, onWatch }: { game: GameState; state: FeedState; onWatch: (rotation: RaidRotation) => void }) {
   const feed = state.feed
   if (!feed) return <p className="notice">{state.failing ? 'Sin conexión con el servidor de raids: reintentando…' : 'Buscando salas…'}</p>
-  const shownId = game.raid?.remote?.roomId ?? feed.featured?.roomId
-  const look = (roomId: string) => {
+  const ownId = game.raid?.remote?.roomId
+  const look = (roomId: string, rotation: RaidRotation) => {
     watchRoom(roomId)
-    onWatch()
+    onWatch(rotation)
   }
 
   return (
     <div className="mon-card">
-      <MonSection title="Jefe de raid">
-        {feed.rooms.length === 0 ? (
-          <p className="small muted">No queda ninguna sala en pie: el siguiente jefe está al llegar.</p>
-        ) : (
-          <div className="raid-room-list">
-            {feed.rooms.map((r) => (
-              <RoomRow key={r.roomId} room={r} current={r.roomId === shownId}>
-                <button className="btn small" onClick={() => look(r.roomId)}>
-                  {r.open ? 'Ver' : 'Llena'}
-                </button>
-              </RoomRow>
-            ))}
-          </div>
-        )}
-      </MonSection>
+      {feed.rotations.map((board) => (
+        <MonSection key={board.rotation} title={`Jefe ${ROTATION_LABEL[board.rotation].toLowerCase()}`}>
+          {board.rooms.length === 0 ? (
+            <p className="small muted">No queda ninguna sala en pie: el siguiente jefe está al llegar.</p>
+          ) : (
+            <div className="raid-room-list">
+              {board.rooms.map((r) => (
+                <RoomRow key={r.roomId} room={r} current={r.roomId === shownRoomId(board, ownId)}>
+                  <button className="btn small" onClick={() => look(r.roomId, board.rotation)}>
+                    {r.open ? 'Ver' : 'Llena'}
+                  </button>
+                </RoomRow>
+              ))}
+            </div>
+          )}
+        </MonSection>
+      ))}
       <MonSection title="Jefes de ruta">
         {feed.routeRooms.length === 0 ? (
           <p className="small muted">Ahora no hay nadie luchando contra un jefe de ruta.</p>

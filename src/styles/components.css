@@ -232,7 +232,7 @@
   max-height: 50vh;
   overflow: auto;
 }
-/* Pestañas dentro de una pantalla (gacha) */
+/* Pestañas dentro de un diálogo o pantalla (expediciones, raids) */
 .segmented {
   display: grid;
   grid-auto-flow: column;
@@ -316,4 +316,15 @@
 .text-input:focus {
   outline: none;
   border-color: var(--accent);
+}
+/* Contador rojo (pestañas, avisos) */
+.count-badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
 }

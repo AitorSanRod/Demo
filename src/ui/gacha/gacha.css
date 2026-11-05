@@ -1,11 +1,9 @@
 /* Gacha, trituradora y tienda de MissingNo */
 
-/* La máquina es lo principal de la pestaña: cabe entera bajo las probabilidades, con la Pokéball en su centro */
+/* La máquina es lo principal de la pestaña: la Pokéball en su centro y, debajo, los botones anchos de la ficha */
 .gacha-machine {
   flex-shrink: 0;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
+  gap: 10px;
 }
 .gacha-stage {
   width: 100%;
@@ -56,15 +54,6 @@
   align-items: center;
   gap: 10px;
 }
-.shred-row {
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  border-left: 4px solid var(--rarity);
-}
-.shred-row .grow > * {
-  display: block;
-}
 .search {
   min-height: 44px;
   padding: 0 12px;
@@ -74,57 +63,81 @@
   color: inherit;
   font: inherit;
 }
-.shop-cell {
-  min-height: 0;
+
+/* Probabilidades: una casilla por rareza con su color */
+.gacha-rates-fold {
+  --fold-bg: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
 }
-.shop-cell:disabled {
+.gacha-rates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.gacha-rate {
+  align-items: center;
+  gap: 2px;
+  border-top: 4px solid var(--rarity);
+  text-align: center;
+}
+.gacha-rate strong {
+  color: var(--rarity);
+  font-size: 22px;
+}
+
+/* Tienda de MissingNo: las que no se pueden pagar, apagadas */
+.missingno-grid .dex-cell:disabled {
   opacity: 0.5;
 }
-.shred-row.marked {
-  outline: 2px solid var(--accent);
+
+/* Trituradora: casilla de la Pokédex con una esquina para marcar todos o desmarcar */
+.shred-cell {
+  position: relative;
+  display: grid;
 }
-.shred-marked {
+.shred-cell.marked .dex-cell {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.shred-cell.marked .dex-pieces {
   color: var(--accent);
   font-weight: 700;
 }
-/* Barra de confirmación de la trituradora: se queda pegada abajo mientras haya piezas marcadas */
+.shred-cell-corner {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+.shred-cell-corner.all {
+  background: var(--card-2);
+  color: var(--text);
+}
+.btn.shred-all {
+  width: 100%;
+  margin-top: 10px;
+  border-color: var(--rarity);
+  color: var(--rarity);
+  font-weight: 700;
+}
+/* Confirmación de la trituradora: se queda pegada abajo mientras haya tickets marcados */
 .shred-confirm {
   position: sticky;
   bottom: 0;
   z-index: 2;
-  flex-direction: row;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   border: 2px solid var(--accent);
   box-shadow: 0 -6px 20px #0002;
 }
-.rarity-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-.btn.rarity-all {
-  justify-content: center;
-  border-color: var(--rarity);
-  background: var(--rarity);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  text-shadow: 0 1px 0 #0006;
-}
-/* Cantidad de tickets a canjear en la tienda de MissingNo */
-.qty-stepper {
-  display: grid;
-  grid-template-columns: 44px 1fr 44px auto;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-.qty-stepper .btn.small {
-  min-height: 44px;
-  font-size: 13px;
-}
-.qty-stepper strong {
-  justify-content: center;
-  font-size: 20px;
+.shred-confirm > .btn.small {
+  align-self: center;
 }

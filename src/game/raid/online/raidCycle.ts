@@ -1,6 +1,7 @@
-import { RAID_BOSSES } from '../../../data/raidBosses'
+import { RAID_BOSSES, type RaidBoss } from '../../../data/raidBosses'
+import type { Rng } from '../../core/random'
 import { RAID_COOLDOWN_MS } from '../raid'
-import { CyclePhase } from './protocol'
+import { CyclePhase, RaidRotation, RoomSlot, type TabChannel } from './protocol'
 import { playersIn, type SharedRoom } from './sharedRoom'
 
 // El jefe de la pestaña Raids lo decide el servidor, igual para todos: va por ciclos. En cada ciclo hay un jefe y
@@ -16,18 +17,55 @@ export const CYCLE_COOLDOWN_MS = RAID_COOLDOWN_MS
  */
 export const CYCLE_MAX_EXTRA_MS = 60 * 60_000
 
+// Hay una rotación de ciclos de cada RaidRotation a la vez, cada una con su jefe: la ordenada sigue la lista de
+// RAID_BOSSES y la de azar elige uno que no esté ya en la otra (ni repita el suyo) para que haya donde escoger.
+
 export interface RaidCycle {
-  /** Ciclos desde el principio; elige el jefe (raidBossAt) y la carpeta de sus salas */
+  rotation: RaidRotation
+  /** Ciclos de la rotación desde el principio; nombra la carpeta de sus salas */
   number: number
+  /** Posición en RAID_BOSSES del jefe del ciclo (se lee con módulo, por si la lista se acorta) */
+  bossIndex: number
+  /** Posición en RAID_BOSSES del jefe del ciclo siguiente: se sabe antes para enseñarlo durante la espera */
+  nextBossIndex: number
   /** Hora real (ms) a la que cayó el primer jefe del ciclo; null mientras ninguno ha caído */
   closingSince: number | null
   /** Sala que se ve cuando no hay nadie jugando; null hasta que se abre */
   mainRoomId: string | null
 }
 
-export const firstCycle = (): RaidCycle => ({ number: 0, closingSince: null, mainRoomId: null })
+const bossSlot = (index: number) => index % RAID_BOSSES.length
 
-export const cycleBossIndex = (c: RaidCycle): number => c.number % RAID_BOSSES.length
+/**
+ * El jefe que sigue a `current` en la rotación: el siguiente de la lista o, al azar, uno distinto de `current` y de los
+ * de `taken` (los de la otra rotación); si no queda ninguno así, al menos distinto de `current`
+ */
+export function followingBoss(rotation: RaidRotation, current: number, taken: number[], rng: Rng): number {
+  if (rotation === RaidRotation.Ordered) return bossSlot(current + 1)
+  const all = RAID_BOSSES.map((_, i) => i)
+  const fresh = all.filter((i) => i !== bossSlot(current) && !taken.includes(i))
+  const pool = fresh.length > 0 ? fresh : all.filter((i) => i !== bossSlot(current))
+  return pool.length > 0 ? pool[Math.floor(rng() * pool.length)] : 0
+}
+
+/** Primer ciclo de la rotación; `taken`, los jefes de la otra (ver followingBoss) */
+export function firstCycle(rotation: RaidRotation, taken: number[] = [], rng: Rng = Math.random): RaidCycle {
+  const bossIndex = rotation === RaidRotation.Ordered ? 0 : followingBoss(rotation, -1, taken, rng)
+  const nextBossIndex = followingBoss(rotation, bossIndex, taken, rng)
+  return { rotation, number: 0, bossIndex, nextBossIndex, closingSince: null, mainRoomId: null }
+}
+
+export const cycleBossIndex = (c: RaidCycle): number => bossSlot(c.bossIndex)
+
+export const nextCycleBossIndex = (c: RaidCycle): number => bossSlot(c.nextBossIndex)
+
+/** Los jefes que tiene la rotación, el de ahora y el siguiente: la otra no los elige si puede evitarlo */
+export const cycleBosses = (c: RaidCycle): number[] => [cycleBossIndex(c), nextCycleBossIndex(c)]
+
+export const cycleBoss = (c: RaidCycle): RaidBoss => RAID_BOSSES[cycleBossIndex(c)]
+
+/** La carpeta de las salas del ciclo */
+export const cycleChannel = (c: RaidCycle): TabChannel => ({ slot: RoomSlot.Tab, rotation: c.rotation, cycle: c.number })
 
 export const cyclePhase = (c: RaidCycle): CyclePhase => (c.closingSince === null ? CyclePhase.Active : CyclePhase.Closing)
 
@@ -45,16 +83,19 @@ export function noteFalls(c: RaidCycle, rooms: SharedRoom[], now: number): boole
 }
 
 /**
- * Pasa al siguiente ciclo si toca. Si se pasa por el tope, las salas que aún peleaban se cierran (el jefe se escapa).
- * Devuelve las salas que ha cerrado, o null si el ciclo sigue
+ * Pasa al siguiente ciclo si toca (con `taken`, los jefes de la otra rotación, se elige el que vendrá después). Si se
+ * pasa por el tope, las salas que aún peleaban se cierran (el jefe se escapa). Devuelve las salas que ha cerrado, o
+ * null si el ciclo sigue
  */
-export function advanceCycle(c: RaidCycle, rooms: SharedRoom[], now: number): SharedRoom[] | null {
+export function advanceCycle(c: RaidCycle, rooms: SharedRoom[], now: number, taken: number[] = [], rng: Rng = Math.random): SharedRoom[] | null {
   const opensAt = nextBossAt(c)
   if (opensAt === null || now < opensAt) return null
   const pending = rooms.filter(isPending)
   if (pending.length > 0 && now < opensAt + CYCLE_MAX_EXTRA_MS) return null
   for (const room of pending) room.closed = true
-  Object.assign(c, { number: c.number + 1, closingSince: null, mainRoomId: null })
+  const bossIndex = c.nextBossIndex
+  const nextBossIndex = followingBoss(c.rotation, bossIndex, taken, rng)
+  Object.assign(c, { number: c.number + 1, bossIndex, nextBossIndex, closingSince: null, mainRoomId: null })
   return pending
 }
 

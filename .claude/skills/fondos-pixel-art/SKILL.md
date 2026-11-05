@@ -18,7 +18,7 @@ juego y problemas ya resueltos). Esta skill solo resume lo imprescindible.
 - Ciclo: crear → capturas en **móvil y ancho** (puppeteer-core contra `npx vite --port 5199`, ver la memoria
   *entorno-windows*) → revisarlas uno mismo y corregir lo obvio → enseñar con las rutas absolutas de las capturas y
   preguntas concretas → iterar.
-- Una escena entra en el juego (`BUILDERS` de `pixelScene/index.ts`, quitando su SVG) **solo con el visto bueno**.
+- Una escena entra en el juego (`BUILDERS` de `pixelScene/index.ts`) **solo con el visto bueno**.
 - Referencias del usuario en `referencias/` (prado, pueblo, bosque).
 
 ## Estilo en una línea por regla

@@ -6,6 +6,18 @@ import { addPieces } from './pieces'
 /** Piezas que da cada tirada; cada una sortea su rareza y su especie por separado */
 export const PIECES_PER_PULL = 5
 
+/** Probabilidad (0-1) de que una tirada cambie una de sus piezas por dinero; como mucho una casilla por tirada */
+export const MONEY_SLOT_CHANCE = 0.15
+
+/** Premios de dinero de esa casilla: ₽ que da y peso relativo de que salga (los grandes, más raros) */
+export const MONEY_PRIZES: readonly { amount: number; weight: number }[] = [
+  { amount: 100, weight: 35 },
+  { amount: 250, weight: 25 },
+  { amount: 400, weight: 18 },
+  { amount: 500, weight: 15 },
+  { amount: 1000, weight: 7 },
+]
+
 export interface PieceDrop {
   speciesId: number
   rarity: Rarity
@@ -30,15 +42,33 @@ function rollPiece(rng: Rng): PieceDrop {
   return { speciesId: pool[Math.floor(rng() * pool.length)].id, rarity }
 }
 
-/** Gasta hasta `count` tickets (los que haya) y devuelve todas las piezas obtenidas */
-export function pull(s: GameState, count = 1, rng: Rng = Math.random): PieceDrop[] {
-  const drops: PieceDrop[] = []
+function rollMoney(rng: Rng): number {
+  let roll = rng() * MONEY_PRIZES.reduce((sum, p) => sum + p.weight, 0)
+  for (const p of MONEY_PRIZES) {
+    roll -= p.weight
+    if (roll < 0) return p.amount
+  }
+  return MONEY_PRIZES[MONEY_PRIZES.length - 1].amount
+}
+
+export interface PullResult {
+  pieces: PieceDrop[]
+  /** ₽ de cada casilla de dinero que salió (como mucho una por tirada) */
+  money: number[]
+}
+
+/** Gasta hasta `count` tickets (los que haya) y devuelve las piezas y el dinero obtenidos */
+export function pull(s: GameState, count = 1, rng: Rng = Math.random): PullResult {
+  const result: PullResult = { pieces: [], money: [] }
   for (; count > 0 && s.tickets > 0; count--) {
     s.tickets--
-    for (let i = 0; i < PIECES_PER_PULL; i++) drops.push(rollPiece(rng))
+    const hasMoney = rng() < MONEY_SLOT_CHANCE
+    if (hasMoney) result.money.push(rollMoney(rng))
+    for (let i = hasMoney ? 1 : 0; i < PIECES_PER_PULL; i++) result.pieces.push(rollPiece(rng))
   }
-  for (const d of drops) addPieces(s, d.speciesId, 1)
-  return drops
+  for (const d of result.pieces) addPieces(s, d.speciesId, 1)
+  for (const amount of result.money) s.money += amount
+  return result
 }
 
 /** ₽ que cuesta cada ticket de gacha */

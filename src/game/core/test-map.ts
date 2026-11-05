@@ -1,4 +1,4 @@
-import { boss, chain, enc, NodeKind, raidBoss, RouteId, Biome, type GameMap } from '../../data/maps/mapCommon'
+import { boss, chain, enc, NodeKind, raidBoss, RouteId, Biome, StopLandmark, type GameMap } from '../../data/maps/mapCommon'
 import { Potion } from '../../data/potions'
 import { RaidTier } from '../../data/raidBosses'
 import { POKEMON } from '../../data/pokemon'
@@ -22,7 +22,7 @@ export const KANTO: GameMap = {
       unlocks: RouteId.Ruta1,
       nodes: chain(
         { id: 's', name: 'Inicio', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Primera', kind: NodeKind.Wild, steps: 20 },
+        { id: 'a', name: 'Primera', kind: NodeKind.Wild, steps: 20, landmark: StopLandmark.Sign },
         { id: 'b', name: 'Última', kind: NodeKind.Wild, steps: 20 },
       ),
     },

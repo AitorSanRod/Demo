@@ -1,6 +1,7 @@
 // Bosque Verde (bioma Forest): bosque cerrado con claros. Bruma al fondo, dos planos de árboles, copas que tapan el
 // cielo salvo en los claros (con rayos de luz), árboles grandes junto al camino, sotobosque y camino de tierra húmeda.
 
+import { StopLandmark } from '../../../../../data/maps'
 import type { SceneDef, SceneLayer } from '../../engine/types'
 import { hollowLog } from '../../elements/log'
 import { signpost } from '../../elements/signpost'
@@ -46,8 +47,8 @@ export function forestScene(seed: number): SceneDef {
       layer('ferns', 'Hojas en primer plano', ferns(seed, SWAY_FRAMES), -10, 1.6, { fps: 4, plane: 'front' }),
     ],
     landmarks: [
-      { id: 'log', label: 'Tronco hueco', pixmap: hollowLog(LOG), parallax: 1, bottom: PATH_TOP - 10, afterLayer: 'back-tufts' },
-      { id: 'sign', label: 'Cartel', pixmap: signpost('BOSQUE VERDE', WOOD, FOREST_GRASS), parallax: 1, bottom: PATH_TOP - 8, afterLayer: 'path' },
+      { id: StopLandmark.Log, label: 'Tronco hueco', pixmap: hollowLog(LOG), parallax: 1, bottom: PATH_TOP - 10, afterLayer: 'back-tufts' },
+      { id: StopLandmark.Sign, label: 'Cartel', pixmap: signpost('BOSQUE VERDE', WOOD, FOREST_GRASS), parallax: 1, bottom: PATH_TOP - 8, afterLayer: 'path' },
     ],
   }
 }

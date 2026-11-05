@@ -1,13 +1,14 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { act, getState } from '../game/core/store'
 import { switchToLocalRaids, switchToServerRaids } from '../game/raid/raid'
-import { DEFAULT_NICKNAME, RaidAction, type RaidFeed } from '../game/raid/online/protocol'
+import { DEFAULT_NICKNAME, RaidAction, type RaidFeed, type RotationFeed } from '../game/raid/online/protocol'
 import type { Raid } from '../game/raid/raidRoom'
 import { nickname, playerId } from './identity'
 import { postFeed, RaidApiError } from './raidApi'
 
-// La pestaña Raids según el servidor: el jefe del ciclo, la sala del frontal, la lista de salas y la hora del
-// servidor. Se consulta al abrir la app (para saber si hay servidor) y después solo con la pestaña en pantalla.
+// La pestaña Raids según el servidor: por cada rotación de jefes, el del ciclo, la sala del frontal y la lista de salas;
+// y la hora del servidor. Se consulta al abrir la app (para saber si hay servidor) y después solo con la pestaña en
+// pantalla.
 
 /** Milisegundos reales entre consultas con la pestaña en pantalla, mirando una sala ajena */
 const FEED_WATCH_MS = 5_000
@@ -99,8 +100,11 @@ const sinceFeed = (state: FeedState) => Date.now() - state.receivedAt
 /** Hora del servidor ahora mismo, según la última respuesta */
 export const serverNow = (state: FeedState): number => (state.feed ? state.feed.serverNow + sinceFeed(state) : Date.now())
 
-/** La sala del frontal, con su ronda avanzada lo que ha pasado desde la respuesta (para repartir los golpes en pantalla) */
-export function featuredRaid(state: FeedState): Raid | null {
-  const raid = state.feed?.featured?.raid
+/**
+ * La sala del frontal de una rotación, con su ronda avanzada lo que ha pasado desde la respuesta (para repartir los
+ * golpes en pantalla)
+ */
+export function featuredRaid(state: FeedState, board: RotationFeed): Raid | null {
+  const raid = board.featured?.raid
   return raid ? { ...raid, roundMsLeft: Math.max(0, raid.roundMsLeft - sinceFeed(state)) } : null
 }

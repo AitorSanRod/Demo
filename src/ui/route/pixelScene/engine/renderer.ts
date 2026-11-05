@@ -11,6 +11,8 @@ interface ActiveLandmark {
 
 /** Velocidad del suelo a velocidad ×1, en píxeles de arte por segundo */
 const PATH_SPEED = 26
+/** Dónde aparece un elemento de parada que sale ya colocado, en fracción del ancho (algo por delante del Pokémon) */
+const SETTLED_AT = 0.62
 
 /** Id reservado para mostrar u ocultar las partículas desde los controles */
 export const PARTICLES_ID = 'particles'
@@ -53,9 +55,15 @@ export class SceneRenderer {
     this.sky = this.scene.sky(height).toCanvas()
   }
 
-  spawnLandmark(id: string) {
+  /**
+   * Hace entrar el elemento `id` por la derecha. Con `settled` aparece ya junto al Pokémon (p. ej. al abrir la ruta
+   * cuando ya está parado en esa parada).
+   */
+  spawnLandmark(id: string, settled = false) {
     const landmark = this.scene.landmarks.find((l) => l.id === id)
-    if (landmark) this.active.push({ landmark, image: this.landmarkImages.get(id)!, x: this.width + 2 })
+    if (!landmark) return
+    const image = this.landmarkImages.get(id)!
+    this.active.push({ landmark, image, x: settled ? Math.round(this.width * SETTLED_AT - image.width / 2) : this.width + 2 })
   }
 
   update(dt: number) {

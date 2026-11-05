@@ -1,9 +1,25 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RAID_BOSSES } from '../../../data/raidBosses'
 import { newId, player, rng, seatPlayers, snap, T0 } from './online-test-utils'
-import { CyclePhase, RaidAction, RoomSlot } from './protocol'
-import { CYCLE_COOLDOWN_MS, CYCLE_MAX_EXTRA_MS, cycleBossIndex, cyclePhase, featuredRoom, firstCycle, nextBossAt } from './raidCycle'
-import { createRoom, playersIn, unseatPlayer, type SharedRoom } from './sharedRoom'
+import { seqRng } from '../../core/test-utils'
+import { CyclePhase, RAID_ROTATIONS, RaidAction, RaidRotation, RoomSlot } from './protocol'
+import { newBossPush } from './raidPushes'
+import {
+  CYCLE_COOLDOWN_MS,
+  CYCLE_MAX_EXTRA_MS,
+  cycleBoss,
+  cycleBosses,
+  cycleBossIndex,
+  cycleChannel,
+  cyclePhase,
+  featuredRoom,
+  firstCycle,
+  followingBoss,
+  nextBossAt,
+  nextCycleBossIndex,
+  type RaidCycle,
+} from './raidCycle'
+import { createTabRoom, playersIn, unseatPlayer, type SharedRoom } from './sharedRoom'
 import { joinTabRoom, updateCycle } from './tabRooms'
 
 vi.mock('../../../data/maps/kantoMaps', () => import('../../core/test-map'))
@@ -20,14 +36,14 @@ const join = (n: number, targetRoomId: string | null = null) => ({
 
 /** Ciclo recién empezado, con su sala principal */
 function openCycle() {
-  const cycle = firstCycle()
+  const cycle = firstCycle(RaidRotation.Ordered)
   const { rooms } = updateCycle(cycle, [], [], T0, rng, newId)
   return { cycle, rooms, main: rooms[0] }
 }
 
 /** Otra sala del ciclo, con un jugador (desde `from`) */
-function extraRoom(cycle: ReturnType<typeof firstCycle>, rooms: SharedRoom[], from: number) {
-  const room = createRoom({ slot: RoomSlot.Tab, cycle: cycle.number }, newId(), T0, null, rng)
+function extraRoom(cycle: RaidCycle, rooms: SharedRoom[], from: number) {
+  const room = createTabRoom(cycleChannel(cycle), cycleBoss(cycle), newId(), T0)
   seatPlayers(room, 1, from)
   rooms.push(room)
   return room
@@ -37,7 +53,7 @@ function extraRoom(cycle: ReturnType<typeof firstCycle>, rooms: SharedRoom[], fr
 const endless = (room: SharedRoom) => (room.raid.hp = room.raid.maxHp = Number.MAX_SAFE_INTEGER)
 
 /** Cae el jefe de la sala y el servidor lo ve al ponerse al día en `now` */
-function fall(cycle: ReturnType<typeof firstCycle>, rooms: SharedRoom[], room: SharedRoom, now: number) {
+function fall(cycle: RaidCycle, rooms: SharedRoom[], room: SharedRoom, now: number) {
   room.raid.hp = 0
   return updateCycle(cycle, rooms, [], now, rng, newId)
 }
@@ -95,7 +111,7 @@ describe('ciclo del jefe de la pestaña Raids', () => {
     expect(cycle.number).toBe(1)
     expect(cyclePhase(cycle)).toBe(CyclePhase.Active)
     expect(next.rooms).toHaveLength(1)
-    expect(next.rooms[0].channel).toEqual({ slot: RoomSlot.Tab, cycle: 1 })
+    expect(next.rooms[0].channel).toEqual({ slot: RoomSlot.Tab, rotation: RaidRotation.Ordered, cycle: 1 })
   })
 
   it('si los jugadores se van de una sala pendiente, ya no retiene al siguiente', () => {
@@ -120,5 +136,50 @@ describe('ciclo del jefe de la pestaña Raids', () => {
     expect(main.closed).toBe(true)
     expect(update.touched).toContain(main)
     expect(cycle.number).toBe(1)
+  })
+})
+
+describe('rotaciones de jefes', () => {
+  const all = RAID_BOSSES.map((_, i) => i)
+
+  it('la ordenada sigue la lista y al acabarla vuelve al primero', () => {
+    const cycle = firstCycle(RaidRotation.Ordered)
+    expect(cycleBossIndex(cycle)).toBe(0)
+    expect(followingBoss(RaidRotation.Ordered, 0, [], rng)).toBe(1 % RAID_BOSSES.length)
+    expect(followingBoss(RaidRotation.Ordered, RAID_BOSSES.length - 1, [], rng)).toBe(0)
+  })
+
+  it('la de azar no repite su jefe ni coge los de la otra rotación mientras quede alguno', () => {
+    for (const roll of [0, 0.5, 0.99]) {
+      const next = followingBoss(RaidRotation.Random, 0, [1], seqRng(roll))
+      expect(next).not.toBe(0)
+      if (RAID_BOSSES.length > 2) expect(next).not.toBe(1)
+      // Si la otra rotación los tiene todos, al menos no repite el suyo
+      expect(followingBoss(RaidRotation.Random, 0, all, seqRng(roll))).not.toBe(0)
+    }
+  })
+
+  it('la de azar empieza con un jefe distinto de los de la otra', () => {
+    const ordered = firstCycle(RaidRotation.Ordered)
+    const random = firstCycle(RaidRotation.Random, cycleBosses(ordered), seqRng(0))
+    if (RAID_BOSSES.length > 2) expect(cycleBosses(ordered)).not.toContain(cycleBossIndex(random))
+  })
+
+  it('al pasar de ciclo sale el jefe que se anunciaba como siguiente, con sus salas en la carpeta de la rotación', () => {
+    const cycle = firstCycle(RaidRotation.Random, [], seqRng(0))
+    const announced = nextCycleBossIndex(cycle)
+    const { rooms } = updateCycle(cycle, [], [], T0, rng, newId)
+    fall(cycle, rooms, rooms[0], T0)
+    const next = updateCycle(cycle, rooms, [], T0 + CYCLE_COOLDOWN_MS, rng, newId)
+    expect(cycle.number).toBe(1)
+    expect(cycleBossIndex(cycle)).toBe(announced)
+    expect(nextCycleBossIndex(cycle)).not.toBe(announced)
+    expect(next.rooms[0].raid.boss).toEqual(RAID_BOSSES[announced])
+    expect(next.rooms[0].channel).toEqual({ slot: RoomSlot.Tab, rotation: RaidRotation.Random, cycle: 1 })
+  })
+
+  it('cada rotación avisa de su jefe nuevo con su propia clave', () => {
+    const keys = RAID_ROTATIONS.map((r) => newBossPush(firstCycle(r), T0).job.key)
+    expect(new Set(keys).size).toBe(RAID_ROTATIONS.length)
   })
 })

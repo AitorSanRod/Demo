@@ -6,7 +6,7 @@ import { fallTabRaid } from '../raid'
 import { playerMembers, raidExpPerRound, removePlayer } from '../raidEngine'
 import { RaidMemberKind, type Raid } from '../raidRoom'
 import { currentRouteRaid, finishRouteRaid, startOver } from '../routeRaid'
-import { RaidAction, RoomSlot, type JoinRequest, type MonSnapshot, type JoinChannel, type RoomView, type SyncRequest } from './protocol'
+import { RaidAction, roomRotation, RoomSlot, type RaidRotation, type JoinRequest, type MonSnapshot, type JoinChannel, type RoomView, type SyncRequest } from './protocol'
 
 // Las salas de la partida enlazadas a una compartida del servidor. Entrar en una sala la deja esperando sitio
 // (`remote.roomId` null) y se sigue jugando en local; net/raidSync.ts pide entrar y, con la respuesta, la sala local
@@ -27,6 +27,9 @@ function setRoomAt(s: GameState, slot: RoomSlot, raid: Raid) {
 /** El jefe de la sala: el de su parada o, en la pestaña Raids, el que diga el servidor */
 const channelOf = (raid: Raid): JoinChannel =>
   raid.place ? { slot: RoomSlot.Route, routeId: raid.place.routeId, nodeId: raid.place.nodeId } : { slot: RoomSlot.Tab }
+
+/** Rotación de jefes de la sala de la pestaña Raids: la de la sala del servidor en la que está o a la que entra */
+export const tabRoomRotation = (raid: Raid): RaidRotation => roomRotation(raid.remote?.roomId ?? raid.remote?.target ?? null)
 
 /** El Pokémon del jugador que está dentro de la sala, como lo necesita el servidor; null si no hay ninguno */
 function monSnapshot(s: GameState, raid: Raid): MonSnapshot | null {

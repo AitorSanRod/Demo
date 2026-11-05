@@ -1,10 +1,23 @@
 import type { Rng } from '../../core/random'
 import { presentMembers, RaidMemberKind } from '../raidRoom'
-import { RoomSlot, type JoinRequest, type RaidFeed, type RoomSummary } from './protocol'
-import { advanceCycle, cycleBossIndex, cyclePhase, featuredRoom, isOpenFor, isPending, nextBossAt, noteFalls, type RaidCycle } from './raidCycle'
+import { roomRotation, type JoinRequest, type RaidRotation, type RotationFeed, type RoomSummary } from './protocol'
+import {
+  advanceCycle,
+  cycleBoss,
+  cycleBossIndex,
+  cycleChannel,
+  cyclePhase,
+  featuredRoom,
+  isOpenFor,
+  isPending,
+  nextBossAt,
+  nextCycleBossIndex,
+  noteFalls,
+  type RaidCycle,
+} from './raidCycle'
 import { escapePush, fallPush, newBossPush, type RaidPush } from './raidPushes'
 import { canMakeRoom } from './roomServer'
-import { catchUp, createRoom, playersIn, seatPlayer, seatsOf, viewFor, type SharedRoom } from './sharedRoom'
+import { catchUp, createTabRoom, playersIn, seatPlayer, seatsOf, viewFor, type SharedRoom } from './sharedRoom'
 
 // Las salas de la pestaña Raids en el servidor: ponerlas al día junto con su ciclo (raidCycle.ts), la sala principal,
 // entrar respetando el ciclo y el resumen de cada sala para la lista.
@@ -36,16 +49,24 @@ function roomsToCatchUp(rooms: SharedRoom[], focusIds: (string | null)[]): Share
 
 /**
  * Pone al día el ciclo: las salas pedidas, las caídas (el ciclo se cierra), el paso al siguiente jefe y la sala
- * principal (con el ciclo abierto, siempre hay una)
+ * principal (con el ciclo abierto, siempre hay una). `taken`: los jefes de la otra rotación (ver followingBoss)
  */
-export function updateCycle(c: RaidCycle, rooms: SharedRoom[], focusIds: (string | null)[], now: number, rng: Rng, newId: () => string): CycleUpdate {
+export function updateCycle(
+  c: RaidCycle,
+  rooms: SharedRoom[],
+  focusIds: (string | null)[],
+  now: number,
+  rng: Rng,
+  newId: () => string,
+  taken: number[] = [],
+): CycleUpdate {
   const touched = roomsToCatchUp(rooms, focusIds)
   const standing = touched.filter((r) => r.raid.hp > 0)
   for (const room of touched) catchUp(room, now, rng)
   const pushes = standing.filter((r) => r.raid.hp === 0).flatMap((r) => fallPush(r, now) ?? [])
   let cycleChanged = noteFalls(c, rooms, now)
   let current = rooms
-  const escaped = advanceCycle(c, rooms, now)
+  const escaped = advanceCycle(c, rooms, now, taken, rng)
   if (escaped) {
     touched.push(...escaped.filter((r) => !touched.includes(r)))
     pushes.push(...escaped.flatMap((r) => escapePush(r, now) ?? []), newBossPush(c, now))
@@ -54,7 +75,7 @@ export function updateCycle(c: RaidCycle, rooms: SharedRoom[], focusIds: (string
   }
   const hasMain = current.some((r) => r.id === c.mainRoomId && !r.closed && r.raid.hp > 0)
   if (c.closingSince === null && !hasMain) {
-    const main = createRoom({ slot: RoomSlot.Tab, cycle: c.number }, newId(), now, null, rng)
+    const main = createTabRoom(cycleChannel(c), cycleBoss(c), newId(), now)
     c.mainRoomId = main.id
     current = [...current, main]
     touched.push(main)
@@ -69,21 +90,30 @@ const ownRoom = (rooms: SharedRoom[], playerId: string) => rooms.find((r) => sea
  * Sala en la que entra el jugador: la que ha elegido; si no, en la que ya estuvo; si no, la del frontal; con el ciclo
  * abierto y todas llenas de jugadores, una nueva. null: no hay jefe al que entrar ahora (se espera al siguiente)
  */
-function tabRoomFor(c: RaidCycle, rooms: SharedRoom[], req: JoinRequest, now: number, rng: Rng, newId: () => string): SharedRoom | null {
+function tabRoomFor(c: RaidCycle, rooms: SharedRoom[], req: JoinRequest, now: number, newId: () => string): SharedRoom | null {
   const open = rooms.filter((r) => isOpenFor(c, r) && canMakeRoom(r))
   const chosen =
     open.find((r) => r.id === req.targetRoomId) ?? ownRoom(open, req.playerId) ?? open.find((r) => r === featuredRoom(c, open, null))
   if (chosen) return chosen
   if (c.closingSince !== null) return null
-  const room = createRoom({ slot: RoomSlot.Tab, cycle: c.number }, newId(), now, null, rng)
+  const room = createTabRoom(cycleChannel(c), cycleBoss(c), newId(), now)
   rooms.push(room)
   return room
 }
 
-/** Entrar en el jefe de la pestaña Raids; devuelve la sala (null si no hay jefe ahora) y el ciclo puesto al día */
-export function joinTabRoom(c: RaidCycle, rooms: SharedRoom[], req: JoinRequest, now: number, rng: Rng, newId: () => string) {
-  const update = updateCycle(c, rooms, [req.targetRoomId, ownRoom(rooms, req.playerId)?.id ?? null], now, rng, newId)
-  const room = tabRoomFor(c, update.rooms, req, now, rng, newId)
+/**
+ * La rotación en la que entra el jugador: la de la sala que ha elegido; si no eligió ninguna, la de la sala en la que
+ * ya estuvo; si no, la ordenada
+ */
+export function joinRotation(rotations: { cycle: RaidCycle; rooms: SharedRoom[] }[], req: JoinRequest): RaidRotation {
+  if (req.targetRoomId) return roomRotation(req.targetRoomId)
+  return rotations.find((r) => ownRoom(r.rooms, req.playerId))?.cycle.rotation ?? roomRotation(null)
+}
+
+/** Entrar en el jefe de una rotación de la pestaña Raids; devuelve la sala (null si no hay jefe ahora) y el ciclo puesto al día */
+export function joinTabRoom(c: RaidCycle, rooms: SharedRoom[], req: JoinRequest, now: number, rng: Rng, newId: () => string, taken: number[] = []) {
+  const update = updateCycle(c, rooms, [req.targetRoomId, ownRoom(rooms, req.playerId)?.id ?? null], now, rng, newId, taken)
+  const room = tabRoomFor(c, update.rooms, req, now, newId)
   if (room && !seatPlayer(room, req.playerId, req.nickname, req.mon)) return { update, room: null }
   if (room && !update.touched.includes(room)) update.touched.push(room)
   return { update, room }
@@ -104,13 +134,14 @@ export function roomSummary(room: SharedRoom, open: boolean): RoomSummary {
   }
 }
 
-/** La pestaña Raids vista por `playerId`: el jefe del ciclo, la sala del frontal y las salas en pie (las de ruta, aparte) */
-export function tabFeed(c: RaidCycle, rooms: SharedRoom[], watchRoomId: string | null, playerId: string, now: number): Omit<RaidFeed, 'routeRooms'> {
+/** Una rotación de la pestaña Raids vista por `playerId`: el jefe del ciclo, la sala del frontal y las salas en pie */
+export function tabFeed(c: RaidCycle, rooms: SharedRoom[], watchRoomId: string | null, playerId: string): RotationFeed {
   const featured = featuredRoom(c, rooms, watchRoomId)
   const standing = rooms.filter((r) => !r.closed && r.raid.hp > 0)
   return {
-    serverNow: now,
+    rotation: c.rotation,
     bossIndex: cycleBossIndex(c),
+    nextBossIndex: nextCycleBossIndex(c),
     phase: cyclePhase(c),
     nextAt: nextBossAt(c),
     featured: featured && viewFor(featured, playerId),

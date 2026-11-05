@@ -12,7 +12,7 @@ import { RaidMemberKind } from '../raidRoom'
 import { currentRouteRaid, retreatRouteRaid, ROUTE_RAID_RUNNING_CHANCE } from '../routeRaid'
 import { applyView, forgetRoom, roomRequest } from './linkedRoom'
 import { newId, rng, T0 } from './online-test-utils'
-import { RaidAction, RoomSlot, type JoinRequest, type RoomView } from './protocol'
+import { RaidAction, RaidRotation, RoomSlot, type JoinRequest, type RoomView } from './protocol'
 import { firstCycle } from './raidCycle'
 import { joinStopRoom, syncRoom } from './roomServer'
 import { catchUp, viewFor, type SharedRoom } from './sharedRoom'
@@ -45,7 +45,7 @@ function linkedTab() {
   const { s, mon } = raidState()
   s.raidServer = true
   s.raid = null
-  const cycle = firstCycle()
+  const cycle = firstCycle(RaidRotation.Ordered)
   const { rooms } = updateCycle(cycle, [], [], T0, rng, newId)
   const front = viewFor(rooms[0], ME)
   joinServerRaid(s, mon.uid, front.raid, front.roomId)

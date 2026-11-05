@@ -5,7 +5,9 @@ generan por código al abrir la primera ruta de cada bioma (semilla fija, siempr
 `<canvas>`. El mismo código se usa en el juego y en el banco de pruebas.
 
 Escenas hechas: **Prado** (bioma `Meadow`: Ruta 1 y Ruta 1 - Final), **Pueblo Paleta** (`PalletTown`, solo esa ruta),
-**Bosque Verde** (`Forest`) y **Ciudad Plateada** (`PewterCity`, ciudad de piedra de día con el museo y el gimnasio). Cueva (`Cave`) y mar (`Sea`) siguen con el paisaje SVG antiguo de `ui/route/scenery/`.
+**Bosque Verde** (`Forest`), **Ciudad Plateada** (`PewterCity`, ciudad de piedra de día con el museo y el gimnasio),
+**Cueva** (`Cave`, Monte Moon: penumbra violeta, estalactitas y cristales) y **Mar** (`Sea`, ruta marina: islotes,
+rocas con espuma y agua en la que nada el Pokémon). Todos los biomas tienen escena pixel art.
 
 ## Índice
 
@@ -34,9 +36,8 @@ tools/scenery-lab/  banco de pruebas: index.html, main.ts (lista SCENES), lab.cs
 .claude/skills/fondos-pixel-art/   skill + capturas de referencia (referencias/)
 ```
 
-Flujo en el juego: `WalkScene` → `pixelSceneFor(route.biome)` → si hay escena, `usePixelScene` crea un
-`SceneRenderer` con dos lienzos (detrás y delante del Pokémon) y lo anima con `requestAnimationFrame`; si no, pinta
-las capas SVG de `ui/route/scenery/`. La escena se genera una sola vez por bioma y queda en memoria.
+Flujo en el juego: `WalkScene` → `pixelSceneFor(route.biome)` → `usePixelScene` crea un `SceneRenderer`
+con dos lienzos (detrás y delante del Pokémon) y lo anima con `requestAnimationFrame`. La escena se genera una sola vez por bioma y queda en memoria.
 
 Reglas de capa del proyecto: todo esto es dibujo, así que vive en `src/ui` (no en `src/game`) y no necesita tests.
 Si algún día la escena depende del estado de la partida (p. ej. paradas que aparecen según los pasos), la regla de
@@ -143,8 +144,12 @@ Las escenas usan un ayudante `layer(id, label, frames, offset, parallax, extra)`
 
 - **`Landmark`**: imagen que entra por la derecha al acercarse a una parada, pasa y se queda atrás. Lleva `parallax`
   (menos de 1 si está más lejos que el camino), `bottom` (altura de su base) y `afterLayer` (se pinta justo después
-  de esa capa, para que lo de delante lo tape). En el banco de pruebas se lanzan con los botones de parada; **en el
-  juego aún no se disparan** (ver [Pendiente](#pendiente)).
+  de esa capa, para que lo de delante lo tape). En el banco de pruebas se lanzan con los botones de parada. **En el
+  juego**, cada parada de `kantoMaps.ts` puede llevar `landmark` (un `StopLandmark` de `data/maps/mapCommon.ts`, que
+  es el `id` del elemento en la escena): `game/run/runLandmark.ts` dice cuándo toca verlo (faltan
+  `LANDMARK_LEAD_STEPS` pasos o menos para llegar, o el Pokémon está en esa parada) y `WalkScene` lo hace entrar una
+  vez por parada; si el Pokémon ya está parado, aparece colocado a su lado. `pixelScene/landmarks.test.ts` comprueba
+  que la escena de cada ruta dibuja los elementos de sus paradas.
 - **`ParticleSystem`**: `update(dt, pathSpeed, w, h)` y `draw(ctx)` en el lienzo de delante.
 - **Humo** (`engine/smoke.ts`): cada emisor de una capa humea a ratos (encendido 4–9 s y apagado 10–26 s, a su aire).
   Las bocanadas viajan con su capa y guardan la altura relativa a ella.
@@ -254,16 +259,16 @@ export function caveScene(seed: number): SceneDef {
 
 ## Llevar una escena al juego
 
-1. Añadir la escena a `BUILDERS` en `src/ui/route/pixelScene/index.ts` para su bioma.
-2. Quitar el SVG de ese bioma de `ui/route/scenery/` (y lo que solo usaba él): nada de código muerto.
-3. **Bioma nuevo** (como `PalletTown`): añadirlo a `Biome` en `data/maps/mapCommon.ts`, asignarlo a la ruta en
+1. Añadir la escena a `BUILDERS` en `src/ui/route/pixelScene/index.ts` para su bioma (es obligatorio: cada bioma
+   tiene su escena).
+2. **Bioma nuevo** (como `PalletTown`): añadirlo a `Biome` en `data/maps/mapCommon.ts`, asignarlo a la ruta en
    `kantoMaps.ts` y darle imagen en `BIOME_SCENERY` (`ui/shared/sheet/scenery.ts`), que es la cabecera del diálogo de
    comenzar ruta. El bioma no se guarda en la partida, así que no hace falta subir `SAVE_VERSION`.
-4. Las raids usan el fondo del bioma según el tipo del jefe (`ui/raid/RaidScene.tsx`): una escena nueva también
+3. Las raids usan el fondo del bioma según el tipo del jefe (`ui/raid/RaidScene.tsx`): una escena nueva también
    cambia esas peleas.
-5. Probar dentro del juego con una ruta en curso de ese bioma (se puede inyectar `pokerancho-save` montando el estado
+4. Probar dentro del juego con una ruta en curso de ese bioma (se puede inyectar `pokerancho-save` montando el estado
    con `initialState`, `pickStarter`, `combine` y `startRun`) y pasar `npm run check`.
-6. Actualizar este documento, CLAUDE.md y la skill si cambian piezas o estructura.
+5. Actualizar este documento, CLAUDE.md y la skill si cambian piezas o estructura.
 
 ## Problemas ya resueltos
 
@@ -284,8 +289,4 @@ export function caveScene(seed: number): SceneDef {
 
 ## Pendiente
 
-- **Paradas en el juego**: que el cartel, la casa, la fuente o el tronco aparezcan al acercarse al nodo
-  correspondiente. Hay que decidir con el usuario cómo se asigna cada elemento a cada parada (¿por nombre del nodo?,
-  ¿un campo en `kantoMaps.ts`?) y cuándo entra (pasos que faltan). La regla irá en `src/game` con tests.
-- **Cueva y mar**: siguen en SVG.
 - `pine` (`elements/shrubs.ts`) no se usa ahora mismo; se guarda para un posible bosque de coníferas.

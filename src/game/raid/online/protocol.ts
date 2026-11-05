@@ -9,13 +9,23 @@ import type { Raid, RaidPlace } from '../raidRoom'
 export const RoomSlot = { Tab: 'tab', Route: 'route' } as const
 export type RoomSlot = (typeof RoomSlot)[keyof typeof RoomSlot]
 
-type RouteChannel = { slot: typeof RoomSlot.Route; routeId: RouteId; nodeId: string }
+/**
+ * Rotaciones de jefes de la pestaña Raids, a la vez y cada una con su ciclo (ver raidCycle.ts): una sigue el orden de
+ * RAID_BOSSES y la otra elige al azar, para que el jugador pueda escoger entre dos jefes
+ */
+export const RaidRotation = { Ordered: 'ordered', Random: 'random' } as const
+export type RaidRotation = (typeof RaidRotation)[keyof typeof RaidRotation]
+/** Las rotaciones en el orden en que se enseñan */
+export const RAID_ROTATIONS: RaidRotation[] = [RaidRotation.Ordered, RaidRotation.Random]
+
+export type RouteChannel = { slot: typeof RoomSlot.Route; routeId: RouteId; nodeId: string }
 
 /**
- * Contra qué jefe es la sala: el del ciclo `cycle` de la pestaña Raids (lo decide el servidor, ver raidCycle.ts) o el
- * de una parada de ruta
+ * Contra qué jefe es la sala: el del ciclo `cycle` de una rotación de la pestaña Raids (lo decide el servidor, ver
+ * raidCycle.ts) o el de una parada de ruta
  */
-export type RoomChannel = { slot: typeof RoomSlot.Tab; cycle: number } | RouteChannel
+export type TabChannel = { slot: typeof RoomSlot.Tab; rotation: RaidRotation; cycle: number }
+export type RoomChannel = TabChannel | RouteChannel
 
 /** El jefe que pide el jugador al entrar: el de la pestaña Raids que haya ahora o el de una parada de ruta */
 export type JoinChannel = { slot: typeof RoomSlot.Tab } | RouteChannel
@@ -99,19 +109,28 @@ export interface RoomSummary {
 export const CyclePhase = { Active: 'active', Closing: 'closing' } as const
 export type CyclePhase = (typeof CyclePhase)[keyof typeof CyclePhase]
 
-/** La pestaña Raids según el servidor */
-export interface RaidFeed {
-  /** Hora real del servidor: con ella cada móvil cuenta igual las esperas */
-  serverNow: number
+/** Una rotación de la pestaña Raids según el servidor */
+export interface RotationFeed {
+  rotation: RaidRotation
   /** Posición en RAID_BOSSES del jefe del ciclo actual */
   bossIndex: number
+  /** Posición en RAID_BOSSES del jefe que vendrá después */
+  nextBossIndex: number
   phase: CyclePhase
   /** Cerrándose: hora real a partir de la cual puede aparecer el siguiente jefe (si ya no quedan salas pendientes) */
   nextAt: number | null
   /** La sala que se ve en el frontal; null si no queda ninguna en pie (se espera al siguiente jefe) */
   featured: RoomView | null
-  /** Salas del jefe actual de la pestaña Raids */
+  /** Salas del jefe actual de la rotación */
   rooms: RoomSummary[]
+}
+
+/** La pestaña Raids según el servidor */
+export interface RaidFeed {
+  /** Hora real del servidor: con ella cada móvil cuenta igual las esperas */
+  serverNow: number
+  /** Una por rotación, en el orden de RAID_ROTATIONS */
+  rotations: RotationFeed[]
   /** Salas de las paradas de ruta con jugadores dentro (solo para mirar) */
   routeRooms: RoomSummary[]
 }
@@ -131,4 +150,12 @@ export const DEFAULT_NICKNAME = 'Entrenador'
 export const ROUTE_CHANNEL_PREFIX = 'route/'
 
 /** Carpeta del almacén con las salas de un mismo jefe */
-export const channelKey = (c: RoomChannel): string => (c.slot === RoomSlot.Tab ? `tab/${c.cycle}` : `${ROUTE_CHANNEL_PREFIX}${c.routeId}/${c.nodeId}`)
+export const channelKey = (c: RoomChannel): string =>
+  c.slot === RoomSlot.Tab ? `tab/${c.rotation}/${c.cycle}` : `${ROUTE_CHANNEL_PREFIX}${c.routeId}/${c.nodeId}`
+
+/**
+ * Rotación de una sala de la pestaña Raids por su id (empieza por la carpeta de su jefe); sin id, o si es de antes de
+ * las rotaciones, la ordenada
+ */
+export const roomRotation = (roomId: string | null): RaidRotation =>
+  roomId?.startsWith(`tab/${RaidRotation.Random}/`) ? RaidRotation.Random : RaidRotation.Ordered

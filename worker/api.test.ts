@@ -3,7 +3,7 @@ import { STARTERS } from '../src/data/species'
 import { cloudUpload } from '../src/game/core/cloudSave'
 import { initialState } from '../src/game/core/state'
 import { chooseStarter } from '../src/game/core/test-utils'
-import { RaidAction, RoomSlot } from '../src/game/raid/online/protocol'
+import { RAID_ROTATIONS, RaidAction, RaidRotation, RoomSlot } from '../src/game/raid/online/protocol'
 import { stopChannel } from '../src/game/raid/online/online-test-utils'
 import { ROOM_MAX_CATCHUP_MS } from '../src/game/raid/online/sharedRoom'
 import { deleteIdleStopRooms } from './db/rooms'
@@ -58,23 +58,41 @@ describe('salas compartidas', () => {
   })
   const feed = (playerId: string) => ({ action: RaidAction.Feed, playerId, nickname: playerId, watchRoomId: null })
 
-  it('la pestaña Raids la decide el servidor: sin nadie jugando, el frontal es la sala principal del jefe actual', async () => {
+  /** La rotación `rotation` de la pestaña Raids según el servidor */
+  const board = async (api: ReturnType<typeof testWorker>, rotation: RaidRotation) =>
+    (await api.call('/api/raid', { body: feed('player-zzzz') })).data.feed.rotations.find((b: { rotation: string }) => b.rotation === rotation)
+
+  it('la pestaña Raids la decide el servidor: una rotación de cada, sin nadie jugando el frontal es la sala principal', async () => {
     const api = testWorker()
     const { feed: f } = (await api.call('/api/raid', { body: feed('player-aaaa') })).data
-    expect(f).toMatchObject({ bossIndex: 0, phase: 'active', nextAt: null, routeRooms: [] })
-    expect(f.rooms).toHaveLength(1)
-    expect(f.featured.roomId).toBe(f.rooms[0].roomId)
+    expect(f.routeRooms).toEqual([])
+    expect(f.rotations.map((b: { rotation: string }) => b.rotation)).toEqual(RAID_ROTATIONS)
+    const [ordered, random] = f.rotations
+    expect(ordered).toMatchObject({ bossIndex: 0, phase: 'active', nextAt: null })
+    expect(random.bossIndex).not.toBe(ordered.bossIndex)
+    for (const b of f.rotations) {
+      expect(b.rooms).toHaveLength(1)
+      expect(b.featured.roomId).toBe(b.rooms[0].roomId)
+    }
     const again = (await api.call('/api/raid', { body: feed('player-bbbb') })).data.feed
-    expect(again.featured.roomId).toBe(f.featured.roomId)
+    expect(again.rotations.map((b: { featured: { roomId: string } }) => b.featured.roomId)).toEqual(f.rotations.map((b: { featured: { roomId: string } }) => b.featured.roomId))
   })
 
-  it('quien entra sin elegir sala va a la del frontal, y la lista lo cuenta', async () => {
+  it('quien entra sin elegir sala va a la del frontal de la rotación ordenada, y la lista lo cuenta', async () => {
     const api = testWorker()
-    const front = (await api.call('/api/raid', { body: feed('player-aaaa') })).data.feed.featured
+    const front = (await board(api, RaidRotation.Ordered)).featured
     const view = (await api.call('/api/raid', { body: join('player-aaaa', 'a1') })).data.view
     expect(view.roomId).toBe(front.roomId)
-    const { rooms } = (await api.call('/api/raid', { body: feed('player-bbbb') })).data.feed
-    expect(rooms).toMatchObject([{ roomId: front.roomId, players: 1 }])
+    expect((await board(api, RaidRotation.Ordered)).rooms).toMatchObject([{ roomId: front.roomId, players: 1 }])
+  })
+
+  it('quien elige una sala de la rotación al azar entra en ella', async () => {
+    const api = testWorker()
+    const front = (await board(api, RaidRotation.Random)).featured
+    const view = (await api.call('/api/raid', { body: { ...join('player-aaaa', 'a1'), targetRoomId: front.roomId } })).data.view
+    expect(view.roomId).toBe(front.roomId)
+    expect((await board(api, RaidRotation.Random)).rooms).toMatchObject([{ roomId: front.roomId, players: 1 }])
+    expect((await board(api, RaidRotation.Ordered)).rooms).toMatchObject([{ players: 0 }])
   })
 
   it('las salas de las paradas de ruta con jugadores salen aparte, solo para mirar', async () => {

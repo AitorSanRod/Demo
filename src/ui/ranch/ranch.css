@@ -9,10 +9,12 @@
   position: absolute;
   inset: 0;
 }
-/* El fondo va en su propia capa para que el tono de cada rancho no tiña a los Pokémon */
+/* El fondo va en su propia capa para que el tono de cada rancho no tiña a los Pokémon. Deslizar sobre él a los
+   lados pasa de rancho (useSwipe), así que el navegador no hace sus gestos */
 .ranch-ground {
   position: absolute;
   inset: 0;
+  touch-action: none;
   background: url('../../assets/ranch.jpg') center / cover;
   image-rendering: pixelated;
 }
@@ -45,6 +47,7 @@
   display: grid;
   place-items: center;
   color: var(--muted);
+  pointer-events: none;
 }
 .ranch-mon {
   position: absolute;

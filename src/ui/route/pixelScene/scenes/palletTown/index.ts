@@ -1,6 +1,7 @@
 // Pueblo Paleta (bioma PalletTown, solo para esa ruta): el cielo y las colinas del prado, una fila de casas al fondo,
 // jardines con valla blanca junto al camino y un camino de arena con un tramo de plaza empedrada.
 
+import { StopLandmark } from '../../../../../data/maps'
 import type { SceneDef, SceneLayer } from '../../engine/types'
 import { fountain } from '../../elements/fountain'
 import { house } from '../../elements/house'
@@ -50,9 +51,9 @@ export function palletTownScene(seed: number): SceneDef {
     ],
     particles: meadowParticles(seed),
     landmarks: [
-      { id: 'sign', label: 'Cartel', pixmap: signpost('PUEBLO PALETA', WOOD, GRASS), parallax: 1, bottom: PATH_TOP - 8, afterLayer: 'path' },
-      { id: 'house', label: 'Casa', pixmap: house(RED_HOUSE), parallax: 0.75, bottom: PATH.height - 2, afterLayer: 'town' },
-      { id: 'fountain', label: 'Fuente', pixmap: fountain(FOUNTAIN), parallax: 1, bottom: PATH_TOP - 14, afterLayer: 'path' },
+      { id: StopLandmark.Sign, label: 'Cartel', pixmap: signpost('PUEBLO PALETA', WOOD, GRASS), parallax: 1, bottom: PATH_TOP - 8, afterLayer: 'path' },
+      { id: StopLandmark.House, label: 'Casa', pixmap: house(RED_HOUSE), parallax: 0.75, bottom: PATH.height - 2, afterLayer: 'town' },
+      { id: StopLandmark.Fountain, label: 'Fuente', pixmap: fountain(FOUNTAIN), parallax: 1, bottom: PATH_TOP - 14, afterLayer: 'path' },
     ],
   }
 }

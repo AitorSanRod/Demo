@@ -1,6 +1,5 @@
 /* Escena de caminar (parallax) y el Pokémon que camina */
 
-/* Escena de caminar (parallax estilo intro GBA) */
 .scene {
   position: absolute;
   inset: 0;
@@ -8,15 +7,7 @@
   touch-action: none;
   cursor: pointer;
 }
-.scene-layer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  background-repeat: repeat-x;
-  animation: scene-scroll linear infinite;
-  pointer-events: none;
-}
-/* Lienzos de las escenas pixel art (pixelScene/): resolución de arte escalada sin suavizado */
+/* Lienzos de la escena pixel art (pixelScene/): resolución de arte escalada sin suavizado */
 .scene-canvas {
   position: absolute;
   left: 0;
@@ -26,9 +17,6 @@
 }
 .scene-canvas.front {
   z-index: 1;
-}
-.scene.paused .scene-layer {
-  animation-play-state: paused;
 }
 .scene-walker {
   position: absolute;
@@ -63,14 +51,6 @@
 }
 .scene.surf .scene-shadow {
   background: #ffffff55;
-}
-@keyframes scene-scroll {
-  from {
-    background-position-x: 0;
-  }
-  to {
-    background-position-x: calc(-1 * var(--tile));
-  }
 }
 @keyframes walk-hop {
   0%,

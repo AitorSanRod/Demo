@@ -20,7 +20,16 @@ function load(): Identity {
   } catch {
     // Guardado corrupto o almacenamiento no disponible: identidad nueva
   }
-  return { playerId: crypto.randomUUID(), nickname: null }
+  return { playerId: randomPlayerId(), nickname: null }
+}
+
+/** Bytes al azar del id anónimo (32 caracteres hexadecimales) */
+const PLAYER_ID_BYTES = 16
+
+// No usa crypto.randomUUID: solo existe con https o en localhost, y el móvil abre el servidor de desarrollo por IP
+function randomPlayerId(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(PLAYER_ID_BYTES))
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 let identity = load()

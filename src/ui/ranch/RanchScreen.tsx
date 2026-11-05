@@ -13,6 +13,7 @@ import './ranch.css'
 import './ranch-controls.css'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
+import { useSwipe } from '../shared/useSwipe'
 
 /** Milisegundos que se ve el aviso de por qué no se ha podido soltar un Pokémon */
 const NOTICE_MS = 2500
@@ -44,11 +45,12 @@ export function RanchScreen({ game }: { game: GameState }) {
     act((s) => moveMon(s, uid, null))
   }
   const turn = (step: number) => setView((ranch + step + count) % count)
+  const swipe = useSwipe((step) => count > 1 && turn(step))
 
   return (
     <div className="screen ranch">
       <div className="ranch-field">
-        <div className="ranch-ground" style={{ filter: ranchFilter(ranch, game.ranchTypeOf[ranch]) }} />
+        <div className="ranch-ground" style={{ filter: ranchFilter(ranch, game.ranchTypeOf[ranch]) }} {...swipe} />
         {home.map((m) => (
           <RanchMon
             key={m.uid}

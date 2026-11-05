@@ -16,7 +16,7 @@ export interface Encounter {
 export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss', Raid: 'raid', Heal: 'heal' } as const
 export type NodeKind = (typeof NodeKind)[keyof typeof NodeKind]
 
-/** Fondo de la escena de caminar (ver src/ui/route/pixelScene/ y scenery/). PalletTown es solo de Pueblo Paleta */
+/** Fondo de la escena de caminar (ver src/ui/route/pixelScene/). PalletTown es solo de Pueblo Paleta */
 export const Biome = { Meadow: 'meadow', PalletTown: 'pallet-town', PewterCity: 'pewter-city', Forest: 'forest', Cave: 'cave', Sea: 'sea' } as const
 export type Biome = (typeof Biome)[keyof typeof Biome]
 
@@ -27,10 +27,19 @@ export const RouteId = {
   Ruta1Boss: 'ruta-1-boss',
   BosqueVerde: 'bosque-verde',
   CiudadPlateada: 'ciudad-plateada',
+  CiudadPlateada2: 'ciudad-plateada2',
+  CiudadPlateada3: 'ciudad-plateada3',
   MonteMoon: 'monte-moon',
   RutaMarina: 'ruta-marina',
 } as const
 export type RouteId = (typeof RouteId)[keyof typeof RouteId]
+
+/**
+ * Elemento que se ve en la escena al llegar a una parada (cartel, casa, fuente…). Cada escena dibuja los suyos
+ * (`landmarks` de src/ui/route/pixelScene/scenes/<bioma>); el de una parada tiene que existir en la escena de su ruta.
+ */
+export const StopLandmark = { Sign: 'sign', House: 'house', Fountain: 'fountain', Log: 'log', Museum: 'museum', Gym: 'gym' } as const
+export type StopLandmark = (typeof StopLandmark)[keyof typeof StopLandmark]
 
 /** Rival fijo de una parada de jefe; `passives` son sus pasivas de tipo, escritas a mano (sin ellas no tiene) */
 export interface Boss {
@@ -64,6 +73,8 @@ export interface RouteNode {
   boss?: Boss
   /** Obligatoria en las paradas de curación (`NodeKind.Heal`): la poción que usa el Pokémon al llegar */
   potion?: Potion
+  /** Elemento que aparece en la escena al acercarse a esta parada y que se queda a su lado mientras está en ella */
+  landmark?: StopLandmark
 }
 
 /** Imagen de ambientación de la ruta en la lista de rutas (se ve difuminada detrás de su línea) */

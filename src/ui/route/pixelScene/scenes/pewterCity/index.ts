@@ -2,6 +2,7 @@
 // plantas con el museo de columnas y el gimnasio de roca, un paseo con farolas y setos recortados y una calle de
 // losas de piedra.
 
+import { StopLandmark } from '../../../../../data/maps'
 import type { SceneDef, SceneLayer } from '../../engine/types'
 import { fountain } from '../../elements/fountain'
 import { gym } from '../../elements/gym'
@@ -47,10 +48,10 @@ export function pewterCityScene(seed: number): SceneDef {
       layer('path', 'Calle', [cityPath(seed)], 0, 1),
     ],
     landmarks: [
-      { id: 'sign', label: 'Cartel', pixmap: signpost('CIUDAD PLATEADA', WOOD, LAWN), parallax: 1, bottom: PATH_TOP - 8, afterLayer: 'path' },
-      { id: 'museum', label: 'Museo', pixmap: museum(MUSEUM), parallax: 0.7, bottom: PATH.height - 4, afterLayer: 'city' },
-      { id: 'gym', label: 'Gimnasio', pixmap: gym(GYM), parallax: 0.7, bottom: PATH.height - 4, afterLayer: 'city' },
-      { id: 'fountain', label: 'Fuente', pixmap: fountain(FOUNTAIN), parallax: 1, bottom: PATH_TOP - 14, afterLayer: 'path' },
+      { id: StopLandmark.Sign, label: 'Cartel', pixmap: signpost('CIUDAD PLATEADA', WOOD, LAWN), parallax: 1, bottom: PATH_TOP - 8, afterLayer: 'path' },
+      { id: StopLandmark.Museum, label: 'Museo', pixmap: museum(MUSEUM), parallax: 0.7, bottom: PATH.height - 4, afterLayer: 'city' },
+      { id: StopLandmark.Gym, label: 'Gimnasio', pixmap: gym(GYM), parallax: 0.7, bottom: PATH.height - 4, afterLayer: 'city' },
+      { id: StopLandmark.Fountain, label: 'Fuente', pixmap: fountain(FOUNTAIN), parallax: 1, bottom: PATH_TOP - 14, afterLayer: 'path' },
     ],
   }
 }

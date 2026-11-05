@@ -1,3 +1,4 @@
+import type { StopLandmark } from '../../../../data/maps'
 import type { Pixmap } from '../paint/pixmap'
 
 /** Una capa del paisaje: una tesela que se repite en horizontal (varios fotogramas si se mece) */
@@ -29,7 +30,7 @@ export interface ParticleSystem {
 
 /** Elemento que aparece al acercarse a una parada, pasa junto al Pokémon y se queda atrás */
 export interface Landmark {
-  id: string
+  id: StopLandmark
   label: string
   pixmap: Pixmap
   /** Fracción de la velocidad del camino (menos de 1 si está más lejos que el camino) */

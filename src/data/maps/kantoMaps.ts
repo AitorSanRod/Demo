@@ -1,7 +1,7 @@
 import { POKEMON } from '../pokemon'
 import { Potion } from '../potions'
 import { RaidTier } from '../raidBosses'
-import { asset, Biome, boss, chain, enc, NodeKind, raidBoss, RouteId, type GameMap } from './mapCommon'
+import { asset, Biome, boss, chain, enc, NodeKind, raidBoss, RouteId, StopLandmark, type GameMap } from './mapCommon'
 
 const palletTown = asset(new URL('../../assets/routes/pallet-town.webp', import.meta.url))
 const route1 = asset(new URL('../../assets/routes/route-1.webp', import.meta.url))
@@ -25,10 +25,10 @@ export const KANTO: GameMap = {
       unlocks: RouteId.Ruta1,
       nodes: chain(
         { id: 's', name: 'Casa', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Jardín', kind: NodeKind.Wild, steps: 30 },
-        { id: 'b', name: 'Plaza', kind: NodeKind.Wild, steps: 35 },
+        { id: 'a', name: 'Jardín', kind: NodeKind.Wild, steps: 30, landmark: StopLandmark.House },
+        { id: 'b', name: 'Plaza', kind: NodeKind.Wild, steps: 35, landmark: StopLandmark.Fountain },
         { id: 'c', name: 'Afueras', kind: NodeKind.Wild, steps: 20 },
-        { id: 'e', name: 'Salida del Pueblo Paleta', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Togepi, 5) },
+        { id: 'e', name: 'Salida del Pueblo Paleta', kind: NodeKind.Boss, steps: 30, landmark: StopLandmark.Sign, boss: boss(POKEMON.Togepi, 5) },
       ),
     },
     {
@@ -44,14 +44,14 @@ export const KANTO: GameMap = {
       unlocks: RouteId.Ruta1Boss,
       nodes: chain(
         { id: 's', name: 'Salida del pueblo', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Prado', kind: NodeKind.Wild, steps: 25 },
+        { id: 'a', name: 'Prado', kind: NodeKind.Wild, steps: 25, landmark: StopLandmark.Sign },
         { id: 'b', name: 'Hierba alta', kind: NodeKind.Wild, steps: 25, levelBonus: 1 },
         { id: 'c', name: 'Arboleda', kind: NodeKind.Wild, steps: 20, encounters: enc([POKEMON.Caterpie, 40], [POKEMON.Weedle, 40], [POKEMON.Pidgey, 20]) },
         { id: 'p1', name: 'Fuente', kind: NodeKind.Heal, steps: 10, potion: Potion.Potion },
         { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 15 },
         { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
         { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
-        { id: 'p2', name: 'Casa de descanso', kind: NodeKind.Heal, steps: 10, potion: Potion.Potion },
+        { id: 'p2', name: 'Casa de descanso', kind: NodeKind.Heal, steps: 10, landmark: StopLandmark.House, potion: Potion.Potion },
         { id: 'g', name: 'Hierba crecida', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 7) },
       ),
     },
@@ -82,10 +82,10 @@ export const KANTO: GameMap = {
       unlocks: RouteId.CiudadPlateada,
       nodes: chain(
         { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Sotobosque', kind: NodeKind.Wild, steps: 80 },
+        { id: 'a', name: 'Sotobosque', kind: NodeKind.Wild, steps: 80, landmark: StopLandmark.Sign },
         { id: 'b', name: 'Matorral', kind: NodeKind.Wild, steps: 90, encounters: enc([POKEMON.Oddish, 15], [POKEMON.Bellsprout, 15], [POKEMON.Caterpie, 25], [POKEMON.Weedle, 25], [POKEMON.Pidgey, 20]) },
         { id: 'p1', name: 'Manantial', kind: NodeKind.Heal, steps: 15, potion: Potion.Potion },
-        { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
+        { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, landmark: StopLandmark.Log, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1, encounters: enc([POKEMON.Pikachu, 25], [POKEMON.Caterpie, 20], [POKEMON.Metapod, 20], [POKEMON.Kakuna, 15], [POKEMON.Oddish, 10], [POKEMON.Pidgey, 10]) },
         { id: 'p2', name: 'Cabaña del guardabosques', kind: NodeKind.Heal, steps: 15, potion: Potion.Potion },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 50], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Butterfree, 10], [POKEMON.Beedrill, 10]) },
@@ -100,19 +100,50 @@ export const KANTO: GameMap = {
       backdrop: { image: pewterCity, focusY: 45 },
       levels: [14, 20],
       encounters: enc([POKEMON.Geodude, 20], [POKEMON.Sandshrew, 15], [POKEMON.Spearow, 15], [POKEMON.Pidgey, 15], [POKEMON.Diglett, 10], [POKEMON.Mankey, 10], [POKEMON.Rattata, 10], [POKEMON.Jigglypuff, 5]),
-      reward: { tickets: 5, money: 1000, exp: 500 },
-      //unlocks: RouteId.MonteMoon,
+      reward: { tickets: 3, money: 400, exp: 200 },
+      unlocks: RouteId.CiudadPlateada2,
       nodes: chain(
         { id: 's', name: 'Salida del bosque', kind: NodeKind.Start, steps: 0 },
         { id: 'a', name: 'Ruta 2', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Pidgey, 30], [POKEMON.Spearow, 30], [POKEMON.Rattata, 25], [POKEMON.Mankey, 15]) },
-        { id: 'b', name: 'Afueras rocosas', kind: NodeKind.Wild, steps: 90 },
+        { id: 'b', name: 'Afueras rocosas', kind: NodeKind.Wild, steps: 90, landmark: StopLandmark.Sign },
         { id: 'p1', name: 'Centro Pokémon', kind: NodeKind.Heal, steps: 15, potion: Potion.SuperPotion },
-        { id: 'c', name: 'Museo de la Ciencia', kind: NodeKind.Wild, steps: 80 },
-        { id: 'd', name: 'Calles de piedra', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
+        { id: 'c', name: 'Museo de la Ciencia', kind: NodeKind.Wild, steps: 80, landmark: StopLandmark.Museum },
+        { id: 'd', name: 'Calles de piedra', kind: NodeKind.Wild, steps: 80, landmark: StopLandmark.Fountain, levelBonus: 1 },
         { id: 'p2', name: 'Tienda Pokémon', kind: NodeKind.Heal, steps: 15, potion: Potion.SuperPotion },
-        { id: 'e', name: 'Gimnasio', kind: NodeKind.Wild, steps: 70, levelBonus: 2 },
+        { id: 'e', name: 'Gimnasio', kind: NodeKind.Wild, steps: 70, landmark: StopLandmark.Gym, levelBonus: 2 },
         { id: 'e2', name: 'Gimnasio', kind: NodeKind.Wild, steps: 70, levelBonus: 2 },
-        { id: 'g', name: 'Líder del gimnasio', kind: NodeKind.Boss, steps: 45, boss: raidBoss(POKEMON.Onix, 20, RaidTier.Low, { soloMinutes: 16 }) },
+      ),
+    },
+    {
+      id: RouteId.CiudadPlateada2,
+      name: 'Ciudad Plateada - Lider',
+      description: 'La ciudad de piedra: su museo guarda fósiles y su gimnasio, Pokémon de tipo roca.',
+      biome: Biome.PewterCity,
+      backdrop: { image: pewterCity, focusY: 45 },
+      levels: [14, 20],
+      encounters: enc([POKEMON.Geodude, 20], [POKEMON.Sandshrew, 15], [POKEMON.Spearow, 15], [POKEMON.Pidgey, 15], [POKEMON.Diglett, 10], [POKEMON.Mankey, 10], [POKEMON.Rattata, 10], [POKEMON.Jigglypuff, 5]),
+      reward: { tickets: 3, money: 1000, exp: 500 },
+      unlocks: RouteId.CiudadPlateada3,
+      nodes: chain(
+        { id: 's', name: 'Entrada del gimnasio', kind: NodeKind.Start, steps: 0 },
+        { id: 'a', name: 'Líder del gimnasio', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Onix, 23, RaidTier.Low, { soloMinutes: 20 }) },
+      ),
+    },
+    {
+      id: RouteId.CiudadPlateada3,
+      name: 'Ciudad Plateada - Rocket',
+      description: 'La ciudad de piedra: su museo guarda fósiles y su gimnasio, Pokémon de tipo roca.',
+      biome: Biome.PewterCity,
+      backdrop: { image: pewterCity, focusY: 45 },
+      levels: [23, 25],
+      encounters: enc([POKEMON.Geodude, 20], [POKEMON.Sandshrew, 15], [POKEMON.Spearow, 15], [POKEMON.Pidgey, 15], [POKEMON.Diglett, 10], [POKEMON.Mankey, 10], [POKEMON.Rattata, 10], [POKEMON.Jigglypuff, 5]),
+      reward: { tickets: 5, money: 1000, exp: 1000 },
+      //unlocks: RouteId.MonteMoon,
+      nodes: chain(
+        { id: 's', name: 'Afueras de la ciudad', kind: NodeKind.Start, steps: 0 },
+        { id: 'a', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Meowth, 25, RaidTier.Low, { soloMinutes: 15 }) },
+        { id: 'b', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Koffing, 25, RaidTier.Low, { soloMinutes: 15 }) },
+        { id: 'c', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Ekans, 25, RaidTier.Mid, { soloMinutes: 20 }) },
       ),
     },
     // {
