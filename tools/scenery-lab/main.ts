@@ -5,6 +5,7 @@ import type { SceneDef } from '../../src/ui/route/pixelScene/engine/types'
 import { forestScene } from '../../src/ui/route/pixelScene/scenes/forest'
 import { meadowScene } from '../../src/ui/route/pixelScene/scenes/meadow'
 import { palletTownScene } from '../../src/ui/route/pixelScene/scenes/palletTown'
+import { pewterCityScene } from '../../src/ui/route/pixelScene/scenes/pewterCity'
 
 /** Píxeles de pantalla por píxel de arte */
 const PIXEL = 3
@@ -15,6 +16,7 @@ const AUTO_LANDMARK_SECONDS = 12
 const SCENES: Record<string, (seed: number) => SceneDef> = {
   'Bosque Verde': forestScene,
   'Pueblo Paleta': palletTownScene,
+  'Ciudad Plateada': pewterCityScene,
   'Prado (Ruta 1)': meadowScene,
 }
 const VIEWPORTS: Record<string, [number, number]> = {

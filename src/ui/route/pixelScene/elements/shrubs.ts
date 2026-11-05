@@ -70,3 +70,29 @@ export function pine(pix: Pixmap, rng: Rng, cx: number, groundY: number, height:
     }
   }
 }
+
+/** Esquina redondeada del seto recortado: píxeles que se quitan en cada fila desde arriba */
+const HEDGE_CORNER = [3, 1, 1]
+
+/**
+ * Seto recortado de jardín de ciudad: un bloque con las esquinas de arriba redondeadas, la cara de arriba y el lado
+ * izquierdo iluminados, el derecho y el pie en sombra, contorno abajo y a la derecha y manchas de hojas sueltas.
+ * `leaves.colors`: hueco, sombra, base, luz y brillo.
+ */
+export function trimmedHedge(pix: Pixmap, rng: Rng, x: number, width: number, groundY: number, height: number, leaves: Inked) {
+  const [hole, shade, base, light, shine] = leaves.colors
+  const seed = Math.floor(rng() * 1e6)
+  const top = groundY - height
+  for (let y = top; y < groundY; y++) {
+    const cut = HEDGE_CORNER[y - top] ?? 0
+    const right = x + width - cut - 1
+    for (let px = x + cut; px <= right; px++) {
+      const fromTop = y - top
+      const tone = fromTop < 2 ? shine : fromTop < 4 ? light : px > right - 3 || y > groundY - 3 ? shade : px < x + cut + 2 ? light : base
+      const fleck = hash(px >> 1, y >> 1, seed) < 0.12 && fromTop > 2
+      pix.set(px, y, fleck ? (tone === base || tone === light ? shade : hole) : tone)
+    }
+    pix.set(right, y, leaves.ink)
+  }
+  pix.rect(x, groundY - 1, width, 1, leaves.ink)
+}

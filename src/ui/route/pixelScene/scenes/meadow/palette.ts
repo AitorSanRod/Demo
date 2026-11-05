@@ -29,11 +29,11 @@ export const DIRT_INK = hex('#c07430')
 export const HOUSE = {
   roof: palette('#b83a2e', '#d8503a', '#f07858'),
   roofInk: hex('#5e1a16'),
-  wall: palette('#d8c8a0', '#f0e6c8', '#fcf6e4'),
+  wall: palette('#c4ae84', '#dccca4', '#f0e6c8', '#fcf6e4'),
   wallInk: hex('#5a4a34'),
   wood: palette('#5a3418', '#8a5428', '#b47a3c'),
-  glass: palette('#5ea8e0', '#c8e8f8'),
-  brick: hex('#a85a3c'),
+  glass: palette('#3c7cc0', '#5ea8e0', '#d8f0fc'),
+  brick: palette('#7e3e28', '#a85a3c', '#c87a58'),
 }
 export const WOOD = palette('#583018', '#805028', '#a06830', '#c88848', '#e8b068')
 

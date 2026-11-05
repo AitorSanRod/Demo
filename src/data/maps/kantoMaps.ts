@@ -6,6 +6,7 @@ import { asset, Biome, boss, chain, enc, NodeKind, raidBoss, RouteId, type GameM
 const palletTown = asset(new URL('../../assets/routes/pallet-town.webp', import.meta.url))
 const route1 = asset(new URL('../../assets/routes/route-1.webp', import.meta.url))
 const viridianForest = asset(new URL('../../assets/routes/viridian-forest.webp', import.meta.url))
+const pewterCity = asset(new URL('../../assets/routes/pewter-city.webp', import.meta.url))
 
 export const KANTO: GameMap = {
   id: 'kanto',
@@ -78,7 +79,7 @@ export const KANTO: GameMap = {
       levels: [9, 16],
       encounters: enc([POKEMON.Caterpie, 20], [POKEMON.Weedle, 20], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Pidgey, 8], [POKEMON.Oddish, 8], [POKEMON.Bellsprout, 8], [POKEMON.Pikachu, 6]),
       reward: { tickets: 2, money: 400, exp: 350 },
-      //unlocks: RouteId.MonteMoon,
+      unlocks: RouteId.CiudadPlateada,
       nodes: chain(
         { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
         { id: 'a', name: 'Sotobosque', kind: NodeKind.Wild, steps: 80 },
@@ -90,7 +91,30 @@ export const KANTO: GameMap = {
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 50], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Butterfree, 10], [POKEMON.Beedrill, 10]) },
         { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Shroomish, 17, RaidTier.Low, { soloMinutes: 10 }) },
       ),
-    }
+    },
+    {
+      id: RouteId.CiudadPlateada,
+      name: 'Ciudad Plateada',
+      description: 'La ciudad de piedra: su museo guarda fósiles y su gimnasio, Pokémon de tipo roca.',
+      biome: Biome.PewterCity,
+      backdrop: { image: pewterCity, focusY: 45 },
+      levels: [14, 20],
+      encounters: enc([POKEMON.Geodude, 20], [POKEMON.Sandshrew, 15], [POKEMON.Spearow, 15], [POKEMON.Pidgey, 15], [POKEMON.Diglett, 10], [POKEMON.Mankey, 10], [POKEMON.Rattata, 10], [POKEMON.Jigglypuff, 5]),
+      reward: { tickets: 5, money: 1000, exp: 500 },
+      //unlocks: RouteId.MonteMoon,
+      nodes: chain(
+        { id: 's', name: 'Salida del bosque', kind: NodeKind.Start, steps: 0 },
+        { id: 'a', name: 'Ruta 2', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Pidgey, 30], [POKEMON.Spearow, 30], [POKEMON.Rattata, 25], [POKEMON.Mankey, 15]) },
+        { id: 'b', name: 'Afueras rocosas', kind: NodeKind.Wild, steps: 90, encounters: enc([POKEMON.Geodude, 30], [POKEMON.Sandshrew, 20], [POKEMON.Diglett, 15], [POKEMON.Spearow, 20], [POKEMON.Rattata, 15]) },
+        { id: 'p1', name: 'Centro Pokémon', kind: NodeKind.Heal, steps: 15, potion: Potion.SuperPotion },
+        { id: 'c', name: 'Museo de la Ciencia', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Omanyte, 20], [POKEMON.Kabuto, 20], [POKEMON.Geodude, 15], [POKEMON.Jigglypuff, 20], [POKEMON.Rattata, 20], [POKEMON.Aerodactyl, 5]) },
+        { id: 'd', name: 'Calles de piedra', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
+        { id: 'p2', name: 'Tienda Pokémon', kind: NodeKind.Heal, steps: 15, potion: Potion.SuperPotion },
+        { id: 'e', name: 'Gimnasio', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Geodude, 45], [POKEMON.Sandshrew, 20], [POKEMON.Onix, 15], [POKEMON.Rhyhorn, 10], [POKEMON.Graveler, 10]) },
+        { id: 'e2', name: 'Gimnasio', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Geodude, 45], [POKEMON.Sandshrew, 20], [POKEMON.Onix, 15], [POKEMON.Rhyhorn, 10], [POKEMON.Graveler, 10]) },
+        { id: 'g', name: 'Líder del gimnasio', kind: NodeKind.Boss, steps: 45, boss: raidBoss(POKEMON.Onix, 20, RaidTier.Low, { soloMinutes: 16 }) },
+      ),
+    },
     // {
     //   id: RouteId.MonteMoon,
     //   name: 'Monte Moon',

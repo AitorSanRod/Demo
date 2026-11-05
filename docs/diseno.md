@@ -165,9 +165,13 @@ El premio final de cada ruta (`reward` en `kantoMaps.ts`) solo se da la primera 
 
 ## Contenido actual
 
-- Mapa de Kanto con 2 rutas activas, de camino único: Pueblo Paleta (tutorial, 4 combates, el último contra un jefe) y Ruta 1 (6 combates
-  y el jefe comunitario Pidgeotto Nv. 12 al final). Bosque Verde, Monte Moon y Ruta Marina están comentadas en
-  `src/data/maps/kantoMaps.ts`; al reactivarlas hay que devolver `unlocks` a la ruta anterior.
+- Mapa de Kanto, de camino único: Pueblo Paleta (tutorial, 4 combates, el último contra un jefe), Ruta 1 (jefe
+  Rattata al final), Ruta 1 - Jefe (jefe comunitario Pidgeotto), Bosque Verde (jefe comunitario Shroomish) y Ciudad
+  Plateada (Nv. 14–20, 6 combates salvajes de roca, tierra y fósiles, dos curas con Superpoción y el líder del gimnasio,
+  Onix Nv. 16, como jefe). Simulada a x1: ≈20 min; Bulbasaur y Squirtle la terminan el 70% de las veces a Nv. 16 y
+  casi siempre a Nv. 18, y Charmander solo no la termina a ningún nivel (los tipos roca y tierra le hacen el doble y
+  resisten su fuego). Monte Moon y Ruta Marina están comentadas en `src/data/maps/kantoMaps.ts`; al reactivarlas hay
+  que devolver `unlocks` a la ruta anterior.
 - Los 151 Pokémon de 1ª generación, de PokeAPI, en `src/data/pokemon.json` (se regenera con
   `scripts/fetch-pokemon.mjs`; los Pokémon de fuera de Kanto se añaden en su `NATIONAL_IDS`).
 - Existen nodos `start`, `wild`, `boss` (el final de Pueblo Paleta) y `raid` (jefe comunitario: Pidgeotto Nv. 12 al final de la Ruta 1).

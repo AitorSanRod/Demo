@@ -4,8 +4,8 @@ Cómo están hechos los fondos animados de la escena de paseo y cómo crear más
 generan por código al abrir la primera ruta de cada bioma (semilla fija, siempre el mismo resultado) y se animan en un
 `<canvas>`. El mismo código se usa en el juego y en el banco de pruebas.
 
-Escenas hechas: **Prado** (bioma `Meadow`: Ruta 1 y Ruta 1 - Final), **Pueblo Paleta** (`PalletTown`, solo esa ruta)
-y **Bosque Verde** (`Forest`). Cueva (`Cave`) y mar (`Sea`) siguen con el paisaje SVG antiguo de `ui/route/scenery/`.
+Escenas hechas: **Prado** (bioma `Meadow`: Ruta 1 y Ruta 1 - Final), **Pueblo Paleta** (`PalletTown`, solo esa ruta),
+**Bosque Verde** (`Forest`) y **Ciudad Plateada** (`PewterCity`, ciudad de piedra al atardecer). Cueva (`Cave`) y mar (`Sea`) siguen con el paisaje SVG antiguo de `ui/route/scenery/`.
 
 ## Índice
 
@@ -199,16 +199,18 @@ Parallax habitual: nubes 0,02–0,03 · colinas 0,05–0,1 · plano lejano 0,1�
 | `trees` | `broadTree` (árbol de copa redonda `domeCanopy` con ramas, raíces y sombra), `treeBase`, `barkTone` |
 | `forestTree` | `forestTree`: árbol grande del bosque, torcido e inclinado, copa de lóbulos acorde al tronco, distinto cada vez |
 | `forest` | `distantTree` (árbol de fondo), `canopyBand` (copas que cuelgan de arriba con claros graduales), `lightRays` |
-| `shrubs` | `bush`, `hedge` (fila de matas), `mossyRock`, `pine` (sin usar ahora; descartado en el prado) |
+| `shrubs` | `bush`, `hedge` (fila de matas), `trimmedHedge` (seto recortado de ciudad), `mossyRock`, `pine` (sin usar ahora; descartado en el prado) |
 | `lawn` | `lawn` (césped con borde ondulado y degradado; devuelve su borde), `lane` (sendero o calle ondulada) |
 | `grass` | `grassField`, `scatterTufts` + `tuftFrames` (matas que se mecen), `daisy`, `flower` |
 | `leaves` | `makeClump` + `leafFrames`: matas de hojas que se mecen, estilo `FERN_LEAVES` o `BROAD_LEAVES` |
-| `house` | `house(palette, width, scale)` con tejado, chimenea, ladrillo, puerta y ventanas; `chimneyTop` para el humo |
+| `house` | `house(palette, width, scale, floors)` (plantas con cornisa entre ellas) con tejado de tejas, ladrillo y sombra del alero (luz arriba a la izquierda, contorno solo abajo y a la derecha); `chimneyTop` para el humo. Chimenea, puerta y ventanas (alféizar, sombra y reflejo), en `houseOpenings` |
+| `houseRow` | `houseRow(seed, row, style)`: fila de casas sin solape sobre césped, con calle, caminitos (`walkway`) y árboles en los huecos; `TownStyle` pone colores, paletas y plantas (pueblo o ciudad) |
+| `lamppost` | `lamppost`: farola de hierro con farol encendido y halo semitransparente solo sobre lo vacío |
 | `fence` | `picketFence` (valla blanca con postes en los extremos), `flowerBed` (parterre de flores de tallo alto) |
 | `fountain`, `log`, `mushroom`, `signpost` | Fuente de plaza, tronco hueco, seta, cartel de madera con fuente 3×5 (añadir letras a `GLYPHS` si faltan) |
 
 Piezas propias de cada escena que pueden servir de modelo: `meadow/plain.ts` (llanura en dos planos con árboles por
-profundidad), `palletTown/town.ts` (filas de casas sin solape con calle y caminitos), `palletTown/ground.ts` (plaza
+profundidad), `palletTown/town.ts` y `pewterCity/city.ts` (filas de casas con `houseRow`), `pewterCity/backdrop.ts` (atardecer: sol bajo y cordilleras rocosas con picos), `palletTown/ground.ts` (plaza
 por baldosas con borde escalonado), `forest/backdrop.ts` (planos de árboles con matorral; copas y rayos alineados),
 `forest/ground.ts` (tierra húmeda con raíces).
 

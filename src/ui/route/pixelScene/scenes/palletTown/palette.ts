@@ -6,8 +6,8 @@ import { hex, palette } from '../../paint/pixmap'
 /** Césped del pueblo: sombra, base, luz y brillo */
 export const LAWN = palette('#5aa838', '#6cbc40', '#84cc4c', '#9cd85c')
 
-const CREAM_WALL = { wall: palette('#d8c8a0', '#f0e6c8', '#fcf6e4'), wallInk: hex('#5a4a34') }
-const WINDOWS = { wood: palette('#5a3418', '#8a5428', '#b47a3c'), glass: palette('#5ea8e0', '#c8e8f8'), brick: hex('#a85a3c') }
+const CREAM_WALL = { wall: palette('#c4ae84', '#dccca4', '#f0e6c8', '#fcf6e4'), wallInk: hex('#5a4a34') }
+const WINDOWS = { wood: palette('#5a3418', '#8a5428', '#b47a3c'), glass: palette('#3c7cc0', '#5ea8e0', '#d8f0fc'), brick: palette('#7e3e28', '#a85a3c', '#c87a58') }
 
 export const ORANGE_HOUSE = { roof: palette('#c05a28', '#e07838', '#f89a58'), roofInk: hex('#5e2410'), ...CREAM_WALL, ...WINDOWS }
 export const RED_HOUSE = { roof: palette('#b83a2e', '#d8503a', '#f07858'), roofInk: hex('#5e1a16'), ...CREAM_WALL, ...WINDOWS }
@@ -16,7 +16,7 @@ export const BLUE_HOUSE = { roof: palette('#3a64b0', '#4a80d0', '#70a0e8'), roof
 export const BIG_BUILDING = {
   roof: palette('#7a7e8c', '#9aa0ac', '#c0c4cc'),
   roofInk: hex('#3a3c48'),
-  wall: palette('#ccd2dc', '#eef1f6', '#ffffff'),
+  wall: palette('#aab2c2', '#d0d6e0', '#eef1f6', '#ffffff'),
   wallInk: hex('#4a505c'),
   ...WINDOWS,
 }

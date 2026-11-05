@@ -6,6 +6,7 @@ import type { SceneDef } from './engine/types'
 import { forestScene } from './scenes/forest'
 import { meadowScene } from './scenes/meadow'
 import { palletTownScene } from './scenes/palletTown'
+import { pewterCityScene } from './scenes/pewterCity'
 
 export { usePixelScene } from './usePixelScene'
 
@@ -17,6 +18,7 @@ const SCENE_SEED = 1
 const BUILDERS: Partial<Record<Biome, (seed: number) => SceneDef>> = {
   [Biome.Meadow]: meadowScene,
   [Biome.PalletTown]: palletTownScene,
+  [Biome.PewterCity]: pewterCityScene,
   [Biome.Forest]: forestScene,
 }
 const cache = new Map<Biome, SceneDef>()
