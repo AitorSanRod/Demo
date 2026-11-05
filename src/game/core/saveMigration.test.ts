@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { RouteId } from '../../data/maps'
+import { route, RouteId } from '../../data/maps'
 import { RanchTypeId } from '../../data/ranchTypes'
 import { STARTERS } from '../../data/species'
 import { Stone } from '../../data/stones'
@@ -39,7 +39,8 @@ function advancedGame(): GameState {
     ranchTypeItems: { [Object.values(RanchTypeId)[0]]: 2 },
     ranchTypeOf: { 1: Object.values(RanchTypeId)[0] },
     stones: { [Stone.Fire]: 1, [Stone.Moon]: 3 },
-    unlockedRoutes: [RouteId.PuebloPaleta, RouteId.BosqueVerde],
+    // Coherente: con Pueblo Paleta completada, también abierta la ruta que desbloquea
+    unlockedRoutes: [RouteId.PuebloPaleta, route(RouteId.PuebloPaleta).unlocks!, RouteId.BosqueVerde],
     completedRoutes: [RouteId.PuebloPaleta],
     // El activo también puede estar de expedición (sin ruta en curso)
     expeditions: [

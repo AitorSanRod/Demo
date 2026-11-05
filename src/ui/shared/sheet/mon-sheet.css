@@ -30,6 +30,26 @@
   bottom: 28px;
   left: 10px;
 }
+.mon-hero-corner.bottom-right {
+  bottom: 36px;
+  right: 14px;
+}
+/* Espacios que ocupa en el rancho: círculo pequeño con borde y número en blanco */
+.ranch-slots-badge {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.25);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 1px 2px #000a;
+  box-shadow: 0 2px 6px #0004;
+}
 /* Botones redondos de las esquinas de la cabecera: corazón de favorito, Poké Ball de compañero y poción de curar */
 .favorite-button,
 .companion-button,

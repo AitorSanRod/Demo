@@ -70,7 +70,7 @@ export function WalkScene({
   return (
     <div
       ref={container}
-      className={`scene ${moving ? '' : 'paused'} ${svgScene?.surf ? 'surf' : ''}`}
+      className={`scene ${moving ? '' : 'paused'} ${(pixelScene ?? svgScene)?.surf ? 'surf' : ''}`}
       style={{ background: svgScene?.sky, ['--ground' as string]: `${ground}px` }}
       onPointerDown={onPointerDown}
     >

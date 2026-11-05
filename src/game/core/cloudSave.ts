@@ -1,3 +1,4 @@
+import { unlockReachedRoutes } from '../run/routeUnlocks'
 import { migrateSave } from './saveMigration'
 import { backupTeam, parseTeamBackup, restoreTeam, type TeamBackup } from './teamBackup'
 import { initialState, restoreState, TutorialStep, type GameState } from './state'
@@ -46,11 +47,17 @@ export const cloudUpload = (s: GameState) => ({ save: s, team: backupTeam(s) })
 
 /**
  * La partida guardada: si es de esta versión, tal cual; si es de otra, pasada a esta sin perder nada de lo que siga
- * existiendo (saveMigration.ts). Si la partida no se puede leer o se ha quedado sin Pokémon, el equipo sale de su copia
+ * existiendo (saveMigration.ts). Si la partida no se puede leer o se ha quedado sin Pokémon, el equipo sale de su copia.
+ * En las dos se abren las rutas que tocan por las ya completadas (rutas añadidas después)
  */
 export function stateFromSaved(saved: unknown, team: unknown): GameState {
-  const restored = saved && typeof saved === 'object' ? restoreState(saved as GameState) : null
-  if (restored) return restored
+  const s = (saved && typeof saved === 'object' ? restoreState(saved as GameState) : null) ?? salvaged(saved, team)
+  unlockReachedRoutes(s)
+  return s
+}
+
+/** Partida de otra versión (o ilegible), pasada a esta; sin Pokémon, el equipo sale de su copia */
+function salvaged(saved: unknown, team: unknown): GameState {
   const s = migrateSave(saved) ?? initialState()
   const backup = parseTeamBackup(team)
   if (s.owned.length === 0 && backup) restoreTeam(s, backup)

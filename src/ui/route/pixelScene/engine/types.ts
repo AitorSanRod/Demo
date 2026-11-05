@@ -50,4 +50,6 @@ export interface SceneDef {
   particles?: ParticleSystem
   /** Elementos de las paradas (cartel, casa…) */
   landmarks: Landmark[]
+  /** El Pokémon va nadando: se mece arriba y abajo (mar) */
+  surf?: boolean
 }

@@ -180,6 +180,8 @@ En los tests se pasa un rng determinista. Una función nueva con azar **debe** s
   valor inicial. Al final se arreglan las relaciones (`linkUp`: Pokémon sin repetir, activo y expediciones de
   Pokémon que existen, capturados como vistos, rutas completadas como desbloqueadas, ranchos comprados). Solo se
   descarta lo que está a medias (`IN_PROGRESS`: la ruta y la sala de raid en curso; el Pokémon vuelve al rancho).
+- En las dos cargas se abren las rutas que desbloquean las ya completadas (`run/routeUnlocks.ts ›
+  unlockReachedRoutes`): una ruta añadida al final del mapa aparece abierta para quien ya completó la anterior.
 - Cualquier cambio en la forma de `GameState`, `OwnedMon`, `Run` o `Expedition` obliga a subir la versión. Si un
   campo cambia de nombre o de significado, se añade su paso en `SAVE_MIGRATIONS` con su test.
 - **Red de seguridad**: cada guardado escribe también `pokerancho-team` (`teamBackup.ts`: los Pokémon, el activo,

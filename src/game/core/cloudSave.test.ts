@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { RouteId } from '../../data/maps'
+import { route, RouteId } from '../../data/maps'
 import { STARTERS } from '../../data/species'
 import { EXPEDITION_DURATIONS } from '../team/expedition'
 import { CloudAction, cloudAction, cloudUpload, parseUpload, saveSummary, stateFromSaved } from './cloudSave'
@@ -54,6 +54,14 @@ describe('partida en la nube', () => {
     expect(restored.owned.map((m) => m.speciesId)).toEqual(s.owned.map((m) => m.speciesId))
     expect(restored.expeditions).toEqual([{ ...s.expeditions[0], uid: restored.owned[0].uid }])
     expect(restored.lastTick).toBe(s.lastTick)
+  })
+
+  it('al cargar, se abre la ruta que desbloquea una ya completada (rutas añadidas al mapa después)', () => {
+    const s = playedGame()
+    s.completedRoutes.push(RouteId.PuebloPaleta)
+    s.unlockedRoutes = [RouteId.PuebloPaleta]
+    const saved = JSON.parse(JSON.stringify(s))
+    expect(stateFromSaved(saved, backupTeam(s)).unlockedRoutes).toContain(route(RouteId.PuebloPaleta).unlocks)
   })
 
   it('si la partida guardada no se puede leer, el equipo sale de su copia', () => {

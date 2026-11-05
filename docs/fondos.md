@@ -122,6 +122,7 @@ Una escena es una `SceneDef` (`engine/types.ts`):
 | `layers` | Capas **de la más lejana a la más cercana** (es el orden de pintado) |
 | `walkerBottom` | Altura de los pies del Pokémon sobre el borde inferior (el juego lo usa como `--ground`) |
 | `particles?` | Sistema de partículas opcional (mariposas y pétalos en el prado) |
+| `surf?` | El Pokémon va nadando y se mece (mar) |
 | `landmarks` | Elementos de las paradas (cartel, casa, fuente, tronco…) |
 
 Cada `SceneLayer`:
@@ -206,6 +207,7 @@ Parallax habitual: nubes 0,02–0,03 · colinas 0,05–0,1 · plano lejano 0,1�
 | `house` | `house(palette, width, scale, floors)` (plantas con cornisa entre ellas) con tejado de tejas, ladrillo y sombra del alero (luz arriba a la izquierda, contorno solo abajo y a la derecha); `chimneyTop` para el humo. Chimenea, puerta y ventanas (alféizar, sombra y reflejo), en `houseOpenings` |
 | `houseRow` | `houseRow(seed, row, style)`: fila de casas sin solape sobre césped, con calle, caminitos (`walkway`) y árboles en los huecos; `TownStyle` pone colores, paletas y plantas (pueblo o ciudad) |
 | `lamppost` | `lamppost`: farola de hierro con farol encendido y halo semitransparente solo sobre lo vacío |
+| `rocks` | `spike` (estalactita o estalagmita), `boulder` (peñasco de varias bolas), `crystals` (racimo de cristales con halo), `rockMass` (pared de roca de fondo sin contorno) |
 | `fence` | `picketFence` (valla blanca con postes en los extremos), `flowerBed` (parterre de flores de tallo alto) |
 | `fountain`, `log`, `mushroom`, `signpost` | Fuente de plaza, tronco hueco, seta, cartel de madera con fuente 3×5 (añadir letras a `GLYPHS` si faltan) |
 

@@ -8,12 +8,13 @@ interface HeroCorners {
   topLeft?: ReactNode
   topRight?: ReactNode
   bottomLeft?: ReactNode
+  bottomRight?: ReactNode
 }
 
 interface MonSheetProps {
   label: string
   hero: ReactNode
-  /** Botones sobre las esquinas de la cabecera: compañero arriba a la izquierda, favorito a la derecha, curar abajo */
+  /** Botones sobre las esquinas de la cabecera: compañero arriba a la izquierda, favorito a la derecha, curar abajo y espacios abajo a la derecha */
   corners?: HeroCorners
   children: ReactNode
   onClose: () => void
@@ -31,6 +32,7 @@ export function MonSheet({ label, hero, corners = {}, children, onClose }: MonSh
         {corners.topLeft && <div className="mon-hero-corner top-left">{corners.topLeft}</div>}
         {corners.topRight && <div className="mon-hero-corner top-right">{corners.topRight}</div>}
         {corners.bottomLeft && <div className="mon-hero-corner bottom-left">{corners.bottomLeft}</div>}
+        {corners.bottomRight && <div className="mon-hero-corner bottom-right">{corners.bottomRight}</div>}
       </div>
       <div className="mon-card">{children}</div>
       <button className="mon-close" onClick={onClose} aria-label="Cerrar">

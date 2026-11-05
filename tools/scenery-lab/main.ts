@@ -2,10 +2,12 @@
 
 import { PARTICLES_ID, SceneRenderer } from '../../src/ui/route/pixelScene/engine/renderer'
 import type { SceneDef } from '../../src/ui/route/pixelScene/engine/types'
+import { caveScene } from '../../src/ui/route/pixelScene/scenes/cave'
 import { forestScene } from '../../src/ui/route/pixelScene/scenes/forest'
 import { meadowScene } from '../../src/ui/route/pixelScene/scenes/meadow'
 import { palletTownScene } from '../../src/ui/route/pixelScene/scenes/palletTown'
 import { pewterCityScene } from '../../src/ui/route/pixelScene/scenes/pewterCity'
+import { seaScene } from '../../src/ui/route/pixelScene/scenes/sea'
 
 /** Píxeles de pantalla por píxel de arte */
 const PIXEL = 3
@@ -14,9 +16,11 @@ const AUTO_LANDMARK_SECONDS = 12
 
 /** Escenas en pruebas; el código vive en src/ui/route/pixelScene (el mismo que usa el juego) */
 const SCENES: Record<string, (seed: number) => SceneDef> = {
+  'Cueva (Monte Moon)': caveScene,
   'Bosque Verde': forestScene,
   'Pueblo Paleta': palletTownScene,
   'Ciudad Plateada': pewterCityScene,
+  'Mar (ruta marina)': seaScene,
   'Prado (Ruta 1)': meadowScene,
 }
 const VIEWPORTS: Record<string, [number, number]> = {

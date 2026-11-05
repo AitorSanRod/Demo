@@ -13,6 +13,7 @@ import { MonHero } from './MonHero'
 import { MonOverview } from './MonOverview'
 import { MonSheet } from './MonSheet'
 import { MovePanel } from './MovePanel'
+import { RanchSlotsBadge } from './RanchSlotsBadge'
 import { SpeciesHero } from './SpeciesHero'
 import { TicketsSection } from './TicketsSection'
 
@@ -39,6 +40,7 @@ export function PokemonSheet({ game, speciesId, onClose }: { game: GameState; sp
         topLeft: mon && <CompanionButton game={game} mon={mon} />,
         topRight: <FavoriteButton game={game} speciesId={speciesId} />,
         bottomLeft: mon && <HealButton game={game} mon={mon} />,
+        bottomRight: isSeen(game, speciesId) && <RanchSlotsBadge speciesId={speciesId} />,
       }}
       onClose={onClose}>
       <MonOverview game={game} speciesId={speciesId} mon={mon} previewLevel={plan && plan.levelsGained > 0 ? plan.level : null} />
