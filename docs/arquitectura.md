@@ -9,7 +9,7 @@ src/net/    Conexión con el servidor: salas compartidas, cuenta opcional y part
 src/ui/     Componentes React. Leen GameState y disparan acciones con act().
 worker/     Servidor: Worker de Cloudflare con base de datos D1 (API /api/*). La lógica del juego es la de src/game.
 migrations/ Esquema de la base de datos D1, un fichero por cambio.
-scripts/    Utilidades de desarrollo (regenerar pokemon.json, iconos PWA). No se empaquetan.
+scripts/    Utilidades de desarrollo (regenerar pokemon.json, iconos PWA, capturas de los tutoriales). No se empaquetan.
 ```
 
 Regla de dependencias: `ui → net → game → data` y `worker → game → data`. Nunca al revés. `data` no importa de
@@ -28,7 +28,7 @@ src/
                       evolutions, stones + pokemon.json
     maps/             kantoMaps (una por región), mapCommon, index (regiones y route)
   game/
-    core/             state (GameState, SAVE_VERSION), store (useGame, act, guardado), teamBackup, random, tick,
+    core/             state (GameState, SAVE_VERSION), store (useGame, act, guardado), saveMigration, teamBackup, random, tick,
                       test-utils, test-map
     battle/           battle (simulación por turnos), attack (un turno de ataque), status (estados alterados),
                       combatBonus (pasivas sumadas), rewards (₽, tickets, EXP y piezas por victoria)
@@ -101,7 +101,8 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `data/stones.ts` | Piedras evolutivas (`Stone`, `STONES`) |
 | `game/core/state.ts` | Tipos de `GameState`, estado inicial, `SAVE_VERSION`, `restoreState` y dónde está cada Pokémon (`monPlace`) |
 | `game/core/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
-| `game/core/teamBackup.ts` | Copia del equipo (y de sus expediciones en curso) que sobrevive a los cambios de `SAVE_VERSION` |
+| `game/core/saveMigration.ts` | Migrar una partida de otra versión sin perder nada: pasos de `SAVE_MIGRATIONS` y rescate campo a campo |
+| `game/core/teamBackup.ts` | Copia del equipo (y de sus expediciones en curso): red de seguridad si la partida guardada no se puede leer |
 | `game/core/random.ts` | Tipo `Rng` y utilidades de azar (`seededRng`: secuencia fija a partir de una semilla) |
 | `game/core/tick.ts` | `tick`: avance del tiempo (ruta, expediciones y descanso) |
 | `game/battle/battle.ts` | Simulación de combate automático |
@@ -168,21 +169,23 @@ En los tests se pasa un rng determinista. Una función nueva con azar **debe** s
 
 ## Guardado y versiones
 
-- `SAVE_VERSION` (en `core/state.ts`) se compara al cargar; si no coincide, se empieza partida nueva.
-- Si coincide, `restoreState` rellena con su valor inicial los campos que falten en la partida guardada.
-- Cualquier cambio en la forma de `GameState`, `OwnedMon`, `Run` o `Expedition` obliga a subir la versión.
-- **El equipo se conserva entre versiones** (provisional, mientras la partida viva en el navegador). Cada guardado
-  escribe también `pokerancho-team`: especie, nivel, EXP, estrellas y rancho (o Caja) de cada Pokémon, cuál es el
-  activo, las expediciones en curso y la hora de la copia, con un formato propio (`TEAM_BACKUP_FORMAT`) que no
-  depende de `SAVE_VERSION`. Si la partida es de otra versión, se empieza una nueva y `restoreTeam` rehace el equipo
-  (PS al máximo, capturados y sin tutorial) y sus expediciones, y pone `lastTick` a la hora de la copia para que el
-  primer tick cuente el tiempo que pasó; dinero, piezas, rutas y lo demás empiezan de cero. Reiniciar desde ⚙️ guarda la copia vacía y se empieza de verdad desde el
-  tutorial.
-- Lo que se añada a `TeamBackup` va **opcional** (como `expeditions` y `savedAt`) para que las copias ya guardadas
-  sigan valiendo. Solo si cambia de forma incompatible, sube `TEAM_BACKUP_FORMAT` y haz que `parseTeamBackup` siga
-  leyendo el formato anterior: es lo único que debe sobrevivir a cualquier actualización. Excepción: el formato 1 (sin
-  ranchos ni Caja) se descartó a propósito con `SAVE_VERSION` 16, y esas partidas empiezan de cero.
-- Con servidor y base de datos, la copia del equipo desaparece: la partida completa vivirá allí.
+- `SAVE_VERSION` (en `core/state.ts`) se compara al cargar (`cloudSave.ts › stateFromSaved`, también para la
+  partida de la nube). Si coincide, `restoreState` rellena con su valor inicial los campos que falten.
+- **Si no coincide, la partida se migra y no se pierde nada** (`core/saveMigration.ts › migrateSave`): primero los
+  pasos de `SAVE_MIGRATIONS` (de cada versión a la siguiente, solo para campos que cambian de nombre o de
+  significado) y después un rescate campo a campo: dinero, tickets, trozos, Pokédex (vistos, capturados, favoritos),
+  piezas, compras (mejoras, tipos de rancho, piedras), rutas desbloqueadas y completadas, equipo, expediciones,
+  premios pendientes, rachas… Cada campo con regla propia (`RULES`) se valida a fondo (una especie, ruta o piedra que
+  ya no existe se descarta); los demás se conservan si tienen la misma forma que el inicial, y los nuevos toman su
+  valor inicial. Al final se arreglan las relaciones (`linkUp`: Pokémon sin repetir, activo y expediciones de
+  Pokémon que existen, capturados como vistos, rutas completadas como desbloqueadas, ranchos comprados). Solo se
+  descarta lo que está a medias (`IN_PROGRESS`: la ruta y la sala de raid en curso; el Pokémon vuelve al rancho).
+- Cualquier cambio en la forma de `GameState`, `OwnedMon`, `Run` o `Expedition` obliga a subir la versión. Si un
+  campo cambia de nombre o de significado, se añade su paso en `SAVE_MIGRATIONS` con su test.
+- **Red de seguridad**: cada guardado escribe también `pokerancho-team` (`teamBackup.ts`: los Pokémon, el activo,
+  sus expediciones y la hora). Solo se usa si la partida guardada no se puede leer o se ha quedado sin Pokémon.
+  Reiniciar desde ⚙️ guarda la copia vacía y se empieza de verdad desde el tutorial. Lo que se le añada a
+  `TeamBackup` va opcional para que las copias ya guardadas sigan valiendo.
 
 ## Bucle de tiempo
 
@@ -277,7 +280,10 @@ Paso a paso del despliegue y del consumo del plan gratuito: [servidor.md](servid
 - **En la partida** (`online/linkedRoom.ts`): `joinRaid` y `enterRouteRaid` dejan la sala esperando sitio
   (`Raid.remote.roomId` null, `isSearching`): la de la pestaña se sigue jugando en local; la de una parada se queda
   quieta, sin bots, y la ruta muestra «Buscando entrenadores…» (`RaidSearching`) hasta que el servidor contesta, para
-  entrar antes en una sala con jugadores que en una de bots. `net/raidSync.ts` pide entrar; con la respuesta la sala
+  entrar antes en una sala con jugadores que en una de bots. Esa espera solo vale con la app delante: si un avance
+  salta más de `ROUTE_RAID_SEARCH_MS` (la app estaba cerrada u oculta y nadie pidió sitio), la sala se juega en local
+  y, al caer el jefe, el tiempo que sobra sigue la ruta (`advanceRun` lleva también la pelea de la parada).
+  `net/raidSync.ts` pide entrar (también con la app oculta; las demás consultas, solo delante); con la respuesta la sala
   local pasa a ser el reflejo de la del servidor (`applyView`) y `tick` ya no la juega (solo corre su reloj para la
   animación). Cada consulta manda el Pokémon que el jugador quiere dentro (o ninguno, para retirarse) y su nivel; la
   respuesta trae la sala y las rondas de EXP contadas, y lo que pase se resuelve con las mismas funciones que en

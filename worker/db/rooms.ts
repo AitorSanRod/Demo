@@ -46,7 +46,8 @@ export async function loadRouteSummaries(db: D1Database, now: number): Promise<R
 /** Guarda la sala si nadie la ha cambiado desde que se leyó (o si es nueva); false si otro llegó antes */
 export async function saveRoom(db: D1Database, { room, version }: StoredRoom): Promise<boolean> {
   const data = JSON.stringify(room)
-  const players = room.closed ? 0 : playersIn(room)
+  // Con el jefe caído o escapado la pelea ha terminado: ya no cuenta como sala con jugadores (ni sale en las listas)
+  const players = room.closed || room.raid.hp === 0 ? 0 : playersIn(room)
   const summary = JSON.stringify(roomSummary(room, false))
   const statement =
     version === null

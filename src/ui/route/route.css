@@ -81,6 +81,43 @@
   min-height: 0;
   position: relative;
 }
+/* Pestañas de arriba: solo el icono; la activa se ensancha y despliega su nombre */
+.icon-tabs {
+  display: flex;
+}
+.icon-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex: 1 1 0;
+  min-height: 44px;
+  transition: flex-grow 0.3s ease, gap 0.3s ease;
+}
+.icon-tabs button.active {
+  flex-grow: 2.6;
+  gap: 6px;
+}
+.icon-tab-icon {
+  position: relative;
+  display: flex;
+}
+.icon-tab-icon .count-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+}
+.icon-tab-label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transition: max-width 0.3s ease, opacity 0.2s ease;
+}
+.icon-tabs button.active .icon-tab-label {
+  max-width: 140px;
+  opacity: 1;
+}
 .count-badge {
   display: inline-block;
   min-width: 18px;

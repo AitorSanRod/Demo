@@ -62,8 +62,14 @@ export function combineBlocker(s: GameState, speciesId: number): string | null {
 
 export const canCombine = (s: GameState, speciesId: number): boolean => combineBlocker(s, speciesId) === null
 
-export const combinableCount = (s: GameState): number =>
-  Object.keys(s.pieces).filter((id) => canCombine(s, Number(id))).length
+/** Especies que se pueden combinar ya, de menor a mayor número */
+export const combinableIds = (s: GameState): number[] =>
+  Object.keys(s.pieces)
+    .map(Number)
+    .filter((id) => canCombine(s, id))
+    .sort((a, b) => a - b)
+
+export const combinableCount = (s: GameState): number => combinableIds(s).length
 
 export function combine(s: GameState, speciesId: number): CombineResult | null {
   if (!canCombine(s, speciesId)) return null

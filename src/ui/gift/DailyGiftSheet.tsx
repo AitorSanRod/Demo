@@ -92,7 +92,7 @@ function GiftDay({ day, gift, state }: { day: number; gift: DailyGift; state: Da
         )}
       </div>
       {state === 'done' && <span className="tiny muted">Recogido</span>}
-      {state === 'next' && <span className="tiny gift-next">Hoy</span>}
+      {state === 'next' && <span className="tiny gift-next">Próximo</span>}
     </div>
   )
 }

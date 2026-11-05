@@ -85,4 +85,4 @@
 
 - `npm run check` pasa (typecheck, lint y tests).
 - Documentación actualizada si cambió una regla (`docs/diseno.md`) o la estructura (`docs/arquitectura.md`).
-- `SAVE_VERSION` subido si cambió la forma del estado.
+- `SAVE_VERSION` subido si cambió la forma del estado y, si un campo cambió de nombre o de significado, su paso en `SAVE_MIGRATIONS` con test.

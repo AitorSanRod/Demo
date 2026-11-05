@@ -16,7 +16,7 @@ description: Diseñar e implementar una mecánica o regla de juego nueva, o camb
 
 ## 2. Modelo de datos
 
-- Si añade campos a `GameState`, `OwnedMon` o `Run`: actualiza `initialState()` y **sube `SAVE_VERSION`**.
+- Si añade campos a `GameState`, `OwnedMon` o `Run`: actualiza `initialState()` y **sube `SAVE_VERSION`** (la partida se migra sola, ver `core/saveMigration.ts`). Si un campo cambia de nombre o de significado, añade su paso en `SAVE_MIGRATIONS`; si necesita validación (ids que pueden desaparecer), su regla en `RULES`.
 - Datos estáticos nuevos (tablas, catálogos) van en `src/data`, no en `src/game`.
 - Usa uniones de strings y `Record<Union, ...>` para que el compilador obligue a cubrir todos los casos.
 

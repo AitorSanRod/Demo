@@ -1,4 +1,5 @@
-import { backupFromSave, backupTeam, parseTeamBackup, restoreTeam, type TeamBackup } from './teamBackup'
+import { migrateSave } from './saveMigration'
+import { backupTeam, parseTeamBackup, restoreTeam, type TeamBackup } from './teamBackup'
 import { initialState, restoreState, TutorialStep, type GameState } from './state'
 
 // La partida en la nube de una cuenta (worker/save.ts). Gana la última que se sube: cada copia lleva una
@@ -44,17 +45,16 @@ export function cloudAction(link: CloudLink | null, userId: string, cloud: Pick<
 export const cloudUpload = (s: GameState) => ({ save: s, team: backupTeam(s) })
 
 /**
- * La partida guardada si es de esta versión; si no, una nueva con el equipo (y sus expediciones en curso) recuperado
- * de la propia partida guardada o, si de ella no sale, de su copia
+ * La partida guardada: si es de esta versión, tal cual; si es de otra, pasada a esta sin perder nada de lo que siga
+ * existiendo (saveMigration.ts). Si la partida no se puede leer o se ha quedado sin Pokémon, el equipo sale de su copia
  */
 export function stateFromSaved(saved: unknown, team: unknown): GameState {
   const restored = saved && typeof saved === 'object' ? restoreState(saved as GameState) : null
   if (restored) return restored
-  const fresh = initialState()
-  const fromSave = parseTeamBackup(backupFromSave(saved))
-  const backup = fromSave?.mons.length ? fromSave : parseTeamBackup(team)
-  if (backup) restoreTeam(fresh, backup)
-  return fresh
+  const s = migrateSave(saved) ?? initialState()
+  const backup = parseTeamBackup(team)
+  if (s.owned.length === 0 && backup) restoreTeam(s, backup)
+  return s
 }
 
 /** Lo que se enseña de una partida para elegir entre la de aquí y la de la nube */

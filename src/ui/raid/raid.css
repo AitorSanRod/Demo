@@ -28,8 +28,22 @@
 .raid-tabs {
   margin: 8px 16px 0;
 }
-.raid-prize-bar {
-  padding: 8px 16px 0;
+/* Premios de jefes por recoger: aviso a lo ancho, con su botón (RaidPrizes.tsx) */
+.raid-prize-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 16px 0;
+  padding: 8px 10px 8px 12px;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.raid-prize-detail {
+  display: block;
+}
+.raid-prize-banner .btn {
+  flex-shrink: 0;
 }
 .raid-closing {
   margin: 0 0 4px;

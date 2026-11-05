@@ -74,7 +74,7 @@ export function RanchScreen({ game }: { game: GameState }) {
           <ItemIcon item={ICON.Box} size={34} />
           <span className="tiny">Caja</span>
         </button>
-        <RanchMenu />
+        <RanchMenu game={game} />
         <SettingsMenu />
       </div>
 

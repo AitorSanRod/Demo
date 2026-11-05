@@ -1,13 +1,15 @@
 import { useState } from 'react'
+import type { Item } from '../../data/items'
 import { activeMon, type GameState } from '../../game/core/state'
 import { isExpeditionDone } from '../../game/team/expedition'
 import { ExpeditionScreen } from '../expeditions/ExpeditionScreen'
 import { RaidScreen } from '../raid/RaidScreen'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
+import { pendingKey, useUnseen } from '../shared/useUnseen'
 import { RouteMap } from './RouteMap'
 import { RunView } from './RunView'
 import './route.css'
-import { ICON } from '../shared/icons'
-import { ItemIcon } from '../shared/ItemIcon'
 
 type RouteTab = 'route' | 'expeditions' | 'raid'
 
@@ -15,20 +17,27 @@ type RouteTab = 'route' | 'expeditions' | 'raid'
 export function RouteScreen({ game }: { game: GameState }) {
   const [tab, setTab] = useState<RouteTab>('route')
   const mon = activeMon(game)
-  const returned = game.expeditions.filter(isExpeditionDone).length
+  const returned = game.expeditions.filter(isExpeditionDone)
+  const prizes = game.raidPrizes
+  const returnedUnseen = useUnseen('route:expeditions', pendingKey(returned.map((e) => e.uid)), tab === 'expeditions')
+  const prizesUnseen = useUnseen('route:raid', pendingKey(prizes.map((p) => `${p.bossSpeciesId}:${p.uid}`)), tab === 'raid')
+
+  const tabButton = (id: RouteTab, icon: Item, label: string, count: number) => (
+    <button className={tab === id ? 'active' : ''} onClick={() => setTab(id)} aria-label={label} aria-pressed={tab === id}>
+      <span className="icon-tab-icon">
+        <ItemIcon item={icon} size={26} />
+        {count > 0 && <span className="count-badge">{count}</span>}
+      </span>
+      <span className="icon-tab-label">{label}</span>
+    </button>
+  )
 
   return (
     <div className="screen tabbed">
-      <div className="segmented tabbed-bar">
-        <button className={tab === 'route' ? 'active' : ''} onClick={() => setTab('route')}>
-          <ItemIcon item={ICON.Route} size={22} /> Ruta
-        </button>
-        <button className={tab === 'expeditions' ? 'active' : ''} onClick={() => setTab('expeditions')}>
-          <ItemIcon item={ICON.Expedition} size={22} /> Expediciones {returned > 0 && <span className="count-badge">{returned}</span>}
-        </button>
-        <button className={tab === 'raid' ? 'active' : ''} onClick={() => setTab('raid')}>
-          <ItemIcon item={ICON.Raid} size={22} /> Raids {game.raidPrizes.length > 0 && <span className="count-badge">{game.raidPrizes.length}</span>}
-        </button>
+      <div className="segmented icon-tabs tabbed-bar">
+        {tabButton('route', ICON.Route, 'Ruta', 0)}
+        {tabButton('expeditions', ICON.Expedition, 'Expediciones', returnedUnseen ? returned.length : 0)}
+        {tabButton('raid', ICON.Raid, 'Raids', prizesUnseen ? prizes.length : 0)}
       </div>
       <div className="tabbed-body">
         {tab === 'raid' ? (

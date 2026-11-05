@@ -13,6 +13,7 @@ import {
   addPieces,
   canCombine,
   combinableCount,
+  combinableIds,
   combine,
   combineBlocker,
   CombineKind,
@@ -141,5 +142,14 @@ describe('combinableCount', () => {
     readyToCombine(s, POKEMON.Pidgey)
     addPieces(s, POKEMON.Rattata, PIECES_PER_COMBINE)
     expect(combinableCount(s)).toBe(1)
+  })
+})
+
+describe('combinableIds', () => {
+  it('lista solo las especies listas para combinar', () => {
+    const s = stateWithStarter()
+    readyToCombine(s, POKEMON.Pidgey)
+    addPieces(s, POKEMON.Rattata, PIECES_PER_COMBINE)
+    expect(combinableIds(s)).toEqual([POKEMON.Pidgey])
   })
 })

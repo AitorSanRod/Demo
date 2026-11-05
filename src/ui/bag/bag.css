@@ -1,0 +1,42 @@
+/* Mochila: lo comprado y sin usar, en cuadrícula por grupos */
+.bag-group-title {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+.bag-group .tiny.muted {
+  margin: 2px 0 8px;
+}
+.bag-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.bag-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  text-align: center;
+}
+.bag-tile-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 48px;
+}
+.bag-tile-count {
+  position: absolute;
+  right: -14px;
+  bottom: -2px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+}

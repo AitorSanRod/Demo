@@ -82,6 +82,14 @@ describe('salas compartidas', () => {
     expect(routeRooms).toMatchObject([{ players: 1, place: { routeId: stopChannel().routeId } }])
   })
 
+  it('una sala de ruta con el jefe ya caído deja de salir en la lista (no se acumulan salas de «1 jugador»)', async () => {
+    const api = testWorker()
+    const { view } = (await api.call('/api/raid', { body: join('player-aaaa', 'a1', stopChannel()) })).data
+    await api.env.DB.prepare("UPDATE rooms SET data = json_set(data, '$.raid.hp', 0) WHERE id = ?").bind(view.roomId).run()
+    await api.call('/api/raid', { body: { action: RaidAction.Sync, playerId: 'player-aaaa', nickname: 'A', roomId: view.roomId, mon: mon('a1') } })
+    expect((await api.call('/api/raid', { body: feed('player-bbbb') })).data.feed.routeRooms).toEqual([])
+  })
+
   it('dos jugadores que entran contra el mismo jefe acaban en la misma sala y se ven', async () => {
     const api = testWorker()
     const a = (await api.call('/api/raid', { body: join('player-aaaa', 'a1') })).data.view

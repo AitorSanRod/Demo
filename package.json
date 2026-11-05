@@ -15,6 +15,7 @@
     "check": "npm run typecheck && npm run lint && npm run test",
     "preview": "npm run build && wrangler dev",
     "deploy": "npm run build && wrangler deploy",
+    "shots": "node scripts/tutorial-shots/index.mjs",
     "db:migrate": "wrangler d1 migrations apply pokerancho --remote",
     "db:migrate:local": "wrangler d1 migrations apply pokerancho --local"
   },
@@ -30,6 +31,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "oxlint": "^1.89.0",
+    "puppeteer-core": "^24.43.1",
     "typescript": "~7.0.2",
     "vite": "^8.3.5",
     "vite-plugin-pwa": "^2.0.0",

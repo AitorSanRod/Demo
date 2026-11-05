@@ -13,3 +13,6 @@ export function formatClock(ms: number): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`
 }
+
+/** Fracción como porcentaje entero, hacia abajo: 0.1 → "10%" */
+export const formatPercent = (fraction: number): string => `${Math.floor(fraction * 100)}%`

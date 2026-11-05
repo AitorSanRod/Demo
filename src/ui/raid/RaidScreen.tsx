@@ -1,15 +1,11 @@
 import { useState } from 'react'
 import type { GameState } from '../../game/core/state'
-import { act } from '../../game/core/store'
-import { collectRaidPrizes } from '../../game/raid/raidPrizes'
 import { useRaidFeed } from '../../net/raidFeed'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
-import { raidPrizeRewards } from '../shared/rewardItems'
-import { RewardOverlay, type RewardItem } from '../shared/RewardOverlay'
-import { BigAction } from '../shared/sheet/MonSheet'
 import { RaidFront } from './RaidFront'
 import { RaidLocal } from './RaidLocal'
+import { RaidPrizeBanner } from './RaidPrizes'
 import { RaidRooms } from './RaidRooms'
 import './raid.css'
 
@@ -21,7 +17,6 @@ type RaidTab = 'boss' | 'rooms'
  * local de siempre
  */
 export function RaidScreen({ game }: { game: GameState }) {
-  const [report, setReport] = useState<RewardItem[] | null>(null)
   const [tab, setTab] = useState<RaidTab>('boss')
   const feed = useRaidFeed()
   if (game.tutorial !== null) {
@@ -32,12 +27,10 @@ export function RaidScreen({ game }: { game: GameState }) {
     )
   }
 
-  const pending = game.raidPrizes.length
   const rooms = feed.feed?.rooms.length ?? 0
 
   return (
     <div className="screen raid-screen">
-      {report && <RewardOverlay title="¡Premio del jefe!" items={report} onClose={() => setReport(null)} />}
       {game.raidServer && (
         <div className="segmented raid-tabs">
           <button className={tab === 'boss' ? 'active' : ''} onClick={() => setTab('boss')}>
@@ -48,11 +41,7 @@ export function RaidScreen({ game }: { game: GameState }) {
           </button>
         </div>
       )}
-      {pending > 0 && (
-        <div className="raid-prize-bar">
-          <BigAction icon={ICON.Raid} label={`Recoger premio${pending > 1 ? `s (${pending})` : ''}`} className="primary" onClick={() => setReport(raidPrizeRewards(act(collectRaidPrizes)))} />
-        </div>
-      )}
+      <RaidPrizeBanner game={game} />
       {!game.raidServer ? (
         <RaidLocal game={game} />
       ) : tab === 'rooms' ? (

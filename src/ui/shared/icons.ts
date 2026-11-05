@@ -25,6 +25,9 @@ export const ICON = {
   /** Menú del rancho */
   Menu: ITEM.Xtransceiver,
   Box: ITEM.BoxLink,
+  /** Mochila: lo comprado y aún sin usar */
+  Bag: ITEM.ExplorerKit,
+  Tutorials: ITEM.TeachyTv,
   Heal: ITEM.Potion,
   Rest: ITEM.FullRestore,
   Train: ITEM.RareCandy,

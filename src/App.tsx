@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Item } from './data/items'
-import { combinableCount } from './game/collection/pieces'
+import { combinableIds } from './game/collection/pieces'
 import { TutorialStep } from './game/core/state'
 import { startAccount } from './net/account'
 import { startCloudSync } from './net/cloudSync'
@@ -21,6 +21,7 @@ import { UpgradeShop } from './ui/shop/UpgradeShop'
 import { StarterScreen } from './ui/starter/StarterScreen'
 import { ICON } from './ui/shared/icons'
 import { ItemIcon } from './ui/shared/ItemIcon'
+import { pendingKey, useUnseen } from './ui/shared/useUnseen'
 
 type Tab = 'route' | 'ranch' | 'shop' | 'gacha' | 'dex'
 
@@ -54,12 +55,15 @@ export default function App() {
     return startCloudSync()
   }, [])
 
+  // Los puntos rojos se apagan al entrar en la pestaña y vuelven si aparece algo nuevo
+  const runNeedsLook = game.run && game.run.phase !== 'walking' ? [`${game.run.routeId}:${game.run.phase}`] : []
+  const routePending = pendingKey([...runNeedsLook, ...game.expeditions.filter(isExpeditionDone).map((e) => e.uid)])
   const badges: Record<Tab, boolean> = {
-    route: (!!game.run && game.run.phase !== 'walking') || game.expeditions.some(isExpeditionDone),
+    route: useUnseen('tab:route', routePending, tab === 'route'),
     ranch: false,
     shop: false,
     gacha: false,
-    dex: combinableCount(game) > 0,
+    dex: useUnseen('tab:dex', pendingKey(combinableIds(game)), tab === 'dex'),
   }
 
   if (game.tutorial === TutorialStep.Starter) {

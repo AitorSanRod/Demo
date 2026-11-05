@@ -16,6 +16,11 @@ import { advanceStopRoom, ROUTE_RAID_JOIN_MIN_HP, stopRoom } from './stopRoom'
 
 /** Probabilidad, al llegar sin servidor, de encontrar ya una sala en marcha en la parada */
 export const ROUTE_RAID_RUNNING_CHANCE = 0.5
+/**
+ * Milisegundos de juego que la parada puede esperar sitio en el servidor de una vez. Con la app delante se piden en
+ * segundos; un salto mayor es tiempo con la app cerrada u oculta, en el que nadie lo ha pedido: se juega en local
+ */
+export const ROUTE_RAID_SEARCH_MS = 10_000
 /** Veces que puede caer el Pokémon contra el jefe de la parada; al gastarlas vuelve al principio de la ruta */
 export const ROUTE_RAID_LIVES = 10
 
@@ -104,12 +109,24 @@ export function startOver(s: GameState, raid: Raid) {
 const endFight = (s: GameState, raid: Raid, rng: Rng) => (raid.hp === 0 ? finishRouteRaid(s, raid, rng) : startOver(s, raid))
 
 /**
- * Avanza la pelea de la parada `ms` milisegundos de juego. Si la sala es del servidor, allí se juega; mientras se
- * busca sala en él, nada se mueve (antes de una sala con bots se mira si hay una con jugadores)
+ * Avanza la pelea de la parada `ms` milisegundos de juego y devuelve los que ha gastado (menos si la pelea acaba
+ * antes: el resto es para seguir la ruta). Si la sala es del servidor, allí se juega. Mientras se busca sala en él, la
+ * pelea espera (antes de una sala con bots se mira si hay una con jugadores), salvo que el salto sea mayor que
+ * ROUTE_RAID_SEARCH_MS: entonces la app no estaba para buscarla y la sala se juega en local
  */
-export function advanceRouteRaid(s: GameState, ms: number, rng: Rng = Math.random) {
+export function advanceRouteRaid(s: GameState, ms: number, rng: Rng = Math.random): number {
   const raid = currentRouteRaid(s)
-  if (!raid || isSearching(raid)) return
-  if (isLinked(raid)) return runLinkedClock(raid, ms)
-  if (advanceStopRoom(raid, ms, rng, localHooks(s)) !== null) endFight(s, raid, rng)
+  if (!raid) return 0
+  if (isSearching(raid)) {
+    if (ms <= ROUTE_RAID_SEARCH_MS) return ms
+    raid.remote = null
+  }
+  if (isLinked(raid)) {
+    runLinkedClock(raid, ms)
+    return ms
+  }
+  const left = advanceStopRoom(raid, ms, rng, localHooks(s))
+  if (left === null) return ms
+  endFight(s, raid, rng)
+  return ms - left
 }

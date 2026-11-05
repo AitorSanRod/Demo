@@ -9,13 +9,12 @@ import { RaidMemberKind, type Raid } from '../../game/raid/raidRoom'
 import { nickname } from '../../net/identity'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { Sprite } from '../shared/common'
+import { formatPercent } from '../shared/format'
 import { ICON } from '../shared/icons'
 import { MonPicker } from '../shared/MonPicker'
 import { BigAction } from '../shared/sheet/MonSheet'
 import { NicknameDialog } from './NicknameDialog'
 import { RaidLinkNote } from './RaidLinkNote'
-
-const percent = (fraction: number) => `${Math.floor(fraction * 100)}%`
 
 /**
  * Tu Pokémon en la sala: su participación y retirarlo, o elegir a uno del rancho y mandarlo. `onJoin`: cómo se manda
@@ -36,8 +35,8 @@ function InRaid({ game, raid, uid }: { game: GameState; raid: Raid; uid: string 
   return (
     <>
       <p className="small">
-        {name} lleva el {percent(presenceShare(member, raid.elapsedMs))} de la pelea y ha hecho {member.damage} de daño. Recibe recompensas si llega al{' '}
-        {percent(RAID_MIN_PRESENCE)} o si sigue dentro cuando caiga el jefe.
+        {name} lleva el {formatPercent(presenceShare(member, raid.elapsedMs))} de la pelea y ha hecho {member.damage} de daño. Recibe recompensas si llega al{' '}
+        {formatPercent(RAID_MIN_PRESENCE)} o si sigue dentro cuando caiga el jefe.
       </p>
       <RaidLinkNote raid={raid} />
       <BigAction icon={ICON.Ranch} label={`Retirar a ${name}`} onClick={() => setConfirming(true)} />
@@ -58,7 +57,7 @@ function InRaid({ game, raid, uid }: { game: GameState; raid: Raid; uid: string 
               Vuelve al rancho con los PS que le queden.{' '}
               {earnsPrize({ ...member, left: true }, raid.elapsedMs)
                 ? 'Ya ha luchado lo suficiente: cobrará cuando caiga el jefe.'
-                : `Si se va ahora no cobrará: aún no llega al ${percent(RAID_MIN_PRESENCE)} de la pelea.`}
+                : `Si se va ahora no cobrará: aún no llega al ${formatPercent(RAID_MIN_PRESENCE)} de la pelea.`}
             </p>
           </div>
         </ConfirmDialog>

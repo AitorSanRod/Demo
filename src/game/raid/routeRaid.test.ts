@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { NodeKind, route, RouteId } from '../../data/maps'
 import { activeMon, initialState, type GameState } from '../core/state'
 import { chooseStarter, seqRng } from '../core/test-utils'
-import { startRun, walk } from '../run/run'
+import { advanceRun, startRun, walk } from '../run/run'
 import { maxHp } from '../team/stats'
 import { RAID_ROUND_MS } from './raidCombat'
 import { RaidMemberKind } from './raidRoom'
@@ -12,6 +12,7 @@ import {
   retreatRouteRaid,
   ROUTE_RAID_LIVES,
   ROUTE_RAID_RUNNING_CHANCE,
+  ROUTE_RAID_SEARCH_MS,
 } from './routeRaid'
 import { recordRouteRaidFall, ROUTE_RAID_REPEAT_MONEY_MULT } from './routeRaidStreak'
 import { ROUTE_RAID_FIRST_BOT_MS, ROUTE_RAID_JOIN_MIN_HP } from './stopRoom'
@@ -63,8 +64,28 @@ describe('jefe comunitario de ruta', () => {
   it('al llegar busca primero sala en el servidor y, mientras, la sala local no se mueve ni entran bots', () => {
     const { s, raid } = arriveSearching()
     const before = structuredClone(raid)
-    advanceRouteRaid(s, ROUTE_RAID_FIRST_BOT_MS * 10, seqRng(0))
+    expect(advanceRouteRaid(s, ROUTE_RAID_SEARCH_MS, seqRng(0))).toBe(ROUTE_RAID_SEARCH_MS)
     expect(s.run!.raid).toEqual(before)
+  })
+
+  it('si la búsqueda se salta más de ROUTE_RAID_SEARCH_MS (app cerrada u oculta), la sala se juega en local', () => {
+    const { s } = arriveSearching()
+    advanceRouteRaid(s, ROUTE_RAID_SEARCH_MS + ROUTE_RAID_FIRST_BOT_MS * 10, seqRng(0))
+    const raid = currentRouteRaid(s)!
+    expect(raid.remote).toBeNull()
+    expect(raid.members.some((m) => m.kind === RaidMemberKind.Bot)).toBe(true)
+  })
+
+  it('la pelea gasta solo su tiempo: lo que sobra, en el mismo avance, sigue la ruta', () => {
+    const { s, raid } = arriveAtRaid()
+    raid.hp = 1
+    const run = s.run!
+    // Como si la parada no fuera la última: al caer el jefe hay más ruta por andar
+    run.stop = 0
+    advanceRun(s, RAID_ROUND_MS * 2, seqRng(0))
+    expect(run.earned.raidBosses).toEqual([raid.boss.speciesId])
+    expect(run.phase).toBe('walking')
+    expect(run.steps).toBeGreaterThan(0)
   })
 
   it('si no hay servidor, la sala local se juega y entran bots', () => {

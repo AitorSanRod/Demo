@@ -6,8 +6,8 @@ import { nickname, playerId } from './identity'
 import { postRaid, RaidApiError } from './raidApi'
 
 // Mantiene las salas de la partida al día con el servidor: pide entrar en las que esperan sitio, consulta las
-// enlazadas y avisa de las que se han dejado. Solo con la app delante: cerrada, el servidor sigue jugando y al volver
-// se consulta enseguida. Cada consulta gasta cuota del plan de Cloudflare: ver docs/servidor.md.
+// enlazadas y avisa de las que se han dejado. Las consultas, solo con la app delante: cerrada, el servidor sigue
+// jugando y al volver se consulta enseguida. Entrar se pide también con la app oculta, para que la parada no espere. Cada consulta gasta cuota del plan de Cloudflare: ver docs/servidor.md.
 
 /** Milisegundos reales entre consultas de una sala mientras su pelea está en pantalla */
 const WATCH_SYNC_MS = 5_000
@@ -32,11 +32,11 @@ const who = () => ({ playerId: playerId(), nickname: nickname() ?? DEFAULT_NICKN
 const syncEvery = () => (watchers > 0 ? WATCH_SYNC_MS : BACKGROUND_SYNC_MS)
 const syncNow = () => ROOM_SLOTS.forEach((slot) => delete lastSync[slot])
 
-async function syncSlot(slot: RoomSlot, now: number) {
+async function syncSlot(slot: RoomSlot, now: number, hidden: boolean) {
   const req = roomRequest(getState(), slot)
   if (!req) return
   const joining = req.action === RaidAction.Join
-  if (!joining && now - (lastSync[slot] ?? 0) < syncEvery()) return
+  if (!joining && (hidden || now - (lastSync[slot] ?? 0) < syncEvery())) return
   lastSync[slot] = now
   const sentRoomId = joining ? null : req.roomId
   const presence = presenceKey(getState(), slot)
@@ -86,13 +86,16 @@ const ignoreNetwork = (e: unknown) => {
 }
 
 async function step() {
-  if (busy || document.hidden) return
+  if (busy) return
   busy = true
+  const hidden = document.hidden
   try {
-    await leaveAsPreviousPlayer().catch(ignoreNetwork)
-    await flushLeaves().catch(ignoreNetwork)
+    if (!hidden) {
+      await leaveAsPreviousPlayer().catch(ignoreNetwork)
+      await flushLeaves().catch(ignoreNetwork)
+    }
     const now = Date.now()
-    for (const slot of ROOM_SLOTS) await syncSlot(slot, now)
+    for (const slot of ROOM_SLOTS) await syncSlot(slot, now, hidden)
   } finally {
     busy = false
   }

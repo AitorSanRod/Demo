@@ -35,6 +35,8 @@ export const ITEM = {
   MysteryEgg: 'mystery-egg',
   Xtransceiver: 'xtransceiver',
   PokeDoll: 'poke-doll',
+  ExplorerKit: 'explorer-kit',
+  TeachyTv: 'teachy-tv',
 } as const
 export type Item = (typeof ITEM)[keyof typeof ITEM]
 

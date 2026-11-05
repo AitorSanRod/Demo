@@ -2,7 +2,7 @@ import { isValidPath, legSteps, node, NodeKind, pathFrom, route, type Route } fr
 import { species } from '../../data/species'
 import type { Rng } from '../core/random'
 import { activeMon, MonPlace, monPlace, TutorialStep, type GameState } from '../core/state'
-import { enterRouteRaid } from '../raid/routeRaid'
+import { advanceRouteRaid, enterRouteRaid } from '../raid/routeRaid'
 import { stepsPerMinute } from '../team/stats'
 import { BATTLE_EVENT_MS, completeRoute, spendBattleTime, startStopBattle } from './runBattle'
 import { spendHealTime, drinkStopPotion } from './runHeal'
@@ -53,6 +53,12 @@ export function advanceRun(s: GameState, realMs: number, rng: Rng = Math.random)
     }
     if (run.heal) {
       left -= spendHealTime(s, route(run.routeId), left)
+      continue
+    }
+    if (run.phase === 'raid') {
+      const used = advanceRouteRaid(s, left * s.timeScale, rng) / s.timeScale
+      if (used === 0 && run.phase === 'raid') return
+      left -= used
       continue
     }
     if (run.phase !== 'walking') return

@@ -34,14 +34,14 @@ describe('partida en la nube', () => {
     expect(cloudAction(null, USER, { revision: 1 }, initialState())).toBe(CloudAction.Download)
   })
 
-  it('una copia de esta versión se recupera tal cual; de otra, solo el equipo', () => {
+  it('una copia de esta versión se recupera tal cual; de otra, se migra sin perder nada (ver saveMigration.test.ts)', () => {
     const s = playedGame()
     s.money = 1234
     const { save, team } = cloudUpload(s)
     expect(stateFromSaved(save, team)).toMatchObject({ money: 1234, owned: [{ speciesId: STARTERS[0] }] })
 
     const old = stateFromSaved({ ...save, version: SAVE_VERSION - 1 }, team)
-    expect(old.money).toBe(initialState().money)
+    expect(old.money).toBe(1234)
     expect(old.owned.map((m) => m.speciesId)).toEqual([STARTERS[0]])
     expect(stateFromSaved(null, null).owned).toEqual([])
   })

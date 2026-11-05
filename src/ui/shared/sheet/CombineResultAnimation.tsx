@@ -13,7 +13,7 @@ export function CombineResultAnimation({ result, onClose }: { result: CombineRes
   const star = result.kind === CombineKind.Star
   return (
     <RevealOverlay
-      title={star ? '¡Más fuerte!' : 'Tickets cambiados'}
+      title={star ? '¡Mejora!' : 'Tickets cambiados'}
       speciesId={result.speciesId}
       name={sp.name}
       detail={star ? `${'★'.repeat(result.stars ?? 0)} · +4% a todas las stats` : `+₽ ${result.money}`}

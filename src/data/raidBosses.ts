@@ -21,8 +21,10 @@ export interface RaidBoss {
 
 export const RAID_BOSSES: RaidBoss[] = [
   { speciesId: POKEMON.Snorlax, level: 15, minLevel: 10, tier: RaidTier.Low },
+  { speciesId: POKEMON.Bulbasaur, level: 15, minLevel: 12, tier: RaidTier.Low },
+  { speciesId: POKEMON.Squirtle, level: 15, minLevel: 12, tier: RaidTier.Low },
+  { speciesId: POKEMON.Charmander, level: 15, minLevel: 12, tier: RaidTier.Low },
   { speciesId: POKEMON.Eevee, level: 20, minLevel: 15, tier: RaidTier.Low },
-  { speciesId: POKEMON.Onix, level: 23, minLevel: 18, tier: RaidTier.Mid },
 ]
 
 /** Qué da una línea de premio: `Exp` es EXP para el Pokémon que luchó contra el jefe (además de la que gana por minuto) */

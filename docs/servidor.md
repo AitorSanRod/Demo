@@ -154,8 +154,8 @@ se quedara corto, sube `WATCH_SYNC_MS` y `BACKGROUND_SYNC_MS` en `src/net/raidSy
 - **Cambias el juego** (jefes, reglas, `RAID_ROOM_SIZE`…): el Worker usa el mismo código de `src/game` y `src/data`,
   así que se actualiza con cada despliegue. Las salas ya guardadas siguen con su jefe hasta que caen o caducan (24 h
   sin consultas).
-- **Cambias `SAVE_VERSION`**: no afecta al servidor. Las partidas de la nube de otra versión recuperan el equipo
-  (como las del navegador).
+- **Cambias `SAVE_VERSION`**: no afecta al servidor. Las partidas de la nube de otra versión se migran igual que las del
+  navegador, sin perder nada.
 
 ## Límites que conviene saber
 

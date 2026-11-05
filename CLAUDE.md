@@ -43,7 +43,7 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Especies, rarezas, iniciales, evoluciones | `data/species.ts`, `data/evolutions.ts` |
 | Ataques, tipos y eficacias | `data/moves.ts`, `data/types.ts` |
 | Forma de la partida, estado inicial, `SAVE_VERSION` | `game/core/state.ts` |
-| Guardado y copia del equipo | `game/core/store.ts`, `game/core/teamBackup.ts` |
+| Guardado, migrar partidas de otra versión y copia del equipo | `game/core/store.ts`, `game/core/saveMigration.ts`, `game/core/teamBackup.ts` |
 | Paso del tiempo | `game/core/tick.ts`, `App.tsx` |
 | Combate (turnos, daño) y sus premios | `game/battle/battle.ts`, `attack.ts`, `status.ts`, `rewards.ts` |
 | Pasivas de rancho y estados alterados (números a mano) | `data/passives.ts` + `game/team/ranchPassives.ts`, `game/battle/combatBonus.ts` + `ui/ranch/PassiveList.tsx` |
@@ -56,17 +56,22 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Espacios, varios ranchos, Caja, arrastrar | `game/team/ranches.ts` + `ui/ranch/RanchMon`, `RanchSlots`, `BoxSheet`, `ranchLooks.ts` + `ui/shared/sheet/MovePanel` |
 | Evolución (por nivel o piedra) / piedras de la tienda | `data/evolutions.ts`, `game/team/evolution.ts` + `ui/shared/sheet/EvolvePanel.tsx` / `data/stones.ts`, `game/team/stones.ts` + `ui/shop/StoneShop.tsx` |
 | Expediciones | `game/team/expedition.ts` + `ui/expeditions/` (`ExpeditionScreen` lista de rutas, `ExpeditionList` las que están en curso, `ExpeditionStartDialog` elegir Pokémon y duración; el selector es `ui/shared/MonPicker.tsx`) |
-| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Raids, `routeRaid` paradas de ruta, `routeRaidStreak` menos dinero al repetirlas seguidas, `stopRoom` salas de parada sin la partida, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidWaiting` (espera entre jefes), `raidBiome`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster` (lista de la sala: jugador, jugadores y bots, en líneas como las de ruta), `RaidJoin`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe, que abre la lista de la sala, «Retirarse» y la espera mientras se busca sala) |
+| Jefes comunitarios: jefes y premios / rondas, bots, reparto / pantalla | `data/raidBosses.ts` / `game/raid/` (`raidEngine` común, `raid` pestaña Raids, `routeRaid` paradas de ruta, `routeRaidStreak` menos dinero al repetirlas seguidas, `stopRoom` salas de parada sin la partida, `raidCombat`, `raidBots`, `raidPrizes`, `raidEstimate`, `raidRoom`); el jefe de una ruta es una parada `NodeKind.Raid` en `kantoMaps.ts` / `ui/raid/` (`RaidScreen`, `RaidScene`, `RaidWaiting` (espera entre jefes), `raidBiome`, `RaidBattleScene` (la pelea como un combate de ruta) + `partySpot` (filas desordenadas del grupo) + `roundReplay` (los golpes, uno tras otro), `RaidRoster` (lista de la sala: jugador, jugadores y bots, en líneas como las de ruta), `RaidJoin`, `RaidPrizes` aviso de premios por recoger + `useRaidPrizeCollect` recogerlos, también desde `ui/ranch/RanchMenu`) y, en la ruta, la misma `RunView` con `RaidBattle` dentro de su escena y `ui/route/RouteRaidHud.tsx` (línea del jefe, que abre la lista de la sala, «Retirarse» y la espera mientras se busca sala) |
 | Salas compartidas con otros jugadores: protocolo / lo que hace el servidor / la sala de la partida enlazada / conexión, apodo y cada cuánto se consulta / función y almacén | `game/raid/online/` (`protocol`, `sharedRoom` + `roomServer` + `requests`, `linkedRoom`, `skipAhead` resumir salas viejas, `raidCycle` + `tabRooms` el jefe de la pestaña Raids por ciclos) / `net/` (`raidSync`, `raidFeed` la pestaña Raids del servidor, `identity`, `raidApi`) + `ui/raid/` (`RaidFront` frontal con servidor, `RaidRooms` pestaña Salas, `RaidLocal` sin servidor, `NicknameDialog`, `RaidLinkNote`) / `../worker/raid.ts`, `../worker/raidTab.ts`, `../worker/db/rooms.ts`, `../worker/db/cycle.ts`, `../wrangler.jsonc` (despliegue: `docs/servidor.md`) |
 | Cuenta opcional y partida en la nube: reglas compartidas y subir o bajar / sesión y correos / subir y bajar / pantallas / servidor | `game/core/accountRules.ts`, `cloudSave.ts` / `net/account.ts` / `net/cloudSync.ts` / `ui/account/` (`AccountDialog`, `AccountHost`, `CloudChoiceDialog`, `AccountModal`) / `../worker/auth/`, `../worker/save.ts`, `../worker/db/`, `../worker/mail.ts` (texto de los correos) |
-| Obsequio diario: lista de días (a mano) / reglas / servidor / cliente / pantalla y menú del rancho | `data/dailyGifts.ts` / `game/collection/dailyGift.ts` / `../worker/gift.ts`, `../worker/db/gifts.ts` / `net/dailyGift.ts` / `ui/gift/DailyGiftSheet.tsx`, `GiftPrompt.tsx` (aviso al entrar, desde `ui/account/AccountHost`), `ui/ranch/RanchMenu.tsx` (botón Menú, abajo a la derecha; la Caja, abajo a la izquierda) |
+| Obsequio diario: lista de días (a mano) / reglas / servidor / cliente / pantalla y menú del rancho | `data/dailyGifts.ts` / `game/collection/dailyGift.ts` / `../worker/gift.ts`, `../worker/db/gifts.ts` / `net/dailyGift.ts` / `ui/gift/DailyGiftSheet.tsx`, `GiftPrompt.tsx` (aviso al entrar, desde `ui/account/AccountHost`), `ui/ranch/RanchMenu.tsx` (botón Menú, abajo a la derecha, con obsequio, Mochila y Tutoriales; la cabecera de sus paneles, `MenuSheetHeader`; la Caja, abajo a la izquierda) |
+| Mochila (lo comprado y sin usar) | `game/team/bag.ts` + `ui/bag/BagSheet.tsx` |
+| Tutoriales del menú: guías paso a paso / capturas | `ui/tutorials/` (`TutorialsSheet` lista, `GuideView` pasos, `guides/` un fichero por guía) / `assets/tutorials/*.webp`, generadas con `npm run shots` (con `npm run dev` abierto; `../scripts/tutorial-shots/`: `demoSave` partida de muestra, `shots` lista de capturas) |
+| Avisos (punto rojo o contador) que se apagan al entrar y vuelven si hay algo nuevo | `ui/shared/useUnseen.ts` |
+| Desplegable con cabecera grande (Pokédex, Tienda) | `ui/shared/Foldout.tsx` |
 | Base de datos (tablas) | `../migrations/` (un fichero nuevo por cambio) |
-| Mejoras de la tienda | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` |
+| Mejoras de la tienda / secciones desplegables y casillas de la cuadrícula | `game/team/upgrades.ts` + `ui/shop/UpgradeShop.tsx` / `ui/shop/ShopTile.tsx` |
 | Tutorial e inicial | `game/team/tutorial.ts` + `ui/starter/`, `ui/shared/TutorialHint.tsx` |
 | Piezas, crear Pokémon y Pokédex | `game/collection/pieces.ts`, `dex.ts` + `ui/dex/` (`DexScreen`, `DexSection` el desplegable de cada Pokédex, `DexCell`; la ficha es `PokemonSheet`, la misma que el rancho) |
 | Pokédex regionales y Nacional (rangos y mapa de cada región) | `data/pokedexes.ts`; las especies nuevas, en `NATIONAL_IDS` de `scripts/fetch-pokemon.mjs` + `data/pokemon.ts` |
 | Gacha, trituradora, MissingNo | `game/collection/gacha.ts`, `shredder.ts` + `ui/gacha/` |
 | Rancho | `ui/ranch/RanchScreen.tsx` |
+| Pestañas de arriba de Ruta (Ruta, Expediciones, Raids: solo icono; la activa con su nombre) | `ui/route/RouteScreen.tsx` |
 | Pantalla de ruta: lista / línea de ruta (también en expediciones; su base `BackdropRow`, también en la sala de un jefe) / diálogo de comenzar / en curso / combate | `ui/route/RouteMap`, `RouteRow`, `RouteStartDialog`, `RunView`, `RouteBattle` |
 | Escena de paseo / efectos de golpe | `ui/route/WalkScene.tsx` / `HitEffect.tsx` |
 | Fondos de ruta por bioma: pixel art generado en canvas / SVG de los biomas que aún no lo tienen | `ui/route/pixelScene/` (`index.ts` bioma → escena, `usePixelScene`, `engine/`, `paint/`, `elements/`, `scenes/<bioma>/`) / `ui/route/scenery/` |
@@ -93,8 +98,10 @@ Si creas, mueves o cambias de función un fichero, actualiza esta tabla en el mi
 - **La lógica del juego vive en `src/game`** y es pura: recibe el estado (y un `rng` inyectable) y lo modifica.
   La UI solo lee el estado y llama a acciones mediante `act()`.
 - **Constantes de balance con nombre y `/** comentario */`** que explique la unidad y el efecto.
-- **Cambios en `GameState`** ⇒ subir `SAVE_VERSION` en `src/game/core/state.ts`. La partida se reinicia, pero el
-  equipo y sus expediciones en curso se conservan (`core/teamBackup.ts`; lo nuevo que se le añada, opcional).
+- **Cambios en `GameState`** ⇒ subir `SAVE_VERSION` en `src/game/core/state.ts`. **No se pierde nada**: la partida de la
+  versión anterior se migra campo a campo (`core/saveMigration.ts`). Si un campo cambia de nombre o de significado,
+  añade su paso en `SAVE_MIGRATIONS` (de la versión que dejas a la nueva) y su test en `saveMigration.test.ts`; si
+  añades un campo con validación propia (ids de especie, ruta, objeto…), su regla en `RULES`.
 - **Tests** para toda lógica nueva o modificada en `src/game` (`*.test.ts` junto al fichero).
 - **Los tests no fijan contenido ni balance** (nombres, tiempos, números): usan `game/core/test-map.ts` y leen las
   constantes, para que editar datos a mano nunca rompa un test.

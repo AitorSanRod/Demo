@@ -66,7 +66,7 @@ export const KANTO: GameMap = {
       unlocks: RouteId.BosqueVerde,
       nodes: chain(
         { id: 's', name: 'Ruta 1', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Entrada a Bosque Verde', kind: NodeKind.Raid, steps: 30, boss: raidBoss(POKEMON.Squirtle, 10, RaidTier.Low, { soloMinutes: 5 }) },
+        { id: 'a', name: 'Entrada a Bosque Verde', kind: NodeKind.Raid, steps: 30, boss: raidBoss(POKEMON.Pidgeotto, 10, RaidTier.Low, { soloMinutes: 5 }) },
       ),
     },
     {
@@ -88,7 +88,7 @@ export const KANTO: GameMap = {
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1, encounters: enc([POKEMON.Pikachu, 25], [POKEMON.Caterpie, 20], [POKEMON.Metapod, 20], [POKEMON.Kakuna, 15], [POKEMON.Oddish, 10], [POKEMON.Pidgey, 10]) },
         { id: 'p2', name: 'Cabaña del guardabosques', kind: NodeKind.Heal, steps: 15, potion: Potion.Potion },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 50], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Butterfree, 10], [POKEMON.Beedrill, 10]) },
-        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Bulbasaur, 17, RaidTier.Low, { soloMinutes: 10 }) },
+        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Shroomish, 17, RaidTier.Low, { soloMinutes: 10 }) },
       ),
     }
     // {

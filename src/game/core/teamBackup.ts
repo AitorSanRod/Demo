@@ -1,5 +1,5 @@
-// Copia del equipo que sobrevive a los cambios de SAVE_VERSION: los Pokémon y las expediciones que estaban en curso.
-// PROVISIONAL: solo mientras la partida viva en el navegador. Con servidor y base de datos, esto desaparece.
+// Copia del equipo (los Pokémon y sus expediciones en curso), aparte de la partida: es la red de seguridad si la
+// partida guardada no se puede leer. Normalmente una partida de otra versión se migra entera (saveMigration.ts).
 import { route } from '../../data/maps'
 import { SPECIES } from '../../data/species'
 import { markCaught } from '../collection/dex'
@@ -58,20 +58,6 @@ export function backupTeam(s: GameState): TeamBackup {
       .map(({ uid, routeId, durationMin, elapsedMin }) => ({ monIndex: indexOf(uid), routeId, durationMin, elapsedMin }))
       .filter((e) => e.monIndex >= 0),
     savedAt: s.lastTick,
-  }
-}
-
-/**
- * La copia del equipo sacada de una partida guardada de otra versión (sigue entera en el navegador y puede tener más
- * que su copia, como las expediciones). Es a ciegas: la valida parseTeamBackup; null si no se puede leer
- */
-export function backupFromSave(saved: unknown): unknown {
-  if (typeof saved !== 'object' || saved === null || !Array.isArray((saved as GameState).owned)) return null
-  try {
-    const s = saved as GameState
-    return backupTeam({ ...s, expeditions: Array.isArray(s.expeditions) ? s.expeditions : [] })
-  } catch {
-    return null
   }
 }
 

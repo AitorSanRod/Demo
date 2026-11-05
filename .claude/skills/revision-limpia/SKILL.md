@@ -28,7 +28,7 @@ description: Revisar o refactorizar código del proyecto con la checklist de có
 **Corrección**
 - [ ] ¿Las acciones validan sus precondiciones?
 - [ ] ¿El azar entra por un `rng` inyectable?
-- [ ] ¿Cambió la forma de `GameState` sin subir `SAVE_VERSION`?
+- [ ] ¿Cambió la forma de `GameState` sin subir `SAVE_VERSION`? ¿Un campo cambió de nombre o significado sin su paso en `SAVE_MIGRATIONS`?
 
 **Higiene**
 - [ ] ¿Duplicación real (3+ veces) que merezca extraerse? ¿O una abstracción prematura que sobre?

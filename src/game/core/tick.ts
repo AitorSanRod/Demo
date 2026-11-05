@@ -1,5 +1,4 @@
 import { advanceRaid } from '../raid/raid'
-import { advanceRouteRaid } from '../raid/routeRaid'
 import { advanceRun } from '../run/run'
 import { advanceExpeditions } from '../team/expedition'
 import { restInRanch } from '../team/ranch'
@@ -17,6 +16,5 @@ export function tick(s: GameState, now: number) {
   if (s.run) advanceRun(s, dt)
   advanceExpeditions(s, minutes)
   advanceRaid(s, dt * s.timeScale)
-  advanceRouteRaid(s, dt * s.timeScale)
   restInRanch(s, minutes)
 }
