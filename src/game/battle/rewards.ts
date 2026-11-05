@@ -1,5 +1,5 @@
 import { rarityOf, species, type Rarity } from '../../data/species'
-import { randInt, type Rng } from '../core/random'
+import type { Rng } from '../core/random'
 
 /** Probabilidad de que un salvaje derrotado suelte un ticket del gacha, según su rareza */
 export const TICKET_DROP_CHANCE: Record<Rarity, number> = { common: 0.05, rare: 0.05, epic: 0.5, legendary: 0.75 }
@@ -13,14 +13,23 @@ export const MONEY_GAIN_MULT = 1.15
 /** Aplica MONEY_GAIN_MULT a una cantidad de pokécuartos ganada, redondeando al entero más cercano */
 export const boostedMoney = (amount: number): number => Math.round(amount * MONEY_GAIN_MULT)
 
-/** Pokécuartos por victoria por cada nivel del rival (se redondea hacia arriba) */
-export const MONEY_PER_LEVEL = 0.5
-/** Pokécuartos extra por victoria, al azar entre ambos valores (incluidos) */
-export const MONEY_BONUS_RANGE: readonly [number, number] = [2, 3]
+/**
+ * Pokécuartos por victoria por cada paso andado hasta ese combate (a nivel 0): el premio va con el camino, para que
+ * una ruta de tramos largos rinda por minuto lo mismo que una de tramos cortos
+ */
+export const MONEY_PER_STEP = 0.2
+/** Lo que crece el ₽ por paso con cada nivel del rival: 0.1 es +10% del de nivel 0 por cada nivel */
+export const MONEY_STEP_LEVEL_GROWTH = 0.1
+/** Variación al azar del dinero de una victoria: entre ×(1 − MONEY_SPREAD) y ×(1 + MONEY_SPREAD) */
+export const MONEY_SPREAD = 0.15
 
-/** Pokécuartos por victoria: nivel del rival × MONEY_PER_LEVEL + MONEY_BONUS_RANGE al azar, con MONEY_GAIN_MULT */
-export function moneyReward(enemyLevel: number, rng: Rng): number {
-  return boostedMoney(Math.ceil(enemyLevel * MONEY_PER_LEVEL) + randInt(MONEY_BONUS_RANGE[0], MONEY_BONUS_RANGE[1], rng))
+/** Pokécuartos por paso andado hasta el combate contra un rival de ese nivel (sin azar ni MONEY_GAIN_MULT) */
+export const moneyPerStep = (enemyLevel: number): number => MONEY_PER_STEP * (1 + enemyLevel * MONEY_STEP_LEVEL_GROWTH)
+
+/** Pokécuartos por victoria: pasos del tramo × moneyPerStep, ±MONEY_SPREAD al azar y con MONEY_GAIN_MULT (mín. 1) */
+export function moneyReward(enemyLevel: number, legSteps: number, rng: Rng): number {
+  const spread = 1 + (rng() * 2 - 1) * MONEY_SPREAD
+  return Math.max(1, boostedMoney(legSteps * moneyPerStep(enemyLevel) * spread))
 }
 
 /** EXP por victoria por cada nivel del rival */

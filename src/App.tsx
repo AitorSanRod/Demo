@@ -4,6 +4,7 @@ import { combinableCount } from './game/collection/pieces'
 import { TutorialStep } from './game/core/state'
 import { startAccount } from './net/account'
 import { startCloudSync } from './net/cloudSync'
+import { startPush } from './net/push'
 import { startRaidFeed } from './net/raidFeed'
 import { startRaidSync } from './net/raidSync'
 import { AccountHost } from './ui/account/AccountHost'
@@ -14,7 +15,6 @@ import { DexScreen } from './ui/dex/DexScreen'
 import { GachaScreen } from './ui/gacha/GachaScreen'
 import { RanchScreen } from './ui/ranch/RanchScreen'
 import { RouteScreen } from './ui/route/RouteScreen'
-import { useExpeditionNotifications } from './ui/settings/notifications'
 import { TopBar } from './ui/shared/TopBar'
 import { TutorialNavHint } from './ui/shared/TutorialHint'
 import { UpgradeShop } from './ui/shop/UpgradeShop'
@@ -46,12 +46,13 @@ export default function App() {
   // Salas compartidas de los jefes comunitarios: entrar, ponerse al día y avisar al salir
   useEffect(startRaidSync, [])
   useEffect(startRaidFeed, [])
+  // Notificaciones push: el plan de avisos al ocultarse la app y la suscripción al día con la cuenta
+  useEffect(startPush, [])
   // Cuenta opcional: sesión, enlaces de los correos y partida en la nube
   useEffect(() => {
     void startAccount()
     return startCloudSync()
   }, [])
-  useExpeditionNotifications(game)
 
   const badges: Record<Tab, boolean> = {
     route: (!!game.run && game.run.phase !== 'walking') || game.expeditions.some(isExpeditionDone),

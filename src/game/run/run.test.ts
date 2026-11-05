@@ -139,6 +139,19 @@ describe('pasivas del rancho', () => {
   })
 })
 
+describe('ganar un combate', () => {
+  it('no cura al Pokémon', () => {
+    const s = stateOnRoute(50)
+    const mon = activeMon(s)!
+    mon.hp = Math.floor(maxHp(mon) / 2)
+    const before = mon.hp
+    walk(s, firstLeg(s))
+    advanceRun(s, s.run!.battleMsLeft)
+    expect(s.run!.earned.wins).toBe(1)
+    expect(mon.hp).toBeLessThanOrEqual(before)
+  })
+})
+
 describe('advanceRun', () => {
   it('fuera de combate convierte el tiempo en pasos según la velocidad del Pokémon', () => {
     const s = stateOnRoute()
@@ -188,6 +201,7 @@ describe('advanceRun', () => {
     expect(s.run!.battleMsLeft).toBe(0)
     expect(s.completedRoutes).toContain(ROUTE)
     expect(s.unlockedRoutes).toContain(route(ROUTE).unlocks)
+    expect(s.run!.unlocked).toBe(route(ROUTE).unlocks)
   })
 
   it('el premio final solo se da la primera vez que se completa', () => {
@@ -205,6 +219,7 @@ describe('advanceRun', () => {
     expect(s.run!.phase).toBe('complete')
     expect(first.tickets - s.run!.earned.tickets).toBe(reward.tickets)
     expect(s.run!.earned.exp).toBe(0)
+    expect(s.run!.unlocked).toBeNull()
     expect(mon.exp).toBe(expAfterFirst)
   })
 
@@ -294,6 +309,7 @@ describe('jefes', () => {
     expect(outcome).toBe('win')
     expect(rewards.tickets).toBe(BOSS_TICKETS)
     const level = s.run!.lastBattle!.enemy.level
-    expect(rewards.money).toBeGreaterThanOrEqual(moneyReward(level, () => 0) * BOSS_MONEY_MULT)
+    const steps = legSteps(route(RouteId.Ruta1), s.run!.path, s.run!.stop)
+    expect(rewards.money).toBeGreaterThanOrEqual(moneyReward(level, steps, () => 0) * BOSS_MONEY_MULT)
   })
 })

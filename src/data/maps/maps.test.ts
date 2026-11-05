@@ -50,6 +50,10 @@ describe.each(KANTO.routes)('ruta $id', (r) => {
     }
   })
 
+  it('las paradas de curación tienen poción, y las demás no', () => {
+    for (const n of r.nodes) expect(n.potion !== undefined).toBe(n.kind === NodeKind.Heal)
+  })
+
   it('los jefes comunitarios tienen categoría de premios', () => {
     for (const n of r.nodes) if (n.kind === NodeKind.Raid) expect(n.boss?.tier).toBeDefined()
   })

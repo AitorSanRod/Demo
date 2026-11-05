@@ -5,6 +5,7 @@ import { moveBlocker, moveMon, placeMon, ranchCount } from '../../game/team/ranc
 import { SettingsMenu } from '../settings/SettingsMenu'
 import { PokemonSheet } from '../shared/sheet/PokemonSheet'
 import { BoxSheet } from './BoxSheet'
+import { RanchMenu } from './RanchMenu'
 import { RanchMon, type RanchDrop } from './RanchMon'
 import { RanchSlots } from './RanchSlots'
 import { ranchFilter } from './ranchLooks'
@@ -73,6 +74,7 @@ export function RanchScreen({ game }: { game: GameState }) {
           <ItemIcon item={ICON.Box} size={34} />
           <span className="tiny">Caja</span>
         </button>
+        <RanchMenu />
         <SettingsMenu />
       </div>
 

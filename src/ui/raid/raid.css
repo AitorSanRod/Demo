@@ -40,6 +40,26 @@
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 15%, var(--card));
 }
+/* Los bots, con fondo rayado y su etiqueta en la esquina */
+.raid-member.bot {
+  position: relative;
+  border-style: dashed;
+  background: repeating-linear-gradient(135deg, var(--card) 0 6px, color-mix(in srgb, var(--muted) 14%, var(--card)) 6px 12px);
+}
+.raid-bot-tag {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--muted) 25%, var(--card));
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
 .raid-member .bar {
   width: 100%;
 }

@@ -1,4 +1,5 @@
 import { RouteId } from '../../data/maps'
+import type { Potion } from '../../data/potions'
 import type { RanchTypeId } from '../../data/ranchTypes'
 import type { Stone } from '../../data/stones'
 import type { BattleRecord } from '../battle/battle'
@@ -32,6 +33,19 @@ type RunPhase = 'walking' | 'raid' | 'complete' | 'fainted'
 export const TutorialStep = { Starter: 'starter', Combine: 'combine', Route: 'route' } as const
 export type TutorialStep = (typeof TutorialStep)[keyof typeof TutorialStep]
 
+/** Victorias seguidas contra el jefe de una parada y cuándo fue la última (ms reales) */
+export interface RouteRaidStreak {
+  count: number
+  lastAt: number
+}
+
+/** Poción usada en una parada de curación: PS recuperados y milisegundos reales que quedan de la parada */
+export interface StopHeal {
+  potion: Potion
+  hp: number
+  msLeft: number
+}
+
 export interface Run {
   routeId: string
   /** Nodos elegidos antes de salir, del inicio al final */
@@ -52,6 +66,10 @@ export interface Run {
    * ruta; al llegar de nuevo a la parada entra en una sala con el jefe lo más cerca posible de ella. null si no
    */
   raidRejoinHp: number | null
+  /** Cura de la parada de poción en la que está parado el Pokémon; mientras `msLeft` sea > 0 no se dan pasos */
+  heal: StopHeal | null
+  /** Ruta que se ha desbloqueado al completar esta por primera vez (null si no ha desbloqueado ninguna) */
+  unlocked: string | null
   /**
    * Lo ganado en la ruta; `pieces` son las especies de las piezas soltadas (una entrada por pieza) y `raidBosses`, los
    * jefes comunitarios derrotados en ella (su premio ya va sumado en lo demás)
@@ -65,6 +83,8 @@ export interface Run {
     wins: number
     battles: number
     raidBosses: number[]
+    /** Fracción más baja del dinero que han dado los jefes de la ruta por repetirla seguida (1: entero) */
+    raidMoneyMult: number
   }
 }
 
@@ -111,6 +131,8 @@ export interface GameState {
   raidPrizes: RaidPrize[]
   /** Salas compartidas del servidor que el jugador ha dejado sin que el servidor lo sepa aún (ver net/raidSync.ts) */
   roomsToLeave: string[]
+  /** Racha de victorias seguidas contra el jefe de cada parada (`ruta/parada`), para rebajar su dinero (ver routeRaidStreak.ts) */
+  routeRaidStreaks: Record<string, RouteRaidStreak>
   /**
    * La pestaña Raids la lleva el servidor (net/raidFeed.ts lo sabe al hablar con él): sin un Pokémon propio dentro no
    * se juega nada aquí y el jefe que se ve es el del servidor. false: sin servidor, todo en local con bots
@@ -121,7 +143,7 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 27
+export const SAVE_VERSION = 30
 
 export function initialState(): GameState {
   return {
@@ -147,6 +169,7 @@ export function initialState(): GameState {
     raid: null,
     raidPrizes: [],
     roomsToLeave: [],
+    routeRaidStreaks: {},
     raidServer: false,
     timeScale: 1,
     lastTick: Date.now(),

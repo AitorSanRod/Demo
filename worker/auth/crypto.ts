@@ -1,3 +1,5 @@
+import { fromBase64Url, toBase64Url } from '../base64url'
+
 // Contraseñas y tokens con la Web Crypto del Worker. Nunca se guarda una contraseña ni un token: solo su hash.
 
 /**
@@ -14,12 +16,6 @@ const TOKEN_BYTES = 32
 
 const SCHEME = 'pbkdf2-sha256'
 
-const toBase64Url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
-
-function fromBase64Url(text: string): Uint8Array {
-  const binary = atob(text.replaceAll('-', '+').replaceAll('_', '/'))
-  return Uint8Array.from(binary, (c) => c.charCodeAt(0))
-}
 
 async function derive(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'])

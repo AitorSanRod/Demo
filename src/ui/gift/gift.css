@@ -1,0 +1,42 @@
+/* Obsequio diario: los días del ciclo en tarjetas; el que toca, destacado; el día grande, a lo ancho */
+
+.gift-days {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.gift-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  text-align: center;
+}
+.gift-day.big {
+  grid-column: 1 / -1;
+  background: var(--card-2);
+}
+.gift-day.next {
+  border-color: var(--accent);
+}
+.gift-day.done {
+  opacity: 0.55;
+}
+.gift-contents {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+}
+.gift-next {
+  color: var(--accent);
+  font-weight: 700;
+}
+.gift-wait {
+  text-align: center;
+  font-weight: 700;
+}

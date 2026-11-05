@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
+import { RouteId } from '../../data/maps'
 import { POKEMON } from '../../data/pokemon'
+import { EXPEDITION_DURATIONS } from '../team/expedition'
 import { createMon } from '../team/mons'
 import { ranchCount } from '../team/ranches'
 import { MAX_LEVEL } from '../team/stats'
 import { activeMon, initialState, TutorialStep } from './state'
 import { backupTeam, parseTeamBackup, restoreTeam, type TeamBackup } from './teamBackup'
+import { tick } from './tick'
 
 
 function stateWithTeam() {
@@ -88,5 +91,49 @@ describe('copia del equipo', () => {
     expect(parseTeamBackup(null)).toBeNull()
     expect(parseTeamBackup('hola')).toBeNull()
     expect(parseTeamBackup({ format: 99, mons: [] })).toBeNull()
+  })
+
+  describe('expediciones en curso', () => {
+    /** El primer Pokémon del equipo, de expedición desde hace `elapsedMin` minutos */
+    function onExpedition(elapsedMin = 1) {
+      const s = stateWithTeam()
+      s.expeditions.push({ uid: s.owned[0].uid, routeId: RouteId.PuebloPaleta, durationMin: EXPEDITION_DURATIONS.at(-1)!, elapsedMin })
+      return s
+    }
+
+    it('se conservan, con el Pokémon que la hacía aunque al rehacerlo tenga otro uid', () => {
+      const s = onExpedition()
+      const fresh = initialState()
+      restoreTeam(fresh, roundTrip(backupTeam(s))!)
+      expect(fresh.expeditions).toEqual([{ ...s.expeditions[0], uid: fresh.owned[0].uid }])
+      expect(fresh.owned[0].speciesId).toBe(s.owned[0].speciesId)
+    })
+
+    it('el tiempo que pasa desde la copia cuenta para ellas, como con la app cerrada', () => {
+      const s = onExpedition()
+      const fresh = initialState()
+      restoreTeam(fresh, roundTrip(backupTeam(s))!)
+      expect(fresh.lastTick).toBe(s.lastTick)
+      tick(fresh, s.lastTick + 5 * 60_000)
+      expect(fresh.expeditions[0].elapsedMin).toBeCloseTo(s.expeditions[0].elapsedMin + 5)
+    })
+
+    it('se descartan las que no encajan (ruta que no existe, duración que no hay, el mismo Pokémon dos veces)', () => {
+      const backup = backupTeam(onExpedition())
+      const good = backup.expeditions![0]
+      const parsed = roundTrip({
+        ...backup,
+        expeditions: [good, { ...good }, { ...good, monIndex: 1, routeId: 'no-existe' }, { ...good, monIndex: 1, durationMin: -1 }],
+      })
+      expect(parsed!.expeditions).toEqual([good])
+    })
+
+    it('las copias de antes, sin expediciones, siguen valiendo', () => {
+      const { expeditions: _, savedAt: __, ...old } = backupTeam(onExpedition())
+      const fresh = initialState()
+      restoreTeam(fresh, roundTrip(old as TeamBackup)!)
+      expect(fresh.owned).toHaveLength(2)
+      expect(fresh.expeditions).toEqual([])
+    })
   })
 })

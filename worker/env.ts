@@ -7,4 +7,6 @@ export interface Env {
   BREVO_API_KEY?: string
   /** Email del remitente de los correos, verificado en Brevo (secreto) */
   MAIL_FROM?: string
+  /** Claves VAPID de las notificaciones push: JWK de ECDSA P-256 con la parte privada (secreto; ver docs/servidor.md) */
+  VAPID_KEY?: string
 }

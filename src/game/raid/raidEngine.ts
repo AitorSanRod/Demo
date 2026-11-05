@@ -142,12 +142,16 @@ export function runLinkedClock(raid: Raid, ms: number) {
 
 export const isLinked = (raid: Raid): boolean => raid.remote?.roomId != null
 
+/** Esperando la respuesta del servidor para entrar en una de sus salas (si falla o no la hay, se juega en local) */
+export const isSearching = (raid: Raid): boolean => raid.remote?.roomId === null
+
 /**
  * Al caer el jefe: tira el premio de cada Pokémon del jugador que cobra y los que siguen dentro salen de la sala.
  * Devuelve los premios; cada clase de sala decide qué hace con ellos
  */
 export function settleFall(s: GameState, raid: Raid, rng: Rng): RaidPrize[] {
-  const prizes = raid.members.filter((m) => m.kind === RaidMemberKind.Player && earnsPrize(m, raid.elapsedMs)).map(() => rollPrize(raid.boss, rng))
+  const earners = raid.members.filter((m) => m.kind === RaidMemberKind.Player && earnsPrize(m, raid.elapsedMs))
+  const prizes = earners.map((m) => rollPrize(raid.boss, m.id, rng))
   for (const m of playerMembers(raid)) removePlayer(s, m)
   return prizes
 }

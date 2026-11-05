@@ -24,6 +24,8 @@
   // Los mapas (src/data/maps) escriben sus imágenes con new URL(…, import.meta.url), que en Workers no existe: se le da
   // un valor fijo solo para que esas URLs se puedan construir (el servidor no usa las imágenes)
   "define": { "import.meta.url": "\"https://pokerancho.invalid/worker.js\"" },
+  // Tarea programada cada minuto (worker/scheduled.ts): raids sin nadie mirando y avisos push
+  "triggers": { "crons": ["* * * * *"] },
   // Registros de la API en el panel de Cloudflare (Workers › pokerancho › Logs)
   "observability": { "enabled": true }
 }

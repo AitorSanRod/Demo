@@ -6,7 +6,7 @@ import { restInRanch } from '../team/ranch'
 import type { GameState } from './state'
 
 /** El progreso con la app cerrada se calcula hasta este máximo */
-const MAX_OFFLINE_MS = 12 * 60 * 60 * 1000
+export const MAX_OFFLINE_MS = 12 * 60 * 60 * 1000
 
 /** Avanza el juego hasta `now`: la ruta en curso, las expediciones, los jefes comunitarios y el descanso del rancho */
 export function tick(s: GameState, now: number) {

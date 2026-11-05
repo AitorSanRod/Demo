@@ -1,4 +1,4 @@
-import { NodeKind, type Boss, type Route, type RouteNode } from '../../data/maps'
+import { legSteps, NodeKind, type Boss, type Route, type RouteNode } from '../../data/maps'
 import { makeFighter, simulateBattle, type BattleRecord } from '../battle/battle'
 import { combineBonus } from '../battle/combatBonus'
 import { boostedMoney, expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
@@ -9,13 +9,11 @@ import { activeMon, type GameState } from '../core/state'
 import { ranchPassives } from '../team/ranchPassives'
 import { gainExp, maxHp } from '../team/stats'
 
-/** PS (fracción del máximo) que se recuperan tras ganar un combate */
-const POST_WIN_HEAL = 0.25
 /**
- * Multiplicador de stats de los salvajes. Por debajo de 1 porque el jugador encadena combates sin curarse:
- * el 0.8 (junto con la cura de 0.25) se ajustó para la Ruta 1 a niveles 2–4 (ver docs/diseno.md).
+ * Multiplicador de stats de los salvajes. Por debajo de 1 porque el jugador encadena combates y solo se cura en las
+ * paradas de poción: se ajustó simulando la Ruta 1 con sus dos pociones y los tres iniciales (ver docs/diseno.md).
  */
-const WILD_STAT_MULT = 0.8
+const WILD_STAT_MULT = 0.7
 /** Multiplicador de los pokécuartos por derrotar a un jefe (respecto a un salvaje de su nivel) */
 export const BOSS_MONEY_MULT = 3
 /** Multiplicador de la EXP por derrotar a un jefe (respecto a un salvaje de su nivel) */
@@ -66,7 +64,7 @@ export function startStopBattle(s: GameState, r: Route, n: RouteNode, rng: Rng) 
     outcome: result.outcome,
     boss: isBoss,
     rewards: {
-      money: win ? moneyReward(level, rng) * (isBoss ? BOSS_MONEY_MULT : 1) : 0,
+      money: win ? moneyReward(level, legSteps(r, run.path, run.stop), rng) * (isBoss ? BOSS_MONEY_MULT : 1) : 0,
       tickets: win ? (isBoss ? BOSS_TICKETS : ticketReward(enemyId, rng)) : 0,
       exp: win ? expReward(level, mon.level) * (isBoss ? BOSS_EXP_MULT : 1) : 0,
       piece: win && pieceReward(enemyId, rng),
@@ -96,7 +94,8 @@ function settleBattle(s: GameState, r: Route) {
     return
   }
   if (record.outcome === 'win') {
-    const winHeal = POST_WIN_HEAL + combineBonus(ranchPassives(s, mon.ranch!)).winHeal
+    // Ganar no cura; solo la pasiva de rancho que lo da
+    const winHeal = combineBonus(ranchPassives(s, mon.ranch!)).winHeal
     mon.hp = Math.min(maxHp(mon), mon.hp + Math.ceil(maxHp(mon) * winHeal))
     s.money += record.rewards.money
     s.tickets += record.rewards.tickets
@@ -141,5 +140,8 @@ export function completeRoute(s: GameState, r: Route) {
   run.earned.tickets += r.reward.tickets
   run.earned.money += money
   gainRunExp(s, r.reward.exp)
-  if (r.unlocks && !s.unlockedRoutes.includes(r.unlocks)) s.unlockedRoutes.push(r.unlocks)
+  if (r.unlocks && !s.unlockedRoutes.includes(r.unlocks)) {
+    s.unlockedRoutes.push(r.unlocks)
+    run.unlocked = r.unlocks
+  }
 }

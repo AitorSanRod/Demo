@@ -6,7 +6,7 @@ import { chooseStarter } from '../core/test-utils'
 import { startRun } from '../run/run'
 import { EXPEDITION_DURATIONS, sendExpedition } from './expedition'
 import { healCost, healInstant, maxTrainSessions, restInRanch, train, trainCost, trainPlan } from './ranch'
-import { MAX_LEVEL, maxHp } from './stats'
+import { expToNext, MAX_LEVEL, maxHp } from './stats'
 
 vi.mock('../../data/maps/kantoMaps', () => import('../core/test-map'))
 
@@ -65,12 +65,16 @@ describe('rancho', () => {
     expect(trainPlan(mon, sessions + 1).cost).toBeGreaterThan(first * (sessions + 1))
   })
 
-  it('el precio de una sesión sube cada nivel más que el anterior', () => {
+  it('el precio de una sesión sube con el nivel', () => {
     const mon = activeMon(stateWithStarter())!
     const costAt = (level: number) => trainCost({ ...mon, level })
-    const steps = [10, 11, 12].map((level) => costAt(level + 1) - costAt(level))
-    expect(steps[1]).toBeGreaterThan(steps[0])
-    expect(steps[2]).toBeGreaterThan(steps[1])
+    for (const level of [5, 10, 20, 40]) expect(costAt(level + 2)).toBeGreaterThan(costAt(level))
+  })
+
+  it('el precio crece más despacio que la EXP que hace falta: cada EXP entrenada sale más barata con el nivel', () => {
+    const mon = activeMon(stateWithStarter())!
+    const pricePerExp = (level: number) => trainCost({ ...mon, level }) / expToNext(level)
+    for (const level of [5, 10, 20, 40]) expect(pricePerExp(level + 5)).toBeLessThan(pricePerExp(level))
   })
 
   it('solo deja entrenar las sesiones que se pueden pagar', () => {

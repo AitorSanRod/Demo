@@ -13,6 +13,7 @@ import {
   ROUTE_RAID_LIVES,
   ROUTE_RAID_RUNNING_CHANCE,
 } from './routeRaid'
+import { recordRouteRaidFall, ROUTE_RAID_REPEAT_MONEY_MULT } from './routeRaidStreak'
 import { ROUTE_RAID_FIRST_BOT_MS, ROUTE_RAID_JOIN_MIN_HP } from './stopRoom'
 import { sparringSpecies } from './raid-test-utils'
 
@@ -77,9 +78,19 @@ describe('jefe comunitario de ruta', () => {
     expect(run.raid).toBeNull()
     expect(s.completedRoutes).toContain(RAID_ROUTE)
     expect(run.earned.raidBosses).toEqual([raid.boss.speciesId])
+    expect(run.earned).toMatchObject({ wins: 1, battles: 1 })
     expect(run.earned.money).toBeGreaterThan(0)
     expect(s.money).toBe(money + run.earned.money)
     expect(s.raidPrizes).toHaveLength(0)
+  })
+
+  it('al caer el jefe se apunta en su racha; si venía de otra seguida, su dinero se rebaja', () => {
+    const { s, raid } = arriveAtRaid()
+    recordRouteRaidFall(s, raid.place!, s.lastTick)
+    raid.hp = 1
+    advanceRouteRaid(s, RAID_ROUND_MS, seqRng(0))
+    expect(s.run!.earned.raidMoneyMult).toBe(ROUTE_RAID_REPEAT_MONEY_MULT)
+    expect(s.routeRaidStreaks).not.toEqual({})
   })
 
   it('el Pokémon entra con ROUTE_RAID_LIVES vidas y pierde una cada vez que cae', () => {

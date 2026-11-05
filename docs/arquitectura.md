@@ -47,7 +47,8 @@ src/
                       viejas), requests (validar lo que le llega)
   net/                identity (id de jugador y apodo), raidApi (fetch a /api/raid), raidSync (bucle de consultas),
                       raidFeed (la pestaña Raids según el servidor),
-                      account (cuenta: /api/auth), cloudSync (partida en la nube)
+                      account (cuenta: /api/auth), cloudSync (partida en la nube), dailyGift (obsequio diario),
+                      push (notificaciones)
   ui/
     shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
                       barra superior, bocadillos del tutorial, ErrorBoundary
@@ -56,6 +57,7 @@ src/
                       y la animación de aparición/evolución
     starter/          Elección del inicial (primer paso del tutorial)
     account/          Cuenta: entrar, crearla, recuperar la contraseña (AccountDialog), elegir partida y avisos (AccountHost)
+    gift/             Obsequio diario (DailyGiftSheet), que se abre desde el menú del rancho (ranch/RanchMenu)
     ranch/            Rancho (varios ranchos, arrastre, Caja); al tocar un Pokémon abre PokemonSheet
     settings/         Menú ⚙️ y notificaciones
     route/            Pestaña Ruta: lista de rutas y diálogo de comenzar, ruta en curso, combate, escena por bioma
@@ -73,9 +75,12 @@ worker/
   raid.ts             POST /api/raid: salas de ruta y ponerse al día (lee de D1, llama a game/raid/online y guarda)
   raidTab.ts          La pestaña Raids: su ciclo (tabla raid_cycle), entrar y la acción feed
   save.ts             GET / POST /api/save: la partida de la cuenta con sesión
+  gift.ts             GET / POST /api/gift: el obsequio diario de la cuenta con sesión
+  push/               Notificaciones: routes (/api/push/*), webPush (VAPID y cifrado), store (D1), notify, send
+  scheduled.ts        Tarea programada de cada minuto: raids sin nadie mirando y avisos que tocan
   auth/               Cuentas: routes (rutas), credentials (crear y entrar), links (correos: confirmar y recuperar),
                       session (cookie), crypto (PBKDF2 y tokens)
-  db/                 Consultas a D1: rooms, cycle, saves, users (cuentas, sesiones y enlaces)
+  db/                 Consultas a D1: rooms, cycle, saves, gifts, users (cuentas, sesiones y enlaces)
   mail.ts             Correos con Brevo
   test/               D1 de pruebas sobre node:sqlite y un Worker de pruebas con cookie
 ```
@@ -96,13 +101,14 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `data/stones.ts` | Piedras evolutivas (`Stone`, `STONES`) |
 | `game/core/state.ts` | Tipos de `GameState`, estado inicial, `SAVE_VERSION`, `restoreState` y dónde está cada Pokémon (`monPlace`) |
 | `game/core/store.ts` | Estado global, guardado en `localStorage` y hook `useGame()` |
-| `game/core/teamBackup.ts` | Copia del equipo que sobrevive a los cambios de `SAVE_VERSION` (provisional, hasta tener servidor) |
+| `game/core/teamBackup.ts` | Copia del equipo (y de sus expediciones en curso) que sobrevive a los cambios de `SAVE_VERSION` |
 | `game/core/random.ts` | Tipo `Rng` y utilidades de azar (`seededRng`: secuencia fija a partir de una semilla) |
 | `game/core/tick.ts` | `tick`: avance del tiempo (ruta, expediciones y descanso) |
 | `game/battle/battle.ts` | Simulación de combate automático |
 | `game/battle/rewards.ts` | Dinero, tickets y piezas por victoria |
 | `game/run/run.ts` | Ruta del Pokémon activo: salida, avance por tiempo, pasos y toques |
 | `game/run/runBattle.ts` | Combates de la ruta: se resuelven al llegar y se aplican al acabar su tiempo; premio final |
+| `game/run/runHeal.ts` | Paradas de curación: al llegar se usa la poción y el Pokémon se para `HEAL_STOP_MS` |
 | `game/team/mons.ts` | Alta de un Pokémon (`createMon`) |
 | `game/team/stats.ts` | Fórmulas de stats, EXP y velocidad de paso |
 | `game/team/ranch.ts` | Acciones del rancho y descanso |
@@ -118,6 +124,7 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/collection/shredder.ts` | Trituradora (piezas → trozos de MissingNo) y compra de piezas con trozos |
 | `game/raid/raidEngine.ts` | Lo común a toda sala: vida del jefe, crear sala, entrar y salir, EXP, avanzar rondas (`advanceRoom`) y reparto al caer |
 | `game/raid/raid.ts` | Jefe de la pestaña Raids: aparición, enviar y retirar, y el siguiente al caer |
+| `game/raid/routeRaidStreak.ts` | Racha de victorias seguidas contra el jefe de cada parada: rebaja su dinero y se olvida a los 5 min |
 | `game/raid/routeRaid.ts` | Jefes de las paradas de ruta: al llegar, entrar en una sala de la parada o abrir otra; retirarse (derrota); al caer, la ruta sigue |
 | `game/raid/raidRoom.ts` | Tipos de la sala (`Raid`, `RaidMember`, `RaidPrize`) y quién está dentro |
 | `game/raid/raidCombat.ts` | Una ronda: todos pegan al jefe con la fórmula de siempre y el jefe pega a uno; revivir |
@@ -165,13 +172,15 @@ En los tests se pasa un rng determinista. Una función nueva con azar **debe** s
 - Si coincide, `restoreState` rellena con su valor inicial los campos que falten en la partida guardada.
 - Cualquier cambio en la forma de `GameState`, `OwnedMon`, `Run` o `Expedition` obliga a subir la versión.
 - **El equipo se conserva entre versiones** (provisional, mientras la partida viva en el navegador). Cada guardado
-  escribe también `pokerancho-team`: especie, nivel, EXP, estrellas y rancho (o Caja) de cada Pokémon y cuál es el activo, con un
-  formato propio (`TEAM_BACKUP_FORMAT`) que no depende de `SAVE_VERSION`. Si la partida es de otra versión, se
-  empieza una nueva y `restoreTeam` rehace el equipo (PS al máximo, capturados y sin tutorial); dinero, piezas,
-  rutas y lo demás empiezan de cero. Reiniciar desde ⚙️ guarda la copia vacía y se empieza de verdad desde el
+  escribe también `pokerancho-team`: especie, nivel, EXP, estrellas y rancho (o Caja) de cada Pokémon, cuál es el
+  activo, las expediciones en curso y la hora de la copia, con un formato propio (`TEAM_BACKUP_FORMAT`) que no
+  depende de `SAVE_VERSION`. Si la partida es de otra versión, se empieza una nueva y `restoreTeam` rehace el equipo
+  (PS al máximo, capturados y sin tutorial) y sus expediciones, y pone `lastTick` a la hora de la copia para que el
+  primer tick cuente el tiempo que pasó; dinero, piezas, rutas y lo demás empiezan de cero. Reiniciar desde ⚙️ guarda la copia vacía y se empieza de verdad desde el
   tutorial.
-- Si cambia la forma de `TeamBackup`, sube `TEAM_BACKUP_FORMAT` y haz que `parseTeamBackup` siga leyendo el
-  formato anterior: es lo único que debe sobrevivir a cualquier actualización. Excepción: el formato 1 (sin
+- Lo que se añada a `TeamBackup` va **opcional** (como `expeditions` y `savedAt`) para que las copias ya guardadas
+  sigan valiendo. Solo si cambia de forma incompatible, sube `TEAM_BACKUP_FORMAT` y haz que `parseTeamBackup` siga
+  leyendo el formato anterior: es lo único que debe sobrevivir a cualquier actualización. Excepción: el formato 1 (sin
   ranchos ni Caja) se descartó a propósito con `SAVE_VERSION` 16, y esas partidas empiezan de cero.
 - Con servidor y base de datos, la copia del equipo desaparece: la partida completa vivirá allí.
 
@@ -189,6 +198,7 @@ progreso offline), lo multiplica por `timeScale` (x1 en producción; el botón �
 
 ```
 RouteStartDialog (camino principal, pathFrom) → startRun(routeId, path) → 'walking'
+  → (pasos) → llegada a parada de curación → drinkStopPotion: cura → Run.heal (se para heal.msLeft; si es la última, completeRoute)
   → (pasos) → llegada a parada → startStopBattle: combate simulado → lastBattle, battleMsLeft
       → (pasa battleMsLeft; no hay pasos) → settleBattle aplica PS y premio
           → derrota: 'fainted'
@@ -295,21 +305,33 @@ Opcionales, con email y contraseña, en el propio Worker (`worker/auth/`, tablas
   servidor responde 409 con ella y el dispositivo la carga (`replaceState`): gana la última subida.
 - **Al conectar** (`cloudAction`): sin copia, se sube; si la de aquí ya es de la cuenta, se baja si hay revisión nueva
   y si no se sube; si no, se pregunta cuál conservar (salvo que la de aquí esté sin empezar).
+- **Obsequio diario** (`game/collection/dailyGift.ts`, `worker/gift.ts`, tabla `daily_gifts`): por cuenta, en el
+  servidor, para que no se recoja dos veces desde dos móviles. Se guarda cuántos lleva y cuándo fue el último; recoger
+  es una sola consulta (`INSERT … ON CONFLICT DO UPDATE … WHERE last_claim_at <= ahora − 24 h RETURNING`). El cliente
+  (`net/dailyGift.ts`) suma el obsequio a la partida (`applyGift`) y la sube enseguida a la nube.
 - **Raids**: con sesión, el id de jugador es el de la cuenta (`setAccountId`), así los asientos son los mismos en
   cualquier dispositivo; al cambiar de id, `raidSync` saca de las salas los asientos del anterior. El apodo se guarda
   también en la cuenta.
 
 ## Notificaciones
 
-`ui/settings/notifications.ts` avisa con una notificación del sistema cuando termina una expedición, **solo si la app está
-en segundo plano** (`document.hidden`); con la app delante basta el aviso de la pestaña Ruta. No hay servidor: con
-la app cerrada del todo no se ejecuta nada y no llega el aviso.
+Push estándar (Web Push) desde el Worker: llegan aunque la app esté cerrada. Cada aviso es de un tema
+(`PushTopic`: expedición, ruta, obsequio, raids) que el jugador activa por separado en Ajustes › Notificaciones
+(`ui/settings/NotificationsDialog.tsx`), con un botón para todos.
 
-- Se activa en el menú ⚙️ del rancho, que pide permiso al navegador. La preferencia se guarda en `localStorage`
-  aparte de la partida (`pokerancho-notify`), porque el permiso es del dispositivo.
-- Se muestran con `registration.showNotification` (obligatorio en Android); sin service worker, como en
-  `npm run dev`, se usa `new Notification`.
-- `public/sw-notifications.js` se importa en el service worker de Workbox y abre o trae al frente la app al tocar
-  la notificación.
-- Requisitos del navegador: contexto seguro (HTTPS o `localhost`; no funciona por `http://192.168.x.x`) y, en iOS,
-  la PWA instalada en la pantalla de inicio (iOS 16.4+).
+- **Suscripción** (`net/push.ts`): con permiso, el navegador se suscribe con la clave pública VAPID del servidor
+  (`GET /api/push/key`) y la suscripción se guarda en D1 (`push_subscriptions`) con sus temas, el id de jugador de las
+  raids y la cuenta si la hay. Va por dispositivo; la preferencia, en `localStorage` (`pokerancho-push`).
+- **Avisos que programa el móvil** (`game/core/pushPlan.ts`): la vuelta de cada expedición (hora exacta) y el fin de
+  la ruta (`predictRunEnd`: simula la partida hacia delante sobre una copia con `tick`; es una estimación). Se mandan
+  al servidor al pasar la app a segundo plano (`POST /api/push/jobs`) y se vacían al volver.
+- **Avisos que decide el servidor**: el obsequio (al recogerlo se programa el siguiente, `push/notify.ts`) y las
+  raids (`game/raid/online/raidPushes.ts`: cae un jefe con el jugador dentro, se escapa, aparece el siguiente), al
+  ver lo que pasa en las salas (`updateCycle` devuelve `pushes`). Al jugador de la petición no se le avisa.
+- **Envío** (`worker/push/`): la tarea programada (`worker/scheduled.ts`, cron cada minuto) pone al día las raids sin
+  nadie mirando y manda como mucho `SENDS_PER_RUN` avisos que ya tocan (`push_jobs`), firmados con VAPID y
+  cifrados para cada navegador (`webPush.ts`, RFC 8292 y 8291, con la Web Crypto del Worker). Si el servicio de push
+  responde 404/410, la suscripción se borra.
+- `public/sw-notifications.js` se importa en el service worker de Workbox: enseña el aviso y, al tocarlo, abre o trae
+  al frente la app. Requisitos: HTTPS (o `localhost`) y, en iOS, la app instalada en la pantalla de inicio (16.4+).
+

@@ -1,4 +1,4 @@
-import { route, type Route } from '../../data/maps'
+import { averageLegSteps, route, type Route } from '../../data/maps'
 import { rarityOf, species, type Rarity } from '../../data/species'
 import { expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { isSeen, markSeen } from '../collection/dex'
@@ -132,7 +132,7 @@ export function collectExpedition(s: GameState, uid: string, rng: Rng = Math.ran
     if (rng() >= winRate) continue
     result.wins++
     result.exp += Math.round(expReward(level, mon.level) * mult)
-    result.money += Math.round(moneyReward(level, rng) * mult)
+    result.money += Math.round(moneyReward(level, averageLegSteps(r), rng) * mult)
     result.tickets += scaleCount(ticketReward(enemyId, rng), mult, rng)
     if (pieceReward(enemyId, rng)) result.pieces.push(...Array<number>(scaleCount(1, mult, rng)).fill(enemyId))
   }

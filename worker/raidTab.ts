@@ -5,6 +5,7 @@ import { viewFor, type SharedRoom } from '../src/game/raid/online/sharedRoom'
 import { joinTabRoom, tabFeed, updateCycle, type CycleUpdate } from '../src/game/raid/online/tabRooms'
 import { loadCycle, saveCycle, type StoredCycle } from './db/cycle'
 import { deleteRooms, loadChannel, loadRouteSummaries, saveRooms } from './db/rooms'
+import { notifyRaid } from './push/notify'
 
 // La pestaña Raids en el Worker: el ciclo del jefe (src/game/raid/online/raidCycle.ts) y sus salas, en D1. Cada
 // petición pone al día el ciclo y guarda lo que haya cambiado; si otro jugador escribió antes, se repite.
@@ -34,17 +35,22 @@ async function loadTab(db: D1Database, now: number) {
   return { stored, rooms: live.map((s) => s.room), versions }
 }
 
-/** Guarda las salas tocadas y, si ha cambiado, el ciclo; false si otro jugador escribió antes */
-async function saveUpdate(db: D1Database, stored: StoredCycle, update: CycleUpdate, versions: Map<SharedRoom, number>): Promise<boolean> {
+/**
+ * Guarda las salas tocadas y, si ha cambiado, el ciclo; después programa los avisos de lo que ha pasado (salvo al
+ * jugador de la petición). false si otro jugador escribió antes
+ */
+async function saveUpdate(db: D1Database, stored: StoredCycle, update: CycleUpdate, versions: Map<SharedRoom, number>, playerId: string | null): Promise<boolean> {
   if (!(await saveRooms(db, update.touched, versions))) return false
-  return !update.cycleChanged || saveCycle(db, stored)
+  if (update.cycleChanged && !(await saveCycle(db, stored))) return false
+  await notifyRaid(db, update.pushes, playerId)
+  return true
 }
 
 export async function joinTab(db: D1Database, req: JoinRequest): Promise<RoomView | null | typeof CONFLICT> {
   const now = Date.now()
   const { stored, rooms, versions } = await loadTab(db, now)
   const { update, room } = joinTabRoom(stored.cycle, rooms, req, now, Math.random, newRoomIdIn(stored.cycle))
-  if (!(await saveUpdate(db, stored, update, versions))) return CONFLICT
+  if (!(await saveUpdate(db, stored, update, versions, req.playerId))) return CONFLICT
   return room && viewFor(room, req.playerId)
 }
 
@@ -53,9 +59,19 @@ export async function feedTab(db: D1Database, req: FeedRequest): Promise<RaidFee
   const { stored, rooms, versions } = await loadTab(db, now)
   const shown = featuredRoom(stored.cycle, rooms, req.watchRoomId)?.id ?? null
   const update = updateCycle(stored.cycle, rooms, [shown, stored.cycle.mainRoomId], now, Math.random, newRoomIdIn(stored.cycle))
-  if (!(await saveUpdate(db, stored, update, versions))) return CONFLICT
+  if (!(await saveUpdate(db, stored, update, versions, req.playerId))) return CONFLICT
   const tab = tabFeed(stored.cycle, update.rooms, req.watchRoomId, req.playerId, now)
   return { ...tab, routeRooms: await loadRouteSummaries(db, now) }
+}
+
+/**
+ * Lo que hace la tarea programada con la pestaña Raids aunque nadie tenga la app abierta: poner al día el ciclo (las
+ * salas pendientes, la caída del jefe, el siguiente) y programar sus avisos
+ */
+export async function tickTab(db: D1Database, now: number): Promise<boolean> {
+  const { stored, rooms, versions } = await loadTab(db, now)
+  const update = updateCycle(stored.cycle, rooms, [stored.cycle.mainRoomId], now, Math.random, newRoomIdIn(stored.cycle))
+  return saveUpdate(db, stored, update, versions, null)
 }
 
 /** Ha caído el jefe en una sala de la pestaña Raids al ponerse al día: si es del ciclo actual, este se cierra */

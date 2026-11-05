@@ -1,4 +1,4 @@
-import { backupTeam, parseTeamBackup, restoreTeam, type TeamBackup } from './teamBackup'
+import { backupFromSave, backupTeam, parseTeamBackup, restoreTeam, type TeamBackup } from './teamBackup'
 import { initialState, restoreState, TutorialStep, type GameState } from './state'
 
 // La partida en la nube de una cuenta (worker/save.ts). Gana la última que se sube: cada copia lleva una
@@ -43,12 +43,16 @@ export function cloudAction(link: CloudLink | null, userId: string, cloud: Pick<
 /** Lo que se sube: la partida y la copia del equipo */
 export const cloudUpload = (s: GameState) => ({ save: s, team: backupTeam(s) })
 
-/** La partida guardada si es de esta versión; si no, una nueva con el equipo recuperado de su copia (si la hay) */
+/**
+ * La partida guardada si es de esta versión; si no, una nueva con el equipo (y sus expediciones en curso) recuperado
+ * de la propia partida guardada o, si de ella no sale, de su copia
+ */
 export function stateFromSaved(saved: unknown, team: unknown): GameState {
   const restored = saved && typeof saved === 'object' ? restoreState(saved as GameState) : null
   if (restored) return restored
   const fresh = initialState()
-  const backup = parseTeamBackup(team)
+  const fromSave = parseTeamBackup(backupFromSave(saved))
+  const backup = fromSave?.mons.length ? fromSave : parseTeamBackup(team)
   if (backup) restoreTeam(fresh, backup)
   return fresh
 }

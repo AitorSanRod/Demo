@@ -1,8 +1,10 @@
 import { presentMembers, RaidMemberKind, type Raid, type RaidMember } from '../../game/raid/raidRoom'
 import { Bar, Sprite } from '../shared/common'
+import { ICON } from '../shared/icons'
+import { ItemIcon } from '../shared/ItemIcon'
 import './raid.css'
 
-/** Quién hay en la sala: entrenador, nivel y PS de cada uno (la pelea se ve arriba, en RaidBattleScene) */
+/** Quién hay en la sala: entrenador, nivel y PS de cada uno (la pelea se ve arriba, en RaidBattleScene); los bots, marcados */
 export function RaidRoster({ raid, timeScale }: { raid: Raid; timeScale: number }) {
   return (
     <div className="raid-roster">
@@ -15,8 +17,15 @@ export function RaidRoster({ raid, timeScale }: { raid: Raid; timeScale: number 
 
 function MemberCard({ m, timeScale }: { m: RaidMember; timeScale: number }) {
   const down = m.downMs > 0
+  const bot = m.kind === RaidMemberKind.Bot
   return (
-    <div className={`raid-member ${down ? 'down' : ''} ${m.kind === RaidMemberKind.Player ? 'mine' : ''}`}>
+    <div className={`raid-member ${down ? 'down' : ''} ${m.kind === RaidMemberKind.Player ? 'mine' : ''} ${bot ? 'bot' : ''}`}>
+      {bot && (
+        <span className="raid-bot-tag" title="Bot">
+          <ItemIcon item={ICON.Bot} size={18} />
+          Bot
+        </span>
+      )}
       <div className="raid-member-sprite">
         <Sprite id={m.speciesId} size={44} animated={false} />
       </div>

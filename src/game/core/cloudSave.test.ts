@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
+import { RouteId } from '../../data/maps'
 import { STARTERS } from '../../data/species'
+import { EXPEDITION_DURATIONS } from '../team/expedition'
 import { CloudAction, cloudAction, cloudUpload, parseUpload, saveSummary, stateFromSaved } from './cloudSave'
 import { initialState, SAVE_VERSION } from './state'
+import { backupTeam } from './teamBackup'
 import { chooseStarter } from './test-utils'
 
 vi.mock('../../data/maps/kantoMaps', () => import('./test-map'))
@@ -41,6 +44,21 @@ describe('partida en la nube', () => {
     expect(old.money).toBe(initialState().money)
     expect(old.owned.map((m) => m.speciesId)).toEqual([STARTERS[0]])
     expect(stateFromSaved(null, null).owned).toEqual([])
+  })
+
+  it('de una partida de otra versión se recuperan el equipo y sus expediciones, aunque la copia del equipo sea vieja', () => {
+    const s = playedGame()
+    s.expeditions.push({ uid: s.owned[0].uid, routeId: RouteId.PuebloPaleta, durationMin: EXPEDITION_DURATIONS[0], elapsedMin: 1 })
+    const { expeditions: _, savedAt: __, ...oldTeam } = backupTeam(s)
+    const restored = stateFromSaved({ ...s, version: SAVE_VERSION - 1 }, oldTeam)
+    expect(restored.owned.map((m) => m.speciesId)).toEqual(s.owned.map((m) => m.speciesId))
+    expect(restored.expeditions).toEqual([{ ...s.expeditions[0], uid: restored.owned[0].uid }])
+    expect(restored.lastTick).toBe(s.lastTick)
+  })
+
+  it('si la partida guardada no se puede leer, el equipo sale de su copia', () => {
+    const s = playedGame()
+    expect(stateFromSaved({ version: SAVE_VERSION - 1, owned: 'roto' }, backupTeam(s)).owned).toHaveLength(1)
   })
 
   it('el resumen cuenta Pokémon, nivel más alto y dinero', () => {

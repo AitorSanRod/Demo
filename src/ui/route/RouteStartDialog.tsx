@@ -4,11 +4,13 @@ import { signatureMove } from '../../data/moves'
 import { species } from '../../data/species'
 import { TutorialStep, type GameState, type OwnedMon } from '../../game/core/state'
 import { act } from '../../game/core/store'
+import { pathRaidMoneyMult } from '../../game/raid/routeRaidStreak'
 import { startRun } from '../../game/run/run'
 import { maxHp } from '../../game/team/stats'
 import { Bar, Sprite } from '../shared/common'
 import { PixelQuestion } from '../shared/PixelQuestion'
 import { HeroLayout } from '../shared/sheet/HeroLayout'
+import { repeatNote } from '../shared/rewardItems'
 import { BIOME_SCENERY } from '../shared/sheet/scenery'
 import { TutorialHint } from '../shared/TutorialHint'
 import '../shared/overlays.css'
@@ -23,6 +25,7 @@ export function RouteStartDialog({ game, route: r, mon, onClose }: { game: GameS
   const sp = species(mon.speciesId)
   const hpMax = maxHp(mon)
   const guided = game.tutorial === TutorialStep.Route
+  const raidMoney = pathRaidMoneyMult(game, r, path, game.lastTick)
 
   return createPortal(
     <div className="confirm-overlay" onClick={onClose}>
@@ -53,6 +56,7 @@ export function RouteStartDialog({ game, route: r, mon, onClose }: { game: GameS
               game.seen.includes(id) ? <Sprite key={id} id={id} size={48} animated={false} /> : <PixelQuestion key={id} size={40} />,
             )}
           </div>
+          {raidMoney < 1 && <p className="small center muted">{repeatNote(raidMoney)}</p>}
           {guided && <TutorialHint>Tu Pokémon caminará solo y combatirá en cada parada. ¡Pulsa «¡En marcha!» y a partir de aquí juega a tu aire!</TutorialHint>}
           <div className="row gap confirm-actions">
             <button className="btn grow" onClick={onClose}>

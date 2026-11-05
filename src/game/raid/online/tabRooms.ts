@@ -2,6 +2,7 @@ import type { Rng } from '../../core/random'
 import { presentMembers, RaidMemberKind } from '../raidRoom'
 import { RoomSlot, type JoinRequest, type RaidFeed, type RoomSummary } from './protocol'
 import { advanceCycle, cycleBossIndex, cyclePhase, featuredRoom, isOpenFor, isPending, nextBossAt, noteFalls, type RaidCycle } from './raidCycle'
+import { escapePush, fallPush, newBossPush, type RaidPush } from './raidPushes'
 import { canMakeRoom } from './roomServer'
 import { catchUp, createRoom, playersIn, seatPlayer, seatsOf, viewFor, type SharedRoom } from './sharedRoom'
 
@@ -14,12 +15,16 @@ import { catchUp, createRoom, playersIn, seatPlayer, seatsOf, viewFor, type Shar
  */
 export const ROOMS_PER_REQUEST = 3
 
-/** El ciclo y sus salas tras ponerse al día; `touched` hay que guardarlas y, con `cycleChanged`, también el ciclo */
+/**
+ * El ciclo y sus salas tras ponerse al día; `touched` hay que guardarlas y, con `cycleChanged`, también el ciclo.
+ * `pushes`: los avisos de lo que ha pasado (caídas, jefes que se escapan, jefe nuevo), para mandarlos tras guardar
+ */
 export interface CycleUpdate {
   /** Salas del ciclo actual (si ha pasado al siguiente, las nuevas) */
   rooms: SharedRoom[]
   touched: SharedRoom[]
   cycleChanged: boolean
+  pushes: RaidPush[]
 }
 
 /** Las salas que hay que poner al día: las pedidas y, de las pendientes, la que lleve más sin consultas */
@@ -35,12 +40,15 @@ function roomsToCatchUp(rooms: SharedRoom[], focusIds: (string | null)[]): Share
  */
 export function updateCycle(c: RaidCycle, rooms: SharedRoom[], focusIds: (string | null)[], now: number, rng: Rng, newId: () => string): CycleUpdate {
   const touched = roomsToCatchUp(rooms, focusIds)
+  const standing = touched.filter((r) => r.raid.hp > 0)
   for (const room of touched) catchUp(room, now, rng)
+  const pushes = standing.filter((r) => r.raid.hp === 0).flatMap((r) => fallPush(r, now) ?? [])
   let cycleChanged = noteFalls(c, rooms, now)
   let current = rooms
   const escaped = advanceCycle(c, rooms, now)
   if (escaped) {
     touched.push(...escaped.filter((r) => !touched.includes(r)))
+    pushes.push(...escaped.flatMap((r) => escapePush(r, now) ?? []), newBossPush(c, now))
     current = []
     cycleChanged = true
   }
@@ -52,7 +60,7 @@ export function updateCycle(c: RaidCycle, rooms: SharedRoom[], focusIds: (string
     touched.push(main)
     cycleChanged = true
   }
-  return { rooms: current, touched, cycleChanged }
+  return { rooms: current, touched, cycleChanged, pushes }
 }
 
 const ownRoom = (rooms: SharedRoom[], playerId: string) => rooms.find((r) => seatsOf(r, playerId).length > 0)

@@ -3,9 +3,10 @@ import type { Rng } from '../core/random'
 import { activeMon, type GameState } from '../core/state'
 import { completeRoute, faint } from '../run/runBattle'
 import { maxHp } from '../team/stats'
-import { addPlayer, isLinked, localHooks, passivesOf, playerMembers, removePlayer, runLinkedClock, settleFall } from './raidEngine'
+import { addPlayer, isLinked, isSearching, localHooks, passivesOf, playerMembers, removePlayer, runLinkedClock, settleFall } from './raidEngine'
 import { applyPrize } from './raidPrizes'
 import { pendingLink, type Raid, type RaidPlace, type RaidPrize } from './raidRoom'
+import { recordRouteRaidFall, routeRaidMoneyMult } from './routeRaidStreak'
 import { advanceStopRoom, ROUTE_RAID_JOIN_MIN_HP, stopRoom } from './stopRoom'
 
 // Jefes comunitarios de las paradas de ruta (NodeKind.Raid): el Pokémon de la ruta llega, entra en una sala de esa
@@ -59,20 +60,29 @@ export function retreatRouteRaid(s: GameState) {
   faint(s)
 }
 
-/** El premio del jefe se suma a la partida y a lo ganado en la ruta */
+/** El premio del jefe (su EXP, para el Pokémon de la ruta) se suma a la partida y a lo ganado en la ruta */
 function earnPrize(s: GameState, p: RaidPrize) {
   const earned = s.run!.earned
-  applyPrize(s, p)
+  earned.levelsGained += applyPrize(s, p)
+  earned.exp += p.exp
   earned.money += p.money
   earned.tickets += p.tickets
   earned.pieces.push(...Array<number>(p.pieces).fill(p.bossSpeciesId))
   earned.raidBosses.push(p.bossSpeciesId)
 }
 
-/** Al caer el jefe: su premio va a lo ganado en la ruta y la ruta sigue o, si era la última parada, se completa */
+/**
+ * Al caer el jefe: cuenta como victoria, su premio (con el dinero y la EXP rebajados si se repite seguido) va a lo ganado en la
+ * ruta y la ruta sigue o, si era la última parada, se completa
+ */
 export function finishRouteRaid(s: GameState, raid: Raid, rng: Rng) {
-  for (const p of settleFall(s, raid, rng)) earnPrize(s, p)
   const run = s.run!
+  const mult = routeRaidMoneyMult(s, raid.place!, s.lastTick)
+  for (const p of settleFall(s, raid, rng)) earnPrize(s, { ...p, money: Math.round(p.money * mult), exp: Math.round(p.exp * mult) })
+  recordRouteRaidFall(s, raid.place!, s.lastTick)
+  run.earned.raidMoneyMult = Math.min(run.earned.raidMoneyMult, mult)
+  run.earned.battles++
+  run.earned.wins++
   run.raid = null
   if (run.stop === run.path.length - 1) completeRoute(s, route(run.routeId))
   else run.phase = 'walking'
@@ -92,10 +102,13 @@ export function startOver(s: GameState, raid: Raid) {
 /** La pelea se ha parado: o ha caído el jefe o el Pokémon ha gastado sus vidas */
 const endFight = (s: GameState, raid: Raid, rng: Rng) => (raid.hp === 0 ? finishRouteRaid(s, raid, rng) : startOver(s, raid))
 
-/** Avanza la pelea de la parada `ms` milisegundos de juego (si la sala es del servidor, allí se juega) */
+/**
+ * Avanza la pelea de la parada `ms` milisegundos de juego. Si la sala es del servidor, allí se juega; mientras se
+ * busca sala en él, nada se mueve (antes de una sala con bots se mira si hay una con jugadores)
+ */
 export function advanceRouteRaid(s: GameState, ms: number, rng: Rng = Math.random) {
   const raid = currentRouteRaid(s)
-  if (!raid) return
+  if (!raid || isSearching(raid)) return
   if (isLinked(raid)) return runLinkedClock(raid, ms)
   if (advanceStopRoom(raid, ms, rng, localHooks(s)) !== null) endFight(s, raid, rng)
 }

@@ -9,6 +9,8 @@ export const ITEM = {
   PokeRadar: 'poke-radar',
   PokeBall: 'poke-ball',
   Potion: 'potion',
+  SuperPotion: 'super-potion',
+  HyperPotion: 'hyper-potion',
   FullRestore: 'full-restore',
   RareCandy: 'rare-candy',
   MoonStone: 'moon-stone',
@@ -30,6 +32,9 @@ export const ITEM = {
   LockCapsule: 'lock-capsule',
   DynamaxBand: 'dynamax-band',
   MemberCard: 'member-card',
+  MysteryEgg: 'mystery-egg',
+  Xtransceiver: 'xtransceiver',
+  PokeDoll: 'poke-doll',
 } as const
 export type Item = (typeof ITEM)[keyof typeof ITEM]
 

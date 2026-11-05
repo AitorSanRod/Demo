@@ -8,8 +8,11 @@ import { isSeen, markCaught } from './dex'
 
 /** Piezas iguales que se gastan en cada combinación: desbloquean el Pokémon o le dan una ★ */
 export const PIECES_PER_COMBINE = 5
-/** ₽ que cuesta combinar piezas para dar una ★ (crear el Pokémon cuesta según su rareza: `RARITY_INFO.createPrice`) */
-export const STAR_PRICE = 1000
+/**
+ * ₽ que cuesta combinar piezas para dar cada ★, por las ★ que ya tiene: el primero es lo que cuesta la 1.ª ★ y el
+ * último, la de MAX_STARS (crear el Pokémon cuesta según su rareza: `RARITY_INFO.createPrice`)
+ */
+export const STAR_PRICES = [200, 500, 1000, 1500, 2500]
 
 /** Qué da combinar: el Pokémon si no lo tienes, una ★ si la admite y, con ★ al máximo, pokécuartos */
 export const CombineKind = { Unlock: 'unlock', Star: 'star', Money: 'money' } as const
@@ -36,14 +39,15 @@ export function combineKind(s: GameState, speciesId: number): CombineKind {
   return owned.stars < MAX_STARS ? CombineKind.Star : CombineKind.Money
 }
 
-/** ₽ que cuesta combinar; el inicial del tutorial es gratis y cambiar piezas por ₽ no cuesta nada */
 /** ₽ por combinar tickets de un Pokémon que ya tiene las ★ al máximo */
 export const surplusMoney = (speciesId: number): number => boostedMoney(RARITY_INFO[rarityOf(species(speciesId))].surplusMoney)
 
+/** ₽ que cuesta combinar; el inicial del tutorial es gratis y cambiar piezas por ₽ no cuesta nada */
 export function combinePrice(s: GameState, speciesId: number): number {
   const kind = combineKind(s, speciesId)
   if (kind === CombineKind.Money || s.tutorial === TutorialStep.Combine) return 0
-  return kind === CombineKind.Unlock ? RARITY_INFO[rarityOf(species(speciesId))].createPrice : STAR_PRICE
+  if (kind === CombineKind.Unlock) return RARITY_INFO[rarityOf(species(speciesId))].createPrice
+  return STAR_PRICES[s.owned.find((m) => m.speciesId === speciesId)!.stars]
 }
 
 /** Por qué no se puede combinar ahora (null si se puede): hay que haberla visto en una ruta o expedición */

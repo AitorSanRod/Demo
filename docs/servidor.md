@@ -22,6 +22,9 @@ Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.
 | Salas: `POST /api/raid` | `worker/raid.ts` + `worker/db/rooms.ts` |
 | Partida en la nube: `GET` / `POST /api/save` (solo con sesión) | `worker/save.ts` + `worker/db/saves.ts` |
 | Cuentas: `/api/auth/*` (crear, confirmar, entrar, salir, recuperar, apodo) | `worker/auth/` + `worker/db/users.ts` |
+| Obsequio diario: `GET` / `POST /api/gift` (solo con sesión) | `worker/gift.ts` + `worker/db/gifts.ts` |
+| Notificaciones push: `/api/push/*` y el envío (VAPID, cifrado) | `worker/push/` |
+| Tarea programada cada minuto (raids sin nadie mirando, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
 | Correos (Brevo) y su texto | `worker/mail.ts` |
 | Lógica del juego que usa el servidor (con tests) | `src/game/raid/online/`, `src/game/core/cloudSave.ts`, `accountRules.ts` |
 | Cliente: cuenta, partida en la nube, id y apodo, cada cuánto consulta | `src/net/` |
@@ -80,7 +83,19 @@ Desde entonces, cada push a `main` vuelve a desplegar solo. GitHub Actions (`.gi
 Sin estos dos secretos la web funciona, pero los correos no salen: el enlace se escribe en los registros del
 Worker (*pokerancho → Logs*), útil para probar.
 
-### 5. Probarlo
+### 5. Activar las notificaciones push
+
+Hacen falta unas claves VAPID (con ellas el servidor firma los avisos). Se generan y se guardan como secreto de una
+vez, sin que se vean, desde la carpeta del proyecto:
+
+```bash
+node scripts/make-vapid-key.mjs | npx wrangler secret put VAPID_KEY
+```
+
+No hay que hacer nada más: la tarea programada de cada minuto ya va en `wrangler.jsonc`. No cambies las claves después:
+cada navegador tendría que volver a activar los avisos. Sin ellas, Ajustes › Notificaciones dice que no puede conectar.
+
+### 6. Probarlo
 
 1. Abre la web en el móvil y en el ordenador (o en una ventana de incógnito: cuenta como otro jugador).
 2. **Raids**: en los dos, termina el tutorial, ve a *Ruta › Raids* y manda un Pokémon (la primera vez pide el
@@ -114,6 +129,7 @@ Límites del plan gratuito de Cloudflare (se renuevan cada día; si se pasan, la
 | Filas escritas en D1 | 100 000 / día | Cada consulta de sala y cada subida de partida escriben una |
 | Filas leídas en D1 | 5 millones / día | Sobra |
 | Almacenamiento D1 | 5 GB | Una sala ocupa unos KB; una partida, decenas de KB (máx. 1 MB, `MAX_SAVE_BYTES`) |
+| Tarea programada (cron) | Incluida | Una ejecución por minuto (≈ 1 440 al día), con poca CPU: pone al día como mucho 3 salas y manda como mucho 20 avisos |
 | Correos (Brevo) | 300 / día | Crear cuenta, entrar sin confirmar y recuperar contraseña (como mucho uno por minuto y cuenta) |
 
 Lo que consulta cada jugador (solo con la app delante; cerrada, el servidor sigue y se pone al día al volver):

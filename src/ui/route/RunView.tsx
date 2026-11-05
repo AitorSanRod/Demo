@@ -11,12 +11,13 @@ import { maxHp, stepsPerMinute } from '../../game/team/stats'
 import { Bar } from '../shared/common'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { formatMinutes } from '../shared/format'
-import { earningsRewards, levelUpReward, raidBossReward } from '../shared/rewardItems'
+import { earningsRewards, levelUpReward, raidBossReward, repeatNote } from '../shared/rewardItems'
 import { RewardOverlay } from '../shared/RewardOverlay'
 import { battleFrame, fighterClass } from './battleFrame'
 import { RouteBattle } from './RouteBattle'
 import { RaidBattle } from '../raid/RaidBattleScene'
 import { RaidHudLine, RetreatButton } from './RouteRaidHud'
+import { HealStop } from './HealStop'
 import { WalkScene } from './WalkScene'
 import './run.css'
 import { ICON } from '../shared/icons'
@@ -29,8 +30,8 @@ function raidHp(raid: Raid, mon: OwnedMon): number {
 }
 
 /**
- * La ruta avanza sola: el Pokémon camina, se para a combatir en cada parada y sigue hasta el final. En una parada de
- * jefe comunitario, la pelea se ve en la misma escena (con él dentro del grupo) hasta que cae el jefe
+ * La ruta avanza sola: el Pokémon camina, se para a combatir (o a curarse) en cada parada y sigue hasta el final. En una
+ * parada de jefe comunitario, la pelea se ve en la misma escena (con él dentro del grupo) hasta que cae el jefe
  */
 export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: OwnedMon }) {
   const r = route(run.routeId)
@@ -38,7 +39,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
   const routeRaid = currentRouteRaid(game)
   const battle = run.battleMsLeft > 0 && run.lastBattle ? run.lastBattle : null
   const frame = battle && battleFrame(battle, run.battleMsLeft)
-  const walking = run.phase === 'walking' && !battle
+  const walking = run.phase === 'walking' && !battle && !run.heal
   const lastStop = run.path.length - 1
   // Durante el combate se ven los PS del momento, no los finales que el motor ya ha calculado
   const hp = routeRaid ? raidHp(routeRaid, mon) : frame ? frame.event.playerHp : Math.floor(mon.hp)
@@ -54,10 +55,11 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
         speciesId={routeRaid ? undefined : mon.speciesId}
         moving={walking}
         speed={Math.min(1.8, Math.max(0.6, spm / 22))}
-        walkerClass={battle ? `battling ${playerClass}` : ''}
+        walkerClass={battle ? `battling ${playerClass}` : run.heal ? 'healing' : ''}
         onStep={walking || battle ? () => act(tapRun) : undefined}
       >
         {battle && frame && <RouteBattle record={battle} frame={frame} />}
+        {run.heal && <HealStop key={run.stop} heal={run.heal} />}
         {routeRaid && <RaidBattle raid={routeRaid} timeScale={game.timeScale} />}
       </WalkScene>
 
@@ -85,6 +87,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
       </div>
 
       {walking && <div className="tap-hint">Toca para avanzar más rápido</div>}
+      {run.heal && <div className="tap-hint">Parada de curación</div>}
       {battle && <div className="tap-hint">¡Combate! Toca para acelerarlo</div>}
       {routeRaid && <div className="tap-hint">¡Jefe comunitario! Los que acaban la ruta se unen a la pelea</div>}
 
@@ -136,12 +139,14 @@ function AbandonButton() {
 
 /** Al terminar la ruta, sus premios pasan de uno en uno; ya estaban sumados en el estado */
 function RunSummary({ run, mon }: { run: Run; mon: OwnedMon }) {
-  const r = route(run.routeId)
   const complete = run.phase === 'complete'
   const items = [...run.earned.raidBosses.map(raidBossReward), ...earningsRewards(run.earned)]
+  if (run.earned.raidMoneyMult < 1) {
+    items.push({ key: 'repeat', icon: <ItemIcon item={ICON.Money} size={96} off />, title: 'Menos dinero del jefe', detail: repeatNote(run.earned.raidMoneyMult), color: '#6a6a80' })
+  }
   if (run.earned.levelsGained > 0) items.push(levelUpReward(mon.speciesId, mon.level))
-  if (complete && r.unlocks) {
-    items.push({ key: 'unlock', icon: <ItemIcon item={ICON.Route} size={96} />, title: 'Nueva ruta', detail: route(r.unlocks).name, color: '#2f9e8f' })
+  if (run.unlocked) {
+    items.push({ key: 'unlock', icon: <ItemIcon item={ICON.Route} size={96} />, title: 'Nueva ruta', detail: route(run.unlocked).name, color: '#2f9e8f' })
   }
   if (!complete) {
     items.push({ key: 'rest', icon: <ItemIcon item={ICON.Rest} size={96} />, title: 'A descansar', detail: 'Se recuperará en el rancho', color: '#6a6a80' })

@@ -1,0 +1,114 @@
+/* Parada de curación: poción sobre el Pokémon, destellos y PS recuperados (ver HealStop.tsx) */
+.heal-stop {
+  position: absolute;
+  left: 40%;
+  bottom: var(--ground);
+  width: 120px;
+  height: 150px;
+  translate: -50% 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.heal-potion {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+  animation: potion-pour var(--heal-ms) ease-in-out forwards;
+}
+.heal-sparkle {
+  position: absolute;
+  bottom: 10px;
+  left: calc(14% + var(--i) * 10%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hp-ok);
+  box-shadow: 0 0 6px var(--hp-ok);
+  opacity: 0;
+  animation: heal-rise calc(var(--heal-ms) * 0.5) ease-out calc(var(--heal-ms) * 0.3 + var(--i) * 40ms) forwards;
+}
+.heal-amount {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--hp-ok);
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #000a,
+    0 0 4px #000a;
+  opacity: 0;
+  animation: heal-text calc(var(--heal-ms) * 0.6) ease-out calc(var(--heal-ms) * 0.4) forwards;
+}
+.heal-amount small {
+  font-size: 12px;
+  color: #fff;
+}
+/* La escena está parada mientras se cura */
+.scene.paused .scene-walker.healing .sprite {
+  animation: heal-glow 0.6s ease-in-out 3;
+}
+
+@keyframes potion-pour {
+  0% {
+    transform: translateY(-20px) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: rotate(0);
+  }
+  60%,
+  80% {
+    transform: rotate(-120deg);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(-120deg) translateY(-10px);
+    opacity: 0;
+  }
+}
+@keyframes heal-rise {
+  0% {
+    transform: translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-90px) scale(1);
+    opacity: 0;
+  }
+}
+@keyframes heal-text {
+  0% {
+    transform: translateY(10px) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(0) scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+}
+@keyframes heal-glow {
+  50% {
+    filter: drop-shadow(0 0 10px var(--hp-ok)) brightness(1.3);
+  }
+}

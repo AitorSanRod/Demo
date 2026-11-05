@@ -38,10 +38,11 @@
   clip-path: polygon(0 0, 100% 50%, 0 100%);
   --nudge: 4px;
 }
-/* Botón de la Caja en la esquina inferior; también es donde se suelta un Pokémon para guardarlo */
-.ranch-box-button {
+/* Botones de las esquinas inferiores, bajo la valla: la Caja a la izquierda (también es donde se suelta un Pokémon
+   para guardarlo) y el menú a la derecha */
+.ranch-box-button,
+.ranch-menu-button {
   position: absolute;
-  right: 8px;
   bottom: 8px;
   z-index: 100;
   width: 60px;
@@ -57,6 +58,42 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
+}
+.ranch-box-button {
+  left: 8px;
+}
+.ranch-menu-button {
+  right: 8px;
+}
+/* Aviso de que hay algo que recoger en el menú */
+.ranch-menu-button .dot,
+.ranch-menu-item .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+}
+.ranch-menu-button .dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+/* Una entrada del menú del rancho */
+.ranch-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+.ranch-menu-hint {
+  display: block;
 }
 .ranch-notice {
   position: absolute;

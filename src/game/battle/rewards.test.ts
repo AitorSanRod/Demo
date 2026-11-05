@@ -6,10 +6,10 @@ import {
   EXP_LEVEL_GAP,
   EXP_PER_LEVEL,
   expReward,
-  MONEY_BONUS_RANGE,
   MONEY_GAIN_MULT,
-  MONEY_PER_LEVEL,
+  moneyPerStep,
   moneyReward,
+  MONEY_SPREAD,
   PIECE_DROP_CHANCE,
   pieceReward,
   TICKET_DROP_CHANCE,
@@ -35,11 +35,17 @@ describe('ticketReward', () => {
 })
 
 describe('moneyReward', () => {
-  it('da el nivel del rival por MONEY_PER_LEVEL más un extra dentro de MONEY_BONUS_RANGE, con el multiplicador de dinero', () => {
-    const [min, max] = MONEY_BONUS_RANGE
-    const level = 5
-    expect(moneyReward(level, () => 0)).toBe(boostedMoney(Math.ceil(level * MONEY_PER_LEVEL) + min))
-    expect(moneyReward(level, () => 0.999)).toBe(boostedMoney(Math.ceil(level * MONEY_PER_LEVEL) + max))
+  it('da los pasos del tramo por el ₽ por paso de su nivel, ±MONEY_SPREAD al azar y con el multiplicador de dinero', () => {
+    const [level, steps] = [5, 100]
+    const base = steps * moneyPerStep(level)
+    expect(moneyReward(level, steps, () => 0.5)).toBe(boostedMoney(base))
+    expect(moneyReward(level, steps, () => 0)).toBe(boostedMoney(base * (1 - MONEY_SPREAD)))
+    expect(moneyReward(level, steps, () => 1)).toBe(boostedMoney(base * (1 + MONEY_SPREAD)))
+  })
+
+  it('crece con los pasos del tramo y nunca baja de 1', () => {
+    expect(moneyReward(5, 80, () => 0.5)).toBeGreaterThan(moneyReward(5, 20, () => 0.5))
+    expect(moneyReward(1, 0, () => 0)).toBe(1)
   })
 
   it('boostedMoney aplica MONEY_GAIN_MULT y redondea', () => {
@@ -49,7 +55,7 @@ describe('moneyReward', () => {
   })
 
   it('crece con el nivel del rival', () => {
-    expect(moneyReward(10, () => 0)).toBeGreaterThan(moneyReward(2, () => 0))
+    expect(moneyReward(10, 30, () => 0)).toBeGreaterThan(moneyReward(2, 30, () => 0))
   })
 })
 

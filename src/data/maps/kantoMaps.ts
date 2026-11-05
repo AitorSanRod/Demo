@@ -1,4 +1,5 @@
 import { POKEMON } from '../pokemon'
+import { Potion } from '../potions'
 import { RaidTier } from '../raidBosses'
 import { asset, Biome, boss, chain, enc, NodeKind, raidBoss, RouteId, type GameMap } from './mapCommon'
 
@@ -45,9 +46,11 @@ export const KANTO: GameMap = {
         { id: 'a', name: 'Prado', kind: NodeKind.Wild, steps: 25 },
         { id: 'b', name: 'Hierba alta', kind: NodeKind.Wild, steps: 25, levelBonus: 1 },
         { id: 'c', name: 'Arboleda', kind: NodeKind.Wild, steps: 20, encounters: enc([POKEMON.Caterpie, 40], [POKEMON.Weedle, 40], [POKEMON.Pidgey, 20]) },
+        { id: 'p1', name: 'Fuente', kind: NodeKind.Heal, steps: 10, potion: Potion.Potion },
         { id: 'd', name: 'Senda', kind: NodeKind.Wild, steps: 15 },
         { id: 'e', name: 'Campo', kind: NodeKind.Wild, steps: 25, encounters: enc([POKEMON.Rattata, 40], [POKEMON.NidoranF, 30], [POKEMON.NidoranM, 30]) },
         { id: 'f', name: 'Hierba crecida', kind: NodeKind.Wild, steps: 30, levelBonus: 2 },
+        { id: 'p2', name: 'Casa de descanso', kind: NodeKind.Heal, steps: 10, potion: Potion.Potion },
         { id: 'g', name: 'Hierba crecida', kind: NodeKind.Boss, steps: 30, boss: boss(POKEMON.Rattata, 7) },
       ),
     },
@@ -79,10 +82,12 @@ export const KANTO: GameMap = {
       nodes: chain(
         { id: 's', name: 'Linde del bosque', kind: NodeKind.Start, steps: 0 },
         { id: 'a', name: 'Sotobosque', kind: NodeKind.Wild, steps: 80 },
-        { id: 'b', name: 'Matorral', kind: NodeKind.Wild, steps: 90, encounters: enc([POKEMON.Oddish, 40], [POKEMON.Bellsprout, 40], [POKEMON.Caterpie, 20]) },
+        { id: 'b', name: 'Matorral', kind: NodeKind.Wild, steps: 90, encounters: enc([POKEMON.Oddish, 15], [POKEMON.Bellsprout, 15], [POKEMON.Caterpie, 25], [POKEMON.Weedle, 25], [POKEMON.Pidgey, 20]) },
+        { id: 'p1', name: 'Manantial', kind: NodeKind.Heal, steps: 15, potion: Potion.Potion },
         { id: 'c', name: 'Tronco hueco', kind: NodeKind.Wild, steps: 80, encounters: enc([POKEMON.Metapod, 43], [POKEMON.Kakuna, 43], [POKEMON.Pikachu, 14]) },
-        { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1 },
-        { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 60], [POKEMON.Butterfree, 20], [POKEMON.Beedrill, 20]) },
+        { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1, encounters: enc([POKEMON.Pikachu, 25], [POKEMON.Caterpie, 20], [POKEMON.Metapod, 20], [POKEMON.Kakuna, 15], [POKEMON.Oddish, 10], [POKEMON.Pidgey, 10]) },
+        { id: 'p2', name: 'Cabaña del guardabosques', kind: NodeKind.Heal, steps: 15, potion: Potion.Potion },
+        { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 50], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Butterfree, 10], [POKEMON.Beedrill, 10]) },
         { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Bulbasaur, 17, RaidTier.Low, { soloMinutes: 10 }) },
       ),
     }

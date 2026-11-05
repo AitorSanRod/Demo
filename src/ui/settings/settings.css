@@ -53,3 +53,27 @@
   display: block;
   font-weight: 400;
 }
+
+/* Ajustes › Notificaciones: un interruptor por tipo de aviso */
+.notify-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notify-topic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.notify-topic input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.notify-detail {
+  display: block;
+}

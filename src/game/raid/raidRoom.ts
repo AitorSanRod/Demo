@@ -100,10 +100,13 @@ export interface Raid {
 /** Premio de un jefe comunitario derrotado */
 export interface RaidPrize {
   bossSpeciesId: number
+  /** Pokémon del jugador que luchó y se lleva la EXP */
+  uid: string
   money: number
   tickets: number
   /** Tickets (piezas) de la especie del jefe */
   pieces: number
+  exp: number
 }
 
 type MemberIdentity = Pick<RaidMember, 'id' | 'kind' | 'trainer' | 'speciesId' | 'level' | 'stars'>

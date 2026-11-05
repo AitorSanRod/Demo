@@ -20,6 +20,10 @@ export const ICON = {
   Notify: ITEM.SootheBell,
   /** Cuenta y partida en la nube */
   Account: ITEM.MemberCard,
+  /** Obsequio diario */
+  Gift: ITEM.MysteryEgg,
+  /** Menú del rancho */
+  Menu: ITEM.Xtransceiver,
   Box: ITEM.BoxLink,
   Heal: ITEM.Potion,
   Rest: ITEM.FullRestore,
@@ -30,4 +34,6 @@ export const ICON = {
   Wins: ITEM.Protein,
   Exp: ITEM.ExpShare,
   Locked: ITEM.LockCapsule,
+  /** Participante de una sala que no es un jugador */
+  Bot: ITEM.PokeDoll,
 } as const

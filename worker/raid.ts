@@ -1,10 +1,12 @@
 import { channelKey, RaidAction, RoomSlot, type JoinRequest, type RaidRequest, type RaidResponse, type RoomView, type SyncRequest } from '../src/game/raid/online/protocol'
 import { parseRequest } from '../src/game/raid/online/requests'
 import { isExpired, joinStopRoom, syncRoom } from '../src/game/raid/online/roomServer'
+import { fallPush } from '../src/game/raid/online/raidPushes'
 import { viewFor } from '../src/game/raid/online/sharedRoom'
 import { deleteRooms, loadChannel, loadRoom, saveRoom } from './db/rooms'
 import type { Env } from './env'
 import { json, readJson } from './http'
+import { notifyRaid } from './push/notify'
 import { CONFLICT, feedTab, joinTab, noteTabFall } from './raidTab'
 
 // POST /api/raid: salas compartidas de los jefes comunitarios (RaidRequest, ver src/game/raid/online/protocol.ts).
@@ -56,9 +58,13 @@ async function sync(db: D1Database, req: SyncRequest): Promise<RoomView | null |
     await deleteRooms(db, [req.roomId])
     return null
   }
+  const standing = stored.room.raid.hp > 0
   const view = syncRoom(stored.room, req, now, Math.random)
   if (!(await saveRoom(db, stored))) return CONFLICT
-  return (await noteTabFall(db, stored.room, now)) ? view : CONFLICT
+  if (!(await noteTabFall(db, stored.room, now))) return CONFLICT
+  const fell = standing && stored.room.raid.hp === 0 ? fallPush(stored.room, now) : null
+  if (fell) await notifyRaid(db, [fell], req.playerId)
+  return view
 }
 
 function handle(db: D1Database, req: RaidRequest): Promise<Outcome> {

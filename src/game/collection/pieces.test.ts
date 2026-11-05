@@ -19,7 +19,7 @@ import {
   combinePrice,
   PIECES_PER_COMBINE,
   piecesOf,
-  STAR_PRICE,
+  STAR_PRICES,
 } from './pieces'
 
 const createPrice = (speciesId: number) => RARITY_INFO[rarityOf(species(speciesId))].createPrice
@@ -106,12 +106,21 @@ describe('combine', () => {
   it('si ya lo tienes, le da una estrella por su precio', () => {
     const s = stateWithStarter()
     addPieces(s, POKEMON.Bulbasaur, PIECES_PER_COMBINE)
-    s.money = STAR_PRICE - 1
+    s.money = STAR_PRICES[0] - 1
     expect(canCombine(s, POKEMON.Bulbasaur)).toBe(false)
-    s.money = STAR_PRICE
+    s.money = STAR_PRICES[0]
     expect(combine(s, POKEMON.Bulbasaur)).toMatchObject({ kind: CombineKind.Star, stars: 1 })
     expect(s.owned).toHaveLength(1)
     expect(s.money).toBe(0)
+  })
+
+  it('cada estrella cuesta lo de su posición en STAR_PRICES', () => {
+    const s = stateWithStarter()
+    STAR_PRICES.forEach((price, stars) => {
+      s.owned[0].stars = stars
+      expect(combinePrice(s, POKEMON.Bulbasaur)).toBe(price)
+    })
+    expect(STAR_PRICES).toHaveLength(MAX_STARS)
   })
 
   it('con las estrellas al máximo, las piezas se cambian por pokécuartos sin coste', () => {

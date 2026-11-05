@@ -6,12 +6,19 @@ export const REGEN_PER_MIN = 0.1
 /** Fracción de la EXP del nivel actual que da una sesión de entrenamiento (0.25: 4 sesiones por nivel) */
 const TRAIN_EXP_FRACTION = 0.25
 /** ₽ fijos de cada sesión de entrenamiento */
-const TRAIN_BASE_COST = 20
-/** ₽ por nivel² de cada sesión: el precio crece con el cuadrado del nivel, como la EXP que hace falta */
-const TRAIN_COST_PER_LEVEL_SQ = 2
+export const TRAIN_BASE_COST = 10
+/** ₽ de cada sesión por nivel elevado a TRAIN_COST_EXPONENT */
+export const TRAIN_COST_PER_LEVEL = 3
+/**
+ * Cómo se curva el precio con el nivel: por encima de 1 crece algo más deprisa que el dinero de las rutas (que crece
+ * en línea recta con el nivel), así que el tiempo para pagar un nivel sube poco a poco sin estancarse
+ */
+export const TRAIN_COST_EXPONENT = 1.3
 
 export const healCost = (m: OwnedMon) => 5 + m.level * 3
-export const trainCost = (m: OwnedMon) => TRAIN_BASE_COST + TRAIN_COST_PER_LEVEL_SQ * m.level ** 2
+const trainExp = (m: OwnedMon) => Math.ceil(expToNext(m.level) * TRAIN_EXP_FRACTION)
+
+export const trainCost = (m: OwnedMon): number => Math.round(TRAIN_BASE_COST + TRAIN_COST_PER_LEVEL * m.level ** TRAIN_COST_EXPONENT)
 
 /** El Pokémon solo se puede gestionar si está en el rancho (no en ruta ni de expedición) */
 function ranchMon(s: GameState, uid: string): OwnedMon | null {
@@ -47,7 +54,7 @@ export interface TrainPlan {
 /** Una sesión: cobra y da EXP según su nivel actual */
 function trainOnce(m: OwnedMon): number {
   const cost = trainCost(m)
-  gainExp(m, Math.ceil(expToNext(m.level) * TRAIN_EXP_FRACTION))
+  gainExp(m, trainExp(m))
   return cost
 }
 

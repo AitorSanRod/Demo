@@ -6,29 +6,29 @@ import { useNickname } from '../../net/identity'
 import { AccountDialog } from '../account/AccountDialog'
 import { NicknameDialog } from '../raid/NicknameDialog'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
-import { disableNotifications, enableNotifications, notifyStatus, type NotifyStatus } from './notifications'
+import { PUSH_TOPICS } from '../../game/core/push'
+import { usePush } from '../../net/push'
+import { NotificationsDialog } from './NotificationsDialog'
 import './settings.css'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
-
-const NOTIFY_LABEL: Record<NotifyStatus, string> = {
-  on: 'Activados',
-  off: 'Desactivados',
-  denied: 'Bloqueados en el navegador',
-  unsupported: 'No disponibles aquí',
-}
 
 /** Botón de engranaje con el menú de ajustes; tocar fuera del menú lo cierra */
 export function SettingsMenu() {
   const [open, setOpen] = useState(false)
   const [confirmingReset, setConfirmingReset] = useState(false)
-  const [notify, setNotify] = useState(notifyStatus)
+  const push = usePush()
+  const [notifying, setNotifying] = useState(false)
   const [naming, setNaming] = useState(false)
   const nickname = useNickname()
   const account = useAccount()
   const [accountOpen, setAccountOpen] = useState(false)
 
-  const toggleNotify = async () => setNotify(notify === 'on' ? disableNotifications() : await enableNotifications())
+  const openNotifications = () => {
+    setOpen(false)
+    setNotifying(true)
+  }
+  const notifyHint = push.topics.length === 0 ? 'Desactivadas' : push.topics.length === PUSH_TOPICS.length ? 'Todas' : `${push.topics.length} de ${PUSH_TOPICS.length}`
 
   const askNickname = () => {
     setOpen(false)
@@ -54,15 +54,9 @@ export function SettingsMenu() {
         <div className="settings-backdrop" onClick={() => setOpen(false)}>
           <div className="card settings-menu" role="menu" onClick={(e) => e.stopPropagation()}>
             <div className="label">Ajustes</div>
-            <button
-              className="settings-item"
-              role="menuitemcheckbox"
-              aria-checked={notify === 'on'}
-              disabled={notify === 'denied' || notify === 'unsupported'}
-              onClick={toggleNotify}
-            >
-              <ItemIcon item={ICON.Notify} size={22} off={notify !== 'on'} /> Avisar al volver de expedición
-              <span className="tiny muted settings-hint">{NOTIFY_LABEL[notify]}</span>
+            <button className="settings-item" role="menuitem" onClick={openNotifications}>
+              <ItemIcon item={ICON.Notify} size={22} off={push.topics.length === 0} /> Notificaciones
+              <span className="tiny muted settings-hint">{notifyHint}</span>
             </button>
             <button className="settings-item" role="menuitem" onClick={openAccount}>
               <ItemIcon item={ICON.Account} size={22} /> Cuenta
@@ -78,6 +72,7 @@ export function SettingsMenu() {
           </div>
         </div>
       )}
+      {notifying && <NotificationsDialog onClose={() => setNotifying(false)} />}
       {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
       {naming && <NicknameDialog onDone={() => setNaming(false)} onCancel={() => setNaming(false)} />}
       {confirmingReset && (

@@ -1,4 +1,5 @@
 import type { PassiveRef } from '../passives'
+import type { Potion } from '../potions'
 import type { RaidTier } from '../raidBosses'
 
 export interface Encounter {
@@ -9,9 +10,10 @@ export interface Encounter {
 
 /**
  * Tipos de parada. `Raid`: jefe comunitario; al llegar empieza una pelea en sala con los que van llegando (ver
- * game/raid/routeRaid.ts). Previstos para más adelante: entrenador, cofre, descanso y especial
+ * game/raid/routeRaid.ts). `Heal`: sin combate, el Pokémon se para y se cura con la poción de la parada (ver
+ * game/run/runHeal.ts). Previstos para más adelante: entrenador, cofre y especial
  */
-export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss', Raid: 'raid' } as const
+export const NodeKind = { Start: 'start', Wild: 'wild', Boss: 'boss', Raid: 'raid', Heal: 'heal' } as const
 export type NodeKind = (typeof NodeKind)[keyof typeof NodeKind]
 
 /** Fondo de la escena de caminar (ver src/ui/route/pixelScene/ y scenery/). PalletTown es solo de Pueblo Paleta */
@@ -59,6 +61,8 @@ export interface RouteNode {
   encounters?: Encounter[]
   /** Obligatorio en las paradas de jefe y de jefe comunitario: siempre sale este Pokémon a este nivel */
   boss?: Boss
+  /** Obligatoria en las paradas de curación (`NodeKind.Heal`): la poción que usa el Pokémon al llegar */
+  potion?: Potion
 }
 
 /** Imagen de ambientación de la ruta en la lista de rutas (se ve difuminada detrás de su línea) */
@@ -150,6 +154,14 @@ export function pathSpecies(r: Route, path: string[]): number[] {
     return n.kind === NodeKind.Wild ? (n.encounters ?? r.encounters).map((e) => e.speciesId) : []
   })
   return [...new Set(ids)]
+}
+
+/** Pasos medios que se andan por combate en el camino principal (los de expediciones, que no recorren tramos) */
+export function averageLegSteps(r: Route): number {
+  const path = pathFrom(r)
+  const steps = path.slice(1).reduce((sum, _, i) => sum + legSteps(r, path, i + 1), 0)
+  const fights = path.filter((id) => node(r, id).kind === NodeKind.Wild || node(r, id).kind === NodeKind.Boss).length
+  return steps / Math.max(1, fights)
 }
 
 /** Pasos del tramo que llega al nodo `path[i]` */

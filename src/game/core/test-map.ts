@@ -1,4 +1,5 @@
 import { boss, chain, enc, NodeKind, raidBoss, RouteId, Biome, type GameMap } from '../../data/maps/mapCommon'
+import { Potion } from '../../data/potions'
 import { RaidTier } from '../../data/raidBosses'
 import { POKEMON } from '../../data/pokemon'
 
@@ -50,6 +51,20 @@ export const KANTO: GameMap = {
       nodes: chain(
         { id: 's', name: 'Inicio', kind: NodeKind.Start, steps: 0 },
         { id: 'r', name: 'Jefe comunitario', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Snorlax, 10, RaidTier.Mid) },
+      ),
+    },
+    {
+      id: RouteId.MonteMoon,
+      name: 'Ruta con pociones',
+      description: '',
+      biome: Biome.Cave,
+      levels: [2, 3],
+      encounters: enc([POKEMON.Zubat, 100]),
+      reward: { tickets: 1, money: 10, exp: 100 },
+      nodes: chain(
+        { id: 's', name: 'Inicio', kind: NodeKind.Start, steps: 0 },
+        { id: 'p', name: 'Poción', kind: NodeKind.Heal, steps: 20, potion: Potion.Potion },
+        { id: 'f', name: 'Restaurar todo', kind: NodeKind.Heal, steps: 20, potion: Potion.FullRestore },
       ),
     },
   ],

@@ -1,5 +1,7 @@
+import type { DailyGift } from '../../data/dailyGifts'
 import { species } from '../../data/species'
 import type { RaidPrize } from '../../game/raid/raidRoom'
+import { ROUTE_RAID_STREAK_RESET_MS } from '../../game/raid/routeRaidStreak'
 import { Sprite } from './common'
 import type { RewardItem } from './RewardOverlay'
 import { ICON } from './icons'
@@ -77,12 +79,29 @@ export function raidBossReward(speciesId: number, count = 1): RewardItem {
   }
 }
 
-/** Premios de los jefes comunitarios derrotados, sumados: cada jefe, y después ₽, tickets y tickets de cada jefe */
+/** Aviso de que el jefe de una parada da menos dinero por repetir la ruta seguida */
+export function repeatNote(mult: number): string {
+  const minutes = ROUTE_RAID_STREAK_RESET_MS / 60000
+  return `Repetida seguida: el jefe da el ${Math.round(mult * 100)}% de su dinero. Vuelve al 100% si pasan ${minutes} min sin derrotarlo.`
+}
+
+/** Lo que da un obsequio diario: ₽, tickets y trozos de MissingNo */
+export function giftRewards(gift: DailyGift): RewardItem[] {
+  const items = moneyAndTickets(gift.money, gift.tickets)
+  if (gift.missingnoShards > 0) {
+    items.push({ key: 'shards', icon: <ItemIcon item={ICON.Shard} size={96} />, title: `+${gift.missingnoShards} trozos de MissingNo`, color: '#7a5ab0' })
+  }
+  return items
+}
+
+/** Premios de los jefes comunitarios derrotados, sumados: cada jefe, y después EXP, ₽, tickets y tickets de cada jefe */
 export function raidPrizeRewards(prizes: RaidPrize[]): RewardItem[] {
   const bosses = [...new Set(prizes.map((p) => p.bossSpeciesId))]
   const ofBoss = (id: number) => prizes.filter((p) => p.bossSpeciesId === id)
-  const sum = (list: RaidPrize[], field: 'money' | 'tickets' | 'pieces') => list.reduce((a, p) => a + p[field], 0)
+  const sum = (list: RaidPrize[], field: 'money' | 'tickets' | 'pieces' | 'exp') => list.reduce((a, p) => a + p[field], 0)
   const items = bosses.map((id) => raidBossReward(id, ofBoss(id).length))
+  const exp = sum(prizes, 'exp')
+  if (exp > 0) items.push({ key: 'exp', icon: <ItemIcon item={ICON.Exp} size={96} />, title: `+${exp} EXP`, color: '#3a8fd8' })
   items.push(...moneyAndTickets(sum(prizes, 'money'), sum(prizes, 'tickets')))
   for (const id of bosses) {
     const pieces = sum(ofBoss(id), 'pieces')
