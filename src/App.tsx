@@ -8,6 +8,7 @@ import { startPush } from './net/push'
 import { startRaidFeed } from './net/raidFeed'
 import { startRaidSync } from './net/raidSync'
 import { AccountHost } from './ui/account/AccountHost'
+import { UpdatePrompt } from './ui/shared/UpdatePrompt'
 import { act, useGame } from './game/core/store'
 import { tick } from './game/core/tick'
 import { isExpeditionDone } from './game/team/expedition'
@@ -71,6 +72,7 @@ export default function App() {
       <div className="app">
         <StarterScreen />
         <AccountHost game={game} />
+        <UpdatePrompt />
       </div>
     )
   }
@@ -79,6 +81,7 @@ export default function App() {
     <div className="app">
       <TopBar game={game} />
       <AccountHost game={game} />
+      <UpdatePrompt />
 
       <main className="content">
         {tab === 'route' && <RouteScreen game={game} />}

@@ -8,7 +8,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // La versión nueva espera a que el jugador acepte recargar (net/appUpdate.ts y ui/shared/UpdatePrompt.tsx)
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Pokérancho',

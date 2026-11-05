@@ -78,6 +78,7 @@ Cada `.ts` de `src/game` tiene su `.test.ts` al lado; las pantallas, su CSS en l
 | Fondos de ruta por bioma: pixel art generado en canvas / SVG de los biomas que aún no lo tienen | `ui/route/pixelScene/` (`index.ts` bioma → escena, `usePixelScene`, `engine/`, `paint/`, `elements/`, `scenes/<bioma>/`) / `ui/route/scenery/` |
 | Banco de pruebas de los fondos pixel art (`/tools/scenery-lab/` con `npm run dev`) | `tools/scenery-lab/` (skill `fondos-pixel-art`) |
 | Menú inferior y pestañas | `App.tsx` |
+| Versión nueva de la app: service worker y cada cuánto se mira / aviso para recargar | `net/appUpdate.ts` (`registerType: 'prompt'` en `../vite.config.ts`) / `ui/shared/UpdatePrompt.tsx` |
 | Barra superior / ajustes | `ui/shared/TopBar.tsx` / `ui/settings/` |
 | Notificaciones push: temas y validación / plan del móvil (expediciones, fin de ruta) / avisos de raids / cliente / ajustes / servidor | `game/core/push.ts` / `game/core/pushPlan.ts` / `game/raid/online/raidPushes.ts` / `net/push.ts`, `../public/sw-notifications.js` / `ui/settings/NotificationsDialog.tsx` / `../worker/push/`, `../worker/scheduled.ts` (cron), claves con `../scripts/make-vapid-key.mjs` |
 | Sprite, barras, chips de tipo y de ataque | `ui/shared/common.tsx` |

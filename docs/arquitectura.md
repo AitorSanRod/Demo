@@ -20,7 +20,7 @@ DOM ni de `import` de imágenes en ellos (las imágenes de los mapas van con `as
 
 ```
 src/
-  main.tsx            Arranque: estilos base, service worker y <App> dentro del ErrorBoundary
+  main.tsx            Arranque: estilos base, service worker (net/appUpdate.ts) y <App> dentro del ErrorBoundary
   App.tsx             Bucle de tiempo, menú inferior y pantalla de cada pestaña
   index.css           Entrada de los estilos base (src/styles/: variables, estructura y piezas comunes)
   assets/             Imágenes propias (fondo del rancho)
@@ -346,6 +346,9 @@ Push estándar (Web Push) desde el Worker: llegan aunque la app esté cerrada. C
   nadie mirando y manda como mucho `SENDS_PER_RUN` avisos que ya tocan (`push_jobs`), firmados con VAPID y
   cifrados para cada navegador (`webPush.ts`, RFC 8292 y 8291, con la Web Crypto del Worker). Si el servicio de push
   responde 404/410, la suscripción se borra.
+- **Versiones nuevas** (`net/appUpdate.ts`): el service worker va con `registerType: 'prompt'`. La versión nueva se
+  descarga y espera; `UpdatePrompt` avisa para recargar («Más tarde» lo vuelve a enseñar al volver a la app). Con la
+  app abierta se mira si hay versión nueva cada `UPDATE_CHECK_MS` y al volver a ella.
 - `public/sw-notifications.js` se importa en el service worker de Workbox: enseña el aviso y, al tocarlo, abre o trae
   al frente la app. Requisitos: HTTPS (o `localhost`) y, en iOS, la app instalada en la pantalla de inicio (16.4+).
 
