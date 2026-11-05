@@ -22,9 +22,10 @@ describe('buyUpgrade', () => {
 
   it('no pasa del nivel máximo', () => {
     const s = initialState()
-    s.money = PRICE * 10
-    for (let i = 0; i < 5; i++) buyUpgrade(s, 'expeditionSlots')
-    expect(upgradeLevel(s, 'expeditionSlots')).toBe(UPGRADES.expeditionSlots.prices.length)
+    const { prices } = UPGRADES.expeditionSlots
+    s.money = prices.reduce((sum, p) => sum + p, 0) * 2
+    for (let i = 0; i < prices.length + 2; i++) buyUpgrade(s, 'expeditionSlots')
+    expect(upgradeLevel(s, 'expeditionSlots')).toBe(prices.length)
     expect(nextUpgradePrice(s, 'expeditionSlots')).toBeNull()
   })
 })

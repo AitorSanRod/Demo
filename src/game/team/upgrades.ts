@@ -13,12 +13,12 @@ export const UPGRADES: Record<UpgradeId, UpgradeInfo> = {
   expeditionSlots: {
     name: 'Espacio de expedición',
     description: '+1 Pokémon de expedición a la vez',
-    prices: [500, 2000],
+    prices: [500, 2000, 5000],
   },
   ranches: {
     name: 'Rancho nuevo',
     description: '+1 rancho con su propio prado para más Pokémon',
-    prices: [5000, 15000, 40000],
+    prices: [3000, 5000, 10000],
   },
 }
 
