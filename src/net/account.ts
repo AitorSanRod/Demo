@@ -144,8 +144,13 @@ export const setNewPassword = (password: string): Attempt =>
 
 /** Guarda el apodo en la cuenta para tenerlo en cualquier dispositivo (sin cuenta, no hace nada) */
 export async function saveAccountNickname(nickname: string) {
-  if (current.status === AccountStatus.SignedIn) await attempt(() => post('nickname', { nickname }))
+  if (current.status !== AccountStatus.SignedIn) return
+  const failed = await attempt(() => post('nickname', { nickname }))
+  if (!failed && current.user) update({ user: { ...current.user, nickname } })
 }
+
+/** Aparecer o no en el ranking de dinero (quien no aparece tampoco lo ve); devuelve el error o null */
+export const setRanked = (ranked: boolean): Attempt => attempt(async () => setUser((await post('ranked', { ranked })).user ?? null))
 
 export const dismissNotice = () => update({ notice: null })
 

@@ -34,4 +34,6 @@ export interface AccountInfo {
   email: string
   /** Apodo de las raids guardado en la cuenta */
   nickname: string | null
+  /** Aparece en el ranking de dinero (y puede verlo) */
+  ranked: boolean
 }

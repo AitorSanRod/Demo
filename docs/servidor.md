@@ -24,10 +24,11 @@ Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.
 | Cuentas: `/api/auth/*` (crear, confirmar, entrar, salir, recuperar, apodo) | `worker/auth/` + `worker/db/users.ts` |
 | Obsequio diario: `GET` / `POST /api/gift` (solo con sesión) | `worker/gift.ts` + `worker/db/gifts.ts` |
 | Intercambios: `GET` (tablón) / `POST /api/trade` (anunciar, aceptar, retirar, recoger; solo con sesión) | `worker/trade.ts` + `worker/tradeActions.ts` + `worker/db/trades.ts`, `tradeWrites.ts`; tablas en `migrations/0007_trades.sql` |
+| Ranking de dinero: `GET /api/ranking` (solo con sesión, apodo y sin ocultarse; la foto se rehace cada hora) | `worker/ranking.ts` + `worker/db/ranking.ts`; tablas en `migrations/0008_ranking.sql` |
 | Notificaciones push: `/api/push/*` y el envío (VAPID, cifrado) | `worker/push/` |
-| Tarea programada cada minuto (raids sin nadie mirando, borrar paradas viejas, anuncios caducados, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
+| Tarea programada cada minuto (raids sin nadie mirando, borrar paradas viejas, anuncios caducados, ranking cada hora, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
 | Correos (Brevo) y su texto | `worker/mail.ts` |
-| Lógica del juego que usa el servidor (con tests) | `src/game/raid/online/`, `src/game/core/cloudSave.ts`, `accountRules.ts` |
+| Lógica del juego que usa el servidor (con tests) | `src/game/raid/online/`, `src/game/core/cloudSave.ts`, `accountRules.ts`, `ranking.ts` |
 | Cliente: cuenta, partida en la nube, id y apodo, cada cuánto consulta | `src/net/` |
 
 ## Paso a paso: publicar
@@ -127,7 +128,7 @@ Límites del plan gratuito de Cloudflare (se renuevan cada día; si se pasan, la
 |---|---|---|
 | Peticiones al Worker | 100 000 / día | Solo `/api/*`: la web la sirve Cloudflare sin pasar por el Worker |
 | CPU por petición | 10 ms | Las salas juegan como mucho 30 rondas por consulta (`ROOM_PLAYED_ROUNDS`); lo anterior se resume |
-| Filas escritas en D1 | 100 000 / día | Cada consulta de sala y cada subida de partida escriben una |
+| Filas escritas en D1 | 100 000 / día | Cada consulta de sala y cada subida de partida escriben una; el ranking, una por cuenta activa cada hora (24 al día) |
 | Filas leídas en D1 | 5 millones / día | Sobra |
 | Almacenamiento D1 | 5 GB | Una sala ocupa unos KB; una partida, decenas de KB (máx. 1 MB, `MAX_SAVE_BYTES`) |
 | Tarea programada (cron) | Incluida | Una ejecución por minuto (≈ 1 440 al día), con poca CPU: pone al día como mucho 3 salas y manda como mucho 20 avisos |

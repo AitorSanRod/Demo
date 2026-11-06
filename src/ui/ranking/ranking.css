@@ -1,0 +1,75 @@
+/* Ranking de dinero (menú del rancho): tu puesto arriba y la lista de los primeros */
+.ranking-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ranking-mine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 10px;
+  padding: 10px 12px;
+  border: 2px solid var(--yellow-dark);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--yellow) 25%, var(--card));
+}
+.ranking-mine-rank {
+  font-size: 24px;
+  font-weight: 800;
+}
+.ranking-sub {
+  display: block;
+}
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+.ranking-row.mine {
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  font-weight: 700;
+}
+.ranking-rank {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--card-2);
+  font-size: 13px;
+  font-weight: 800;
+}
+.ranking-rank.gold {
+  background: #f7d02c;
+}
+.ranking-rank.silver {
+  background: #c9ccd1;
+}
+.ranking-rank.bronze {
+  background: #d99a5b;
+}
+.ranking-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ranking-updated {
+  margin-top: 8px;
+  text-align: center;
+}

@@ -34,6 +34,8 @@ export const ICON = {
   Sell: ITEM.Nugget,
   /** Notificaciones: lo pendiente de recoger */
   Inbox: ITEM.OrangeMail,
+  /** Ranking de dinero entre jugadores */
+  Ranking: ITEM.RelicCrown,
   Heal: ITEM.Potion,
   Rest: ITEM.FullRestore,
   Train: ITEM.RareCandy,

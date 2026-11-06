@@ -40,6 +40,7 @@ export const ITEM = {
   LinkingCord: 'linking-cord',
   Nugget: 'nugget',
   OrangeMail: 'orange-mail',
+  RelicCrown: 'relic-crown',
 } as const
 export type Item = (typeof ITEM)[keyof typeof ITEM]
 

@@ -6,17 +6,18 @@ import { useTradeBoard } from '../../net/tradeBoard'
 import { BagSheet } from '../bag/BagSheet'
 import { DailyGiftSheet } from '../gift/DailyGiftSheet'
 import { InboxSheet } from '../inbox/InboxSheet'
+import { RankingSheet } from '../ranking/RankingSheet'
 import { useInboxCount } from '../inbox/useInboxCount'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
 import { pendingKey, useUnseen } from '../shared/useUnseen'
 import { TutorialsSheet } from '../tutorials/TutorialsSheet'
 
-type Panel = 'menu' | 'gift' | 'bag' | 'tutorials' | 'inbox'
+type Panel = 'menu' | 'gift' | 'bag' | 'tutorials' | 'inbox' | 'ranking'
 
 /**
  * Botón de menú del rancho (esquina inferior derecha) y lo que abre: Notificaciones (obsequio listo, premios de raid e
- * intercambios), obsequio diario, Mochila y tutoriales
+ * intercambios), obsequio diario, Mochila, ranking y tutoriales
  */
 export function RanchMenu({ game }: { game: GameState }) {
   const [panel, setPanel] = useState<Panel | null>(null)
@@ -49,6 +50,8 @@ export function RanchMenu({ game }: { game: GameState }) {
               <BagSheet game={game} onBack={back} />
             ) : panel === 'inbox' ? (
               <InboxSheet game={game} onBack={back} />
+            ) : panel === 'ranking' ? (
+              <RankingSheet onBack={back} />
             ) : panel === 'tutorials' ? (
               <TutorialsSheet onBack={back} />
             ) : (
@@ -64,6 +67,9 @@ export function RanchMenu({ game }: { game: GameState }) {
                 </MenuItem>
                 <MenuItem icon={ICON.Bag} title="Mochila" onClick={() => setPanel('bag')}>
                   Lo que has comprado y aún no has usado
+                </MenuItem>
+                <MenuItem icon={ICON.Ranking} title="Ranking" onClick={() => setPanel('ranking')}>
+                  Los entrenadores con más dinero
                 </MenuItem>
                 <MenuItem icon={ICON.Tutorials} title="Tutoriales" onClick={() => setPanel('tutorials')}>
                   Cómo jugar, raids, evolucionar y ganar dinero

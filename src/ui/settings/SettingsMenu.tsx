@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { resetGame } from '../../game/core/store'
 import { DEFAULT_NICKNAME } from '../../game/raid/online/protocol'
-import { AccountStatus, useAccount } from '../../net/account'
+import { AccountStatus, setRanked, useAccount } from '../../net/account'
 import { useNickname } from '../../net/identity'
 import { AccountDialog } from '../account/AccountDialog'
 import { NicknameDialog } from '../raid/NicknameDialog'
@@ -66,6 +66,12 @@ export function SettingsMenu() {
               <ItemIcon item={ICON.Raid} size={22} /> Apodo en las raids
               <span className="tiny muted settings-hint">{nickname ?? DEFAULT_NICKNAME}</span>
             </button>
+            {account.user && (
+              <button className="settings-item" role="menuitemcheckbox" aria-checked={account.user.ranked} onClick={() => void setRanked(!account.user!.ranked)}>
+                <ItemIcon item={ICON.Ranking} size={22} off={!account.user.ranked} /> Aparecer en el ranking
+                <span className="tiny muted settings-hint">{account.user.ranked ? 'Sí' : 'No (tampoco lo ves)'}</span>
+              </button>
+            )}
             <button className="settings-item danger" role="menuitem" onClick={askReset}>
               ↺ Reiniciar partida
             </button>

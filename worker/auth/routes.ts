@@ -7,7 +7,8 @@ import { login, signup } from './credentials'
 import { confirm, forgot, reset } from './links'
 import { closeSession, sessionUser } from './session'
 
-// /api/auth/*: cuentas con email y contraseña. GET me; POST signup, login, logout, confirm, forgot, reset, nickname.
+// /api/auth/*: cuentas con email y contraseña. GET me; POST signup, login, logout, confirm, forgot, reset, nickname,
+// ranked (aparecer o no en el ranking).
 
 /** Bytes como mucho de una petición de cuenta */
 const MAX_REQUEST_BYTES = 4 * 1024
@@ -30,6 +31,14 @@ async function nickname(env: Env, request: Request, body: Body, now: number): Pr
   return json({ ok: true })
 }
 
+async function ranked(env: Env, request: Request, body: Body, now: number): Promise<Response> {
+  const user = await sessionUser(env.DB, request, now)
+  if (!user) return json({ code: AuthCode.SignedOut }, 401)
+  if (typeof body.ranked !== 'boolean') return json({ code: AuthCode.Invalid }, 400)
+  await updateUser(env.DB, user.id, { ranked: body.ranked ? 1 : 0 })
+  return json({ user: accountInfo({ ...user, ranked: body.ranked ? 1 : 0 }) })
+}
+
 const POST_ROUTES: Record<string, (env: Env, request: Request, body: Body, now: number) => Promise<Response>> = {
   signup,
   login,
@@ -41,6 +50,7 @@ const POST_ROUTES: Record<string, (env: Env, request: Request, body: Body, now: 
   },
   reset: (env, _request, body, now) => reset(env, body, now),
   nickname,
+  ranked,
 }
 
 export async function authRoute(request: Request, env: Env, action: string): Promise<Response> {

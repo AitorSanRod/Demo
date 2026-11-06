@@ -5,6 +5,7 @@ import { scheduled } from './scheduled'
 import type { Env } from './env'
 import { json } from './http'
 import { raidRoute } from './raid'
+import { rankingRoute } from './ranking'
 import { saveRoute } from './save'
 import { tradeRoute } from './trade'
 
@@ -21,11 +22,12 @@ export default {
     if (pathname === '/api/save') return saveRoute(request, env)
     if (pathname === '/api/gift') return giftRoute(request, env)
     if (pathname === '/api/trade') return tradeRoute(request, env)
+    if (pathname === '/api/ranking') return rankingRoute(request, env)
     if (pathname.startsWith(AUTH_PREFIX)) return authRoute(request, env, pathname.slice(AUTH_PREFIX.length))
     if (pathname.startsWith(PUSH_PREFIX)) return pushRoute(request, env, pathname.slice(PUSH_PREFIX.length))
     return json({ error: 'No existe' }, 404)
   },
-  // Tarea programada de cada minuto: raids sin nadie mirando, anuncios caducados y avisos push
+  // Tarea programada de cada minuto: raids sin nadie mirando, anuncios caducados, ranking y avisos push
   async scheduled(_controller, env) {
     await scheduled(env)
   },

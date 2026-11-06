@@ -8,6 +8,8 @@ export interface UserRow {
   password_hash: string
   confirmed: number
   nickname: string | null
+  /** 1 si quiere aparecer en el ranking (y verlo) */
+  ranked: number
   failed_logins: number
   locked_until: number
   last_mail_at: number
@@ -17,7 +19,7 @@ export interface UserRow {
 export const TokenKind = { Confirm: 'confirm', Reset: 'reset' } as const
 export type TokenKind = (typeof TokenKind)[keyof typeof TokenKind]
 
-export const accountInfo = (u: UserRow): AccountInfo => ({ id: u.id, email: u.email, nickname: u.nickname })
+export const accountInfo = (u: UserRow): AccountInfo => ({ id: u.id, email: u.email, nickname: u.nickname, ranked: u.ranked === 1 })
 
 export const userByEmail = (db: D1Database, email: string) => db.prepare('SELECT * FROM users WHERE email = ?').bind(email).first<UserRow>()
 
