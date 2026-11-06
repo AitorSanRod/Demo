@@ -38,3 +38,27 @@ export const rankingDue = (builtAt: number | null, now: number): boolean =>
 
 /** Hora (ms) de la próxima foto */
 export const nextRankingAt = (now: number): number => (Math.floor(now / RANKING_REFRESH_MS) + 1) * RANKING_REFRESH_MS
+
+/** El Pokémon de un entrenador que más daño ha hecho a los jefes comunitarios */
+export interface TopMon {
+  speciesId: number
+  damage: number
+}
+
+export interface DamageRankingEntry {
+  rank: number
+  nickname: string
+  /** Daño total a los jefes comunitarios desde que empezó el ranking */
+  damage: number
+  topMon: TopMon
+  /** Es la cuenta que lo mira */
+  mine: boolean
+}
+
+/** El ranking de daño a los jefes comunitarios: como el de dinero, con el Pokémon que más daño ha hecho de cada uno */
+export interface DamageRankingView {
+  top: DamageRankingEntry[]
+  mine: { rank: number; damage: number; topMon: TopMon } | null
+  total: number
+  builtAt: number | null
+}

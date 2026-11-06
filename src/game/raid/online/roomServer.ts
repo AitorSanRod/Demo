@@ -2,7 +2,7 @@ import type { Rng } from '../../core/random'
 import { hasRoom, presentMembers, RaidMemberKind } from '../raidRoom'
 import { ROUTE_RAID_JOIN_MIN_HP } from '../stopRoom'
 import { RoomSlot, type JoinChannel, type JoinRequest, type RoomView, type SyncRequest } from './protocol'
-import { catchUp, createRoom, playersIn, seatPlayer, seatsOf, unseatPlayer, viewFor, type SharedRoom } from './sharedRoom'
+import { catchUp, createRoom, isOver, playersIn, seatPlayer, seatsOf, unseatPlayer, viewFor, type SharedRoom } from './sharedRoom'
 
 // Las acciones del servidor de salas, sin el almacén: el servidor carga las salas, llama aquí y guarda lo que cambie.
 // Las de la pestaña Raids van además por ciclos (tabRooms.ts).
@@ -11,9 +11,6 @@ import { catchUp, createRoom, playersIn, seatPlayer, seatsOf, unseatPlayer, view
 export const ROOM_TTL_MS = 24 * 60 * 60 * 1000
 
 export const isExpired = (room: SharedRoom, now: number): boolean => now - room.updatedAt > ROOM_TTL_MS
-
-/** La pelea de la sala ha terminado: el jefe ha caído o se ha escapado */
-const isOver = (room: SharedRoom): boolean => room.raid.hp === 0 || room.closed
 
 /**
  * Sala de parada terminada y sin nadie dentro: todos sus jugadores ya saben cómo acabó (o se fueron antes) y se borra.

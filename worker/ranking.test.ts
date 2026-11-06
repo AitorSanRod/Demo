@@ -4,24 +4,12 @@ import { cloudUpload } from '../src/game/core/cloudSave'
 import { RANKING_ACTIVE_MS, RANKING_REFRESH_MS, RANKING_SIZE, RankingCode } from '../src/game/core/ranking'
 import { initialState } from '../src/game/core/state'
 import { chooseStarter } from '../src/game/core/test-utils'
-import { MailKind, sendMail } from './mail'
 import { refreshRanking } from './ranking'
+import { player, type Api } from './test/accounts'
 import { testWorker } from './test/api'
 
 vi.mock('./mail', async (original) => ({ ...(await original<typeof import('./mail')>()), sendMail: vi.fn() }))
 vi.mock('../src/data/maps/kantoMaps', () => import('../src/game/core/test-map'))
-
-type Api = ReturnType<typeof testWorker>
-
-/** Un jugador con cuenta en la base de datos de `env` (nueva si no se da), con apodo si se pide */
-async function player(email: string, nickname: string | null, env?: Api['env']): Promise<Api> {
-  const api = testWorker(env)
-  await api.call('/api/auth/signup', { body: { email, password: 'pikachu1234' } })
-  const token = vi.mocked(sendMail).mock.calls.filter((c) => c[2] === MailKind.Confirm).at(-1)![3].split('=')[1]
-  await api.call('/api/auth/confirm', { body: { token } })
-  if (nickname) await api.call('/api/auth/nickname', { body: { nickname } })
-  return api
-}
 
 async function upload(api: Api, money: number) {
   const s = initialState()

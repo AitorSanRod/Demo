@@ -19,6 +19,9 @@ export interface UserRow {
 export const TokenKind = { Confirm: 'confirm', Reset: 'reset' } as const
 export type TokenKind = (typeof TokenKind)[keyof typeof TokenKind]
 
+/** Condición SQL de las cuentas que salen en los rankings (y los ven): con apodo y sin ocultarse en Ajustes */
+export const RANKED_USERS = 'users.ranked = 1 AND users.nickname IS NOT NULL'
+
 export const accountInfo = (u: UserRow): AccountInfo => ({ id: u.id, email: u.email, nickname: u.nickname, ranked: u.ranked === 1 })
 
 export const userByEmail = (db: D1Database, email: string) => db.prepare('SELECT * FROM users WHERE email = ?').bind(email).first<UserRow>()

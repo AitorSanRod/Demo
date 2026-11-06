@@ -7,6 +7,7 @@ const palletTown = asset(new URL('../../assets/routes/pallet-town.webp', import.
 const route1 = asset(new URL('../../assets/routes/route-1.webp', import.meta.url))
 const viridianForest = asset(new URL('../../assets/routes/viridian-forest.webp', import.meta.url))
 const pewterCity = asset(new URL('../../assets/routes/pewter-city.webp', import.meta.url))
+const route3 = asset(new URL('../../assets/routes/route-3.webp', import.meta.url))
 
 export const KANTO: GameMap = {
   id: 'kanto',
@@ -151,6 +152,7 @@ export const KANTO: GameMap = {
       name: 'Ruta 3',
       description: 'Camino de rocas y hierba entre Ciudad Plateada y el Monte Moon, lleno de entrenadores.',
       biome: Biome.Meadow,
+      backdrop: { image: route3, focusY: 50 },
       levels: [22, 28],
       encounters: enc([POKEMON.Spearow, 30], [POKEMON.Jigglypuff, 15], [POKEMON.Mankey, 15], [POKEMON.Sandshrew, 15], [POKEMON.Ekans, 15], [POKEMON.NidoranF, 5], [POKEMON.NidoranM, 5]),
       reward: { tickets: 5, money: 1500, exp: 1200 },

@@ -1,4 +1,4 @@
-/* Ranking de dinero (menú del rancho): tu puesto arriba y la lista de los primeros */
+/* Rankings de dinero y de daño (menú del rancho): tu puesto arriba y la lista de los primeros */
 .ranking-notice {
   display: flex;
   flex-direction: column;
@@ -72,4 +72,14 @@
 .ranking-updated {
   margin-top: 8px;
   text-align: center;
+}
+.ranking-tabs {
+  margin-top: 8px;
+}
+/* Ranking de daño: el Pokémon que más daño ha hecho, bajo el nombre */
+.ranking-mon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400;
 }

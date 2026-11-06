@@ -149,7 +149,7 @@ export async function saveAccountNickname(nickname: string) {
   if (!failed && current.user) update({ user: { ...current.user, nickname } })
 }
 
-/** Aparecer o no en el ranking de dinero (quien no aparece tampoco lo ve); devuelve el error o null */
+/** Aparecer o no en los rankings de dinero y de daño (quien no aparece tampoco lo ve); devuelve el error o null */
 export const setRanked = (ranked: boolean): Attempt => attempt(async () => setUser((await post('ranked', { ranked })).user ?? null))
 
 export const dismissNotice = () => update({ notice: null })

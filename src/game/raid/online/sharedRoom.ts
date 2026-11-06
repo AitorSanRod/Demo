@@ -39,6 +39,11 @@ export interface SharedRoom {
   updatedAt: number
   /** El jefe se escapó: el ciclo pasó al siguiente sin que cayera (ver raidCycle.ts). La sala ya no se juega */
   closed: boolean
+  /**
+   * El daño de la pelea aún no se ha apuntado en el ranking de daño (ver damageTally.ts). Las salas de antes del
+   * ranking no lo tienen: su daño no cuenta
+   */
+  damagePending?: boolean
 }
 
 const seatKey = (playerId: string, uid: string) => `${playerId}/${uid}`
@@ -46,6 +51,9 @@ const seatKey = (playerId: string, uid: string) => `${playerId}/${uid}`
 export const seatsOf = (room: SharedRoom, playerId: string): Seat[] => Object.values(room.seats).filter((seat) => seat.playerId === playerId)
 
 const memberOf = (room: SharedRoom, seat: Seat): RaidMember => room.raid.members.find((m) => m.id === seat.memberId)!
+
+/** La pelea de la sala ha terminado: el jefe ha caído o se ha escapado */
+export const isOver = (room: SharedRoom): boolean => room.raid.hp === 0 || room.closed
 
 /** Jugadores con algún Pokémon dentro ahora */
 export const playersIn = (room: SharedRoom): number => playerMembers(room.raid).length
@@ -58,6 +66,7 @@ const emptyRoom = (channel: RoomChannel, id: string, now: number, raid: Raid): S
   nextSeat: 0,
   updatedAt: now,
   closed: false,
+  damagePending: true,
 })
 
 /** Sala nueva del jefe de una parada; `bossHp` (fracción) abre una ya en marcha */

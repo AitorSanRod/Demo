@@ -1,12 +1,15 @@
+import { takeDamageTally } from '../../src/game/raid/online/damageTally'
 import { channelKey, ROUTE_CHANNEL_PREFIX, type RoomChannel, type RoomSummary } from '../../src/game/raid/online/protocol'
 import { ROOM_TTL_MS } from '../../src/game/raid/online/roomServer'
 import { ROOM_MAX_CATCHUP_MS } from '../../src/game/raid/online/sharedRoom'
 import { playersIn, type SharedRoom } from '../../src/game/raid/online/sharedRoom'
 import { roomSummary } from '../../src/game/raid/online/tabRooms'
+import { addDamage } from './damageRanking'
 
 // Las salas compartidas en D1 (tabla rooms). Cada escritura comprueba la versión leída: si otro jugador escribió la
 // sala entre medias, no se guarda y la petición se repite. Con cada sala se guardan sus jugadores y su resumen, para
-// listarlas sin abrir su JSON.
+// listarlas sin abrir su JSON. Al terminar la pelea, quien guarda o borra la sala apunta su daño en el ranking (una sola
+// vez: la marca va en la misma escritura con versión).
 
 /** Salas de ruta que se listan como mucho */
 const MAX_LISTED_ROUTE_ROOMS = 30
@@ -46,6 +49,7 @@ export async function loadRouteSummaries(db: D1Database, now: number): Promise<R
 
 /** Guarda la sala si nadie la ha cambiado desde que se leyó (o si es nueva); false si otro llegó antes */
 export async function saveRoom(db: D1Database, { room, version }: StoredRoom): Promise<boolean> {
+  const tally = takeDamageTally(room)
   const data = JSON.stringify(room)
   // Con el jefe caído o escapado la pelea ha terminado: ya no cuenta como sala con jugadores (ni sale en las listas)
   const players = room.closed || room.raid.hp === 0 ? 0 : playersIn(room)
@@ -59,7 +63,9 @@ export async function saveRoom(db: D1Database, { room, version }: StoredRoom): P
           .prepare('UPDATE rooms SET data = ?, version = version + 1, updated_at = ?, players = ?, summary = ? WHERE id = ? AND version = ?')
           .bind(data, room.updatedAt, players, summary, room.id, version)
   const { meta } = await statement.run()
-  return meta.changes === 1
+  if (meta.changes !== 1) return false
+  await addDamage(db, tally)
+  return true
 }
 
 /** Guarda varias salas (las que se han leído llevan su versión en `versions`); false si alguna la cambió otro antes */
@@ -71,8 +77,11 @@ export async function saveRooms(db: D1Database, rooms: SharedRoom[], versions: M
 /** Borra la sala si nadie la ha cambiado desde que se leyó; false si otro llegó antes */
 export async function deleteRoom(db: D1Database, { room, version }: StoredRoom): Promise<boolean> {
   if (version === null) return true
+  const tally = takeDamageTally(room)
   const { meta } = await db.prepare('DELETE FROM rooms WHERE id = ? AND version = ?').bind(room.id, version).run()
-  return meta.changes === 1
+  if (meta.changes !== 1) return false
+  await addDamage(db, tally)
+  return true
 }
 
 /**

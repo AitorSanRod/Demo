@@ -1,12 +1,27 @@
-import { nextRankingAt, type RankingEntry, type RankingView } from '../../game/core/ranking'
+import type { ReactNode } from 'react'
+import { nextRankingAt } from '../../game/core/ranking'
 
 /** Hora en reloj (HH:MM) */
 const clock = (ms: number) => new Date(ms).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
 
-const money = (n: number) => `₽ ${n.toLocaleString('es-ES')}`
+/** Lo que tienen en común los rankings (dinero, daño): `S` es el puesto y lo que se puntúa */
+export interface BoardView<S extends { rank: number }> {
+  top: (S & { nickname: string; mine: boolean })[]
+  mine: S | null
+  total: number
+  builtAt: number | null
+}
+
+interface BoardProps<S extends { rank: number }> {
+  view: BoardView<S>
+  /** La puntuación, a la derecha */
+  score: (s: S) => string
+  /** Lo que va bajo el nombre (el Pokémon que más daño ha hecho) */
+  detail?: (s: S) => ReactNode
+}
 
 /** Tu puesto arriba y la lista de los primeros, con tu línea marcada si estás entre ellos */
-export function RankingBoard({ view }: { view: RankingView }) {
+export function RankingBoard<S extends { rank: number }>({ view, score, detail }: BoardProps<S>) {
   return (
     <>
       <div className="ranking-mine">
@@ -16,8 +31,9 @@ export function RankingBoard({ view }: { view: RankingView }) {
             <span className="grow">
               <strong>Tu puesto</strong>
               <span className="tiny muted ranking-sub">de {view.total} entrenadores</span>
+              {detail?.(view.mine)}
             </span>
-            <strong>{money(view.mine.money)}</strong>
+            <strong>{score(view.mine)}</strong>
           </>
         ) : (
           <span className="small">
@@ -30,7 +46,14 @@ export function RankingBoard({ view }: { view: RankingView }) {
       ) : (
         <ol className="ranking-list">
           {view.top.map((e) => (
-            <RankingRow key={`${e.rank}-${e.nickname}`} entry={e} />
+            <li key={`${e.rank}-${e.nickname}`} className={`ranking-row${e.mine ? ' mine' : ''}`}>
+              <RankBadge rank={e.rank} />
+              <span className="grow ranking-name">
+                {e.nickname}
+                {detail?.(e)}
+              </span>
+              <span className="small">{score(e)}</span>
+            </li>
           ))}
         </ol>
       )}
@@ -42,13 +65,7 @@ export function RankingBoard({ view }: { view: RankingView }) {
 /** Clase de los tres primeros puestos (oro, plata, bronce) */
 const PODIUM = ['gold', 'silver', 'bronze']
 
-function RankingRow({ entry }: { entry: RankingEntry }) {
-  const podium = PODIUM[entry.rank - 1]
-  return (
-    <li className={`ranking-row${entry.mine ? ' mine' : ''}`}>
-      <span className={`ranking-rank${podium ? ` ${podium}` : ''}`}>{entry.rank}</span>
-      <span className="grow ranking-name">{entry.nickname}</span>
-      <span className="small">{money(entry.money)}</span>
-    </li>
-  )
+function RankBadge({ rank }: { rank: number }) {
+  const podium = PODIUM[rank - 1]
+  return <span className={`ranking-rank${podium ? ` ${podium}` : ''}`}>{rank}</span>
 }

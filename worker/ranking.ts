@@ -1,12 +1,14 @@
 import { AuthCode } from '../src/game/core/accountRules'
 import { RankingCode, rankingDue } from '../src/game/core/ranking'
 import { sessionUser } from './auth/session'
+import { loadDamageRanking } from './db/damageRanking'
 import { loadRanking, rankingBuiltAt, rebuildRanking } from './db/ranking'
 import type { Env } from './env'
 import { json } from './http'
 
-// /api/ranking: el ranking de dinero para la cuenta con sesión. Solo lo ve quien tiene apodo y no se ha ocultado de él
-// en Ajustes. La foto la rehace la tarea programada una vez cada hora (refreshRanking).
+// /api/ranking: los rankings de dinero y de daño a los jefes (db/damageRanking.ts) para la cuenta con sesión, con los
+// mismos permisos: solo los ve quien tiene apodo y no se ha ocultado de ellos en Ajustes. Las fotos las rehace la tarea
+// programada una vez cada hora (refreshRanking).
 
 export async function rankingRoute(request: Request, env: Env): Promise<Response> {
   if (request.method !== 'GET') return json({ error: 'Solo GET' }, 405)
@@ -14,7 +16,8 @@ export async function rankingRoute(request: Request, env: Env): Promise<Response
   if (!user) return json({ code: AuthCode.SignedOut }, 401)
   if (!user.nickname) return json({ code: RankingCode.NoNickname }, 403)
   if (!user.ranked) return json({ code: RankingCode.Hidden }, 403)
-  return json({ ranking: await loadRanking(env.DB, user.id) })
+  const ranking = await loadRanking(env.DB, user.id)
+  return json({ ranking, damage: await loadDamageRanking(env.DB, user.id, ranking.builtAt) })
 }
 
 /** Desde la tarea programada: rehace la foto si es de otra hora */

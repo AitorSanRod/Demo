@@ -24,7 +24,7 @@ Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.
 | Cuentas: `/api/auth/*` (crear, confirmar, entrar, salir, recuperar, apodo) | `worker/auth/` + `worker/db/users.ts` |
 | Obsequio diario: `GET` / `POST /api/gift` (solo con sesión) | `worker/gift.ts` + `worker/db/gifts.ts` |
 | Intercambios: `GET` (tablón) / `POST /api/trade` (anunciar, aceptar, retirar, recoger; solo con sesión) | `worker/trade.ts` + `worker/tradeActions.ts` + `worker/db/trades.ts`, `tradeWrites.ts`; tablas en `migrations/0007_trades.sql` |
-| Ranking de dinero: `GET /api/ranking` (solo con sesión, apodo y sin ocultarse; la foto se rehace cada hora) | `worker/ranking.ts` + `worker/db/ranking.ts`; tablas en `migrations/0008_ranking.sql` |
+| Rankings de dinero y de daño a jefes: `GET /api/ranking` (solo con sesión, apodo y sin ocultarse; las fotos se rehacen cada hora). El daño lo apunta el propio servidor al terminar cada jefe (caer o escaparse), al guardar la sala: una escritura por Pokémon de jugador con cuenta | `worker/ranking.ts` + `worker/db/ranking.ts`, `worker/db/damageRanking.ts`; tablas en `migrations/0008_ranking.sql` y `0009_damage_ranking.sql` |
 | Notificaciones push: `/api/push/*` y el envío (VAPID, cifrado) | `worker/push/` |
 | Tarea programada cada minuto (raids sin nadie mirando, borrar paradas viejas, anuncios caducados, ranking cada hora, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
 | Correos (Brevo) y su texto | `worker/mail.ts` |
@@ -128,7 +128,7 @@ Límites del plan gratuito de Cloudflare (se renuevan cada día; si se pasan, la
 |---|---|---|
 | Peticiones al Worker | 100 000 / día | Solo `/api/*`: la web la sirve Cloudflare sin pasar por el Worker |
 | CPU por petición | 10 ms | Las salas juegan como mucho 30 rondas por consulta (`ROOM_PLAYED_ROUNDS`); lo anterior se resume |
-| Filas escritas en D1 | 100 000 / día | Cada consulta de sala y cada subida de partida escriben una; el ranking, una por cuenta activa cada hora (24 al día) |
+| Filas escritas en D1 | 100 000 / día | Cada consulta de sala y cada subida de partida escriben una; los rankings, una por cuenta activa y ranking cada hora (24 al día); el daño a jefes, una por Pokémon de jugador con cuenta al terminar cada jefe |
 | Filas leídas en D1 | 5 millones / día | Sobra |
 | Almacenamiento D1 | 5 GB | Una sala ocupa unos KB; una partida, decenas de KB (máx. 1 MB, `MAX_SAVE_BYTES`) |
 | Tarea programada (cron) | Incluida | Una ejecución por minuto (≈ 1 440 al día), con poca CPU: pone al día como mucho 3 salas y manda como mucho 20 avisos |
