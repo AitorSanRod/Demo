@@ -160,4 +160,7 @@ export const POKEMON = {
   Espeon: 196,
   Umbreon: 197,
   Shroomish: 285,
+  Leafeon: 470,
+  Glaceon: 471,
+  Sylveon: 700,
 } as const

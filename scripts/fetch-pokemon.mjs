@@ -7,7 +7,7 @@ import { writeFile } from 'node:fs/promises'
 const API = 'https://pokeapi.co/api/v2'
 const KANTO_LAST = 151
 /** Números de la Pokédex Nacional de los Pokémon que se añaden a mano, p. ej. [152, 196, 197] */
-const NATIONAL_IDS = [175, 183, 196, 197, 285]
+const NATIONAL_IDS = [175, 183, 196, 197, 285, 470, 471, 700]
 const CONCURRENCY = 8
 
 async function getJson(url) {
