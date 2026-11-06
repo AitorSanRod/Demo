@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { useCorrectionGuard } from '../trade/correctionGuard'
 import { CountInput } from '../trade/CountInput'
 
 /** Una venta por cantidad (tickets de una especie o trozos) */
@@ -18,15 +19,18 @@ export interface CountSale {
 /** Elegir cuántos se venden y confirmar, con el total */
 export function SellCountDialog({ sale, onClose }: { sale: CountSale; onClose: () => void }) {
   const [count, setCount] = useState(1)
+  const [invalid, setInvalid] = useState(false)
+  const correction = useCorrectionGuard()
 
   return (
     <ConfirmDialog
       title={`Vender ${sale.name}`}
       confirmLabel={`Vender por ₽ ${(count * sale.price).toLocaleString('es-ES')}`}
-      onConfirm={() => (act((s) => sale.sell(s, count)), onClose())}
+      onConfirm={correction.guard(() => (act((s) => sale.sell(s, count)), onClose()))}
+      confirmDisabled={invalid}
       onCancel={onClose}
     >
-      <CountInput label="Cuántos" value={count} max={sale.max} onChange={setCount} />
+      <CountInput label="Cuántos" value={count} max={sale.max} onChange={setCount} onInvalid={setInvalid} onCorrected={correction.onCorrected} />
     </ConfirmDialog>
   )
 }

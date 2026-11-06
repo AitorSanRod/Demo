@@ -14,8 +14,16 @@ const KIND_LABEL: Record<AskKind, string> = {
   [GoodKind.Tickets]: 'Tickets gacha',
 }
 
+interface Props {
+  value: TradeAsk | null
+  onChange: (ask: TradeAsk | null) => void
+  /** La cantidad escrita aún no vale (ver CountInput) */
+  onInvalid: (invalid: boolean) => void
+  onCorrected: () => void
+}
+
 /** Qué se pide a cambio: de 1 a MAX_ASKED_SPECIES especies (se entrega una), dinero, trozos o tickets de gacha */
-export function AskPicker({ value, onChange }: { value: TradeAsk | null; onChange: (ask: TradeAsk | null) => void }) {
+export function AskPicker({ value, onChange, onInvalid, onCorrected }: Props) {
   const [kind, setKind] = useState<AskKind>(value?.kind ?? GoodKind.Mon)
   const pick = (next: AskKind) => {
     setKind(next)
@@ -53,6 +61,8 @@ export function AskPicker({ value, onChange }: { value: TradeAsk | null; onChang
           value={value.count}
           max={value.kind === GoodKind.Money ? MAX_TRADE_MONEY : MAX_TRADE_COUNT}
           onChange={(count) => onChange({ ...value, count })}
+          onInvalid={onInvalid}
+          onCorrected={onCorrected}
         />
       )}
     </>

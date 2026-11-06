@@ -14,8 +14,17 @@ type OfferKind = OfferRequest['kind']
 
 const KIND_LABEL: Record<OfferKind, string> = { [GoodKind.Mon]: 'Pokémon', [GoodKind.Pieces]: 'Tickets', [GoodKind.Shards]: 'Trozos' }
 
+interface Props {
+  game: GameState
+  value: OfferRequest | null
+  onChange: (offer: OfferRequest | null) => void
+  /** La cantidad escrita aún no vale (ver CountInput) */
+  onInvalid: (invalid: boolean) => void
+  onCorrected: () => void
+}
+
 /** Qué se pone a la venta: un Pokémon del rancho o la Caja, tickets de una especie o trozos de MissingNo */
-export function OfferPicker({ game, value, onChange }: { game: GameState; value: OfferRequest | null; onChange: (offer: OfferRequest | null) => void }) {
+export function OfferPicker({ game, value, onChange, onInvalid, onCorrected }: Props) {
   const [kind, setKind] = useState<OfferKind>(value?.kind ?? GoodKind.Mon)
   const pick = (next: OfferKind) => {
     setKind(next)
@@ -60,11 +69,11 @@ export function OfferPicker({ game, value, onChange }: { game: GameState; value:
         </div>
       )}
       {value?.kind === GoodKind.Pieces && (
-        <CountInput label="Tickets" value={value.count} max={Math.min(piecesOf(game, value.speciesId), MAX_TRADE_COUNT)} onChange={(count) => onChange({ ...value, count })} />
+        <CountInput label="Tickets" value={value.count} max={Math.min(piecesOf(game, value.speciesId), MAX_TRADE_COUNT)} onChange={(count) => onChange({ ...value, count })} onInvalid={onInvalid} onCorrected={onCorrected} />
       )}
       {kind === GoodKind.Shards &&
         (value?.kind === GoodKind.Shards ? (
-          <CountInput label="Trozos" value={value.count} max={Math.min(game.missingnoShards, MAX_TRADE_COUNT)} onChange={(count) => onChange({ ...value, count })} />
+          <CountInput label="Trozos" value={value.count} max={Math.min(game.missingnoShards, MAX_TRADE_COUNT)} onChange={(count) => onChange({ ...value, count })} onInvalid={onInvalid} onCorrected={onCorrected} />
         ) : (
           <p className="small muted">No tienes trozos de MissingNo.</p>
         ))}
