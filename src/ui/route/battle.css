@@ -11,33 +11,28 @@
   z-index: 1;
   pointer-events: none;
 }
+/* Columna de cada combatiente, de la misma altura en los dos: el sprite abajo y, encima, el ataque y los números */
 .route-fighter {
   position: absolute;
   bottom: var(--ground);
+  height: 200px;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
 }
-/* Mismo `left` que .scene-walker.battling para que la barra quede sobre el Pokémon del jugador */
+/* Mismo `left` que .scene-walker.battling para que el ataque y los números queden sobre el Pokémon del jugador */
 .route-fighter.player {
   left: 26%;
-  height: 200px;
 }
 /* La entrada va en el contenedor; los ataques, en .route-enemy, así no se pisan las animaciones */
 .route-fighter.enemy {
   left: 74%;
   animation: enemy-enter 0.5s ease-out;
 }
-.route-hp {
-  width: 110px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: #fbfbf2ee;
-  color: #222;
-  box-shadow: 0 2px 0 #0003;
-  white-space: nowrap;
-  animation: fade-in 0.3s ease-out;
+.route-enemy {
+  position: relative;
 }
 .route-enemy .sprite {
   display: flex;
@@ -165,7 +160,7 @@
   }
 }
 
-/* Jefe: aviso al aparecer y «JEFE» en rojo en su barra de vida */
+/* Jefe: aviso al aparecer */
 .boss-warning {
   position: absolute;
   left: 50%;
@@ -180,9 +175,6 @@
   white-space: nowrap;
   box-shadow: 0 4px 14px #0005;
   animation: boss-warning 1.4s ease-out forwards;
-}
-.boss-label {
-  color: var(--red);
 }
 @keyframes boss-warning {
   0% {
@@ -202,10 +194,7 @@
     opacity: 0;
   }
 }
-/* La barra del jefe lleva «JEFE» delante: algo más ancha y un poco más hacia el centro para que no se corte */
+/* El marcador del jefe es más ancho: un poco más hacia el centro para que no se corte */
 .route-fighter.enemy.boss {
   left: 70%;
-}
-.route-fighter.enemy.boss .route-hp {
-  width: 140px;
 }

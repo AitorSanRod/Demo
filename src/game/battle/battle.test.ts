@@ -31,6 +31,16 @@ describe('simulateBattle', () => {
     const hitsOnEnemy = result.events.filter((e) => e.kind === 'hit' && e.side === 'enemy')
     expect(hitsOnEnemy).toHaveLength(0)
     expect(result.outcome).not.toBe('win')
+    expect(result.events.some((e) => e.kind === 'miss' && e.side === 'enemy' && e.miss === 'immune')).toBe(true)
+  })
+
+  it('cada golpe de un ataque dice su eficacia y si fue crítico', () => {
+    const player = makeFighter('player', POKEMON.Charmander, 20)
+    const enemy = makeFighter('enemy', POKEMON.Bulbasaur, 20)
+    const result = simulateBattle(player, enemy, seqRng(0.5))
+    const hit = result.events.find((e) => e.kind === 'hit' && e.side === 'enemy')!
+    expect(hit.eff).toBe(effectiveness(signatureMove(POKEMON.Charmander).type, enemy.types))
+    expect(hit.crit).toBe(false)
   })
 
   it('el más rápido ataca primero', () => {

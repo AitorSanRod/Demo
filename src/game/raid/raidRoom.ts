@@ -82,6 +82,8 @@ export interface Raid {
   elapsedMs: number
   /** Milisegundos de juego que faltan para la próxima ronda */
   roundMsLeft: number
+  /** Milisegundos de juego que le quedan al final de la pelea (ver raidEnding.ts); 0 mientras se lucha */
+  endingMs: number
   round: number
   members: RaidMember[]
   lastRound: RaidHit[]

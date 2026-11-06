@@ -3,11 +3,14 @@ import type { Biome } from '../../data/maps'
 import { signatureMove } from '../../data/moves'
 import { species } from '../../data/species'
 import { BOSS_ID, presentMembers, RaidMemberKind, type Raid, type RaidMember } from '../../game/raid/raidRoom'
+import { inFinale, isEnding } from '../../game/raid/raidEnding'
 import { useWatchRaid } from '../../net/raidSync'
+import { BattleHud } from '../route/BattleHud'
 import { HitEffect } from '../route/HitEffect'
 import { WalkScene } from '../route/WalkScene'
-import { Bar, Sprite } from '../shared/common'
+import { Sprite } from '../shared/common'
 import { partySpot } from './partySpot'
+import { RaidFinale } from './RaidFinale'
 import { roundClass } from './roundClass'
 import { shownBossHp, visibleHits, type ReplayHit } from './roundReplay'
 import '../route/battle.css'
@@ -18,6 +21,9 @@ const BOSS_SPRITE_SIZE = 168
 const PARTY_SPRITE_SIZE = 96
 /** Desfase del balanceo de cada Pokémon del grupo, para que no se muevan todos a la vez */
 const IDLE_PHASE_S = 0.37
+/** Carriles en los que salen los números sobre el jefe (izquierda, centro, derecha) y separación entre ellos */
+const POP_LANES = 3
+const POP_LANE_PX = 34
 
 /** La pelea de la pestaña Raids: su propio paisaje, en una franja de la pantalla, con la pelea dentro */
 export function RaidBattleScene({ raid, biome, timeScale }: { raid: Raid; biome: Biome; timeScale: number }) {
@@ -33,16 +39,20 @@ export function RaidBattleScene({ raid, biome, timeScale }: { raid: Raid; biome:
 /**
  * La pelea contra el jefe sobre una escena de ruta (se pinta dentro de WalkScene, como RouteBattle): el jefe a la
  * derecha y el grupo a la izquierda en filas desordenadas. Los golpes de cada ronda salen uno tras otro (ver
- * roundReplay.ts): quien ataca embiste, quien lo recibe tiembla con su número y el destello del tipo
+ * roundReplay.ts): quien ataca embiste, quien lo recibe tiembla con su número y el destello del tipo. El marcador del
+ * jefe va a sus pies. Cuando la pelea se para, se ve entera la última ronda, el jefe cae y queda el cartel del final
+ * (RaidFinale) hasta que se aplica el resultado
  */
 export function RaidBattle({ raid, timeScale }: { raid: Raid; timeScale: number }) {
   useWatchRaid()
   // El del jugador, delante del todo
   const party = presentMembers(raid).sort((a, b) => Number(b.kind === RaidMemberKind.Player) - Number(a.kind === RaidMemberKind.Player))
   const hits = visibleHits(raid, timeScale)
+  const won = inFinale(raid) && raid.hp === 0
+  const boss = { speciesId: raid.boss.speciesId, name: species(raid.boss.speciesId).name, level: raid.boss.level, maxHp: raid.maxHp }
 
   return (
-    <div className="route-battle">
+    <div className={`route-battle ${won ? 'raid-won' : ''}`}>
       {party.map((m, i) => (
         <PartyMon
           key={m.id}
@@ -55,6 +65,10 @@ export function RaidBattle({ raid, timeScale }: { raid: Raid; timeScale: number 
         />
       ))}
       <BossFighter raid={raid} hits={hits} party={party} />
+      <div className="battle-hud-slot enemy boss raid-boss-hud">
+        <BattleHud fighter={boss} hp={shownBossHp(raid)} status={null} boss />
+      </div>
+      {inFinale(raid) && <RaidFinale raid={raid} />}
     </div>
   )
 }
@@ -64,18 +78,18 @@ function BossFighter({ raid, hits, party }: { raid: Raid; hits: ReplayHit[]; par
   const latest = received.at(-1)
   const hitter = latest && party.find((m) => m.id === latest.from)
   const attack = hits.find((h) => h.from === BOSS_ID)
+  const felled = isEnding(raid) && shownBossHp(raid) === 0
+  const isMine = (h: ReplayHit) => party.some((m) => m.id === h.from && m.kind === RaidMemberKind.Player)
 
   return (
-    <div className="route-fighter enemy boss raid-boss-fighter">
-      <div className="route-hp">
-        <span className="tiny">
-          <strong className="boss-label">JEFE </strong>
-          <strong>{species(raid.boss.speciesId).name}</strong> Nv. {raid.boss.level}
-        </span>
-        <Bar value={shownBossHp(raid)} max={raid.maxHp} kind="hp" />
-      </div>
+    <div className={`route-fighter enemy boss raid-boss-fighter ${felled ? 'felled' : ''}`}>
+      {/* Varios golpes a la vez: cada número sale un poco a un lado, y los del jugador, más grandes */}
       {received.map((h) => (
-        <span key={h.seq} className="battle-pop hit">
+        <span
+          key={h.seq}
+          className={`battle-pop hit ${isMine(h) ? 'mine' : ''}`}
+          style={{ ['--pop-x' as string]: `${((h.seq % POP_LANES) - 1) * POP_LANE_PX}px` } as CSSProperties}
+        >
           {h.dealt > 0 ? `-${h.dealt}` : 'Fallo'}
         </span>
       ))}

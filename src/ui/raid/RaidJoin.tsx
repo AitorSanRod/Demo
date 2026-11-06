@@ -3,6 +3,7 @@ import { species } from '../../data/species'
 import { findMon, type GameState } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { joinRaid, leaveRaid, monRaidBlocker, raidRoomBlocker } from '../../game/raid/raid'
+import { isEnding } from '../../game/raid/raidEnding'
 import type { RaidRotation } from '../../game/raid/online/protocol'
 import { playerMembers } from '../../game/raid/raidEngine'
 import { earnsPrize, presenceShare, RAID_MIN_PRESENCE } from '../../game/raid/raidPrizes'
@@ -40,7 +41,8 @@ function InRaid({ game, raid, uid }: { game: GameState; raid: Raid; uid: string 
         {formatPercent(RAID_MIN_PRESENCE)} o si sigue dentro cuando caiga el jefe.
       </p>
       <RaidLinkNote raid={raid} />
-      <BigAction icon={ICON.Ranch} label={`Retirar a ${name}`} onClick={() => setConfirming(true)} />
+      {/* Mientras se ve el final de la pelea ya no se puede retirar */}
+      {!isEnding(raid) && <BigAction icon={ICON.Ranch} label={`Retirar a ${name}`} onClick={() => setConfirming(true)} />}
       {confirming && (
         <ConfirmDialog
           title="¿Retirarlo de la pelea?"

@@ -4,9 +4,9 @@ import type { GameState } from '../../game/core/state'
 import { raidMinutesLeft } from '../../game/raid/raidEstimate'
 import type { Raid } from '../../game/raid/raidRoom'
 import { Bar } from '../shared/common'
-import { formatMinutes } from '../shared/format'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
+import { fallText } from './fallText'
 import { RaidBattleScene } from './RaidBattleScene'
 import { raidBiome } from './raidBiome'
 import { shownBossHp } from './roundReplay'
@@ -40,7 +40,7 @@ export function RaidScene({ game, raid }: { game: GameState; raid: Raid }) {
             {percent}% · {hp} / {raid.maxHp} PS
           </span>
           <span className="raid-eta">
-            {gameMinutesLeft === null ? 'Nadie le hace daño' : `Caerá en ≈ ${formatMinutes(gameMinutesLeft / game.timeScale)}`}
+            {fallText(raid, gameMinutesLeft, game.timeScale)}
           </span>
         </div>
       </div>

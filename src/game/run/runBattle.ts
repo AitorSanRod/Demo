@@ -1,5 +1,5 @@
 import { legSteps, NodeKind, type Boss, type Route, type RouteNode } from '../../data/maps'
-import { makeFighter, simulateBattle, type BattleRecord } from '../battle/battle'
+import { makeFighter, simulateBattle } from '../battle/battle'
 import { combineBonus } from '../battle/combatBonus'
 import { boostedMoney, expReward, moneyReward, pieceReward, ticketReward } from '../battle/rewards'
 import { markSeen } from '../collection/dex'
@@ -8,6 +8,7 @@ import { pickEncounter, randInt, type Rng } from '../core/random'
 import { activeMon, type GameState } from '../core/state'
 import { ranchPassives } from '../team/ranchPassives'
 import { gainExp, maxHp } from '../team/stats'
+import { battleDuration } from './battleTimeline'
 
 /**
  * Multiplicador de stats de los salvajes. Por debajo de 1 porque el jugador encadena combates y solo se cura en las
@@ -22,12 +23,6 @@ const BOSS_EXP_MULT = 2
 export const BOSS_TICKETS = 0
 /** Fracción del dinero ganado en la ruta que se pierde al ser derrotado */
 const DEFEAT_MONEY_LOSS = 0.5
-/** Milisegundos reales que dura cada evento del combate en la ruta; mientras, no se avanza */
-export const BATTLE_EVENT_MS = 700
-/** Milisegundos reales tras el último evento (el rival cae o huye y se ve el premio) antes de seguir caminando */
-const BATTLE_END_MS = 1200
-
-export const battleDuration = (b: BattleRecord): number => b.events.length * BATTLE_EVENT_MS + BATTLE_END_MS
 
 /** Rival de la parada: el jefe si lo tiene; si no, un salvaje de sus encuentros al nivel de la ruta */
 function rivalOf(r: Route, n: RouteNode, rng: Rng): Boss {

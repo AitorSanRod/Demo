@@ -134,15 +134,25 @@
   align-self: center;
 }
 .bar {
+  position: relative;
   height: 8px;
   border-radius: 99px;
   background: #00000026;
   overflow: hidden;
 }
 .bar-fill {
+  position: relative;
   height: 100%;
   border-radius: 99px;
   transition: width 0.35s ease;
+}
+/* Estela de la barra de PS (ver Bar en common.tsx): espera a que se vea el golpe y luego baja */
+.bar-ghost {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 99px;
+  background: #fff3b0;
+  transition: width 0.5s ease-in 0.35s;
 }
 .bar-fill.hp-ok {
   background: var(--hp-ok);

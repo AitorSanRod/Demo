@@ -1,0 +1,186 @@
+/* Marcador de cada combatiente en la ruta (BattleHud.tsx): tarjeta crema con borde oscuro, como los de los juegos,
+   con una franja del color de su primer tipo (--type-color) */
+
+/* Hueco de cada marcador: bajo los pies de su Pokémon, para que no tape la escena ni la pelea. La entrada va aquí, en
+   un elemento cuya clase no cambia, para que no se repita con cada golpe */
+.battle-hud-slot {
+  position: absolute;
+  top: calc(100% - var(--ground) + 10px);
+  z-index: 3;
+  translate: -50% 0;
+  pointer-events: none;
+  animation: fade-in 0.3s ease-out;
+}
+.battle-hud-slot.player {
+  left: 26%;
+}
+.battle-hud-slot.enemy {
+  left: 74%;
+}
+.battle-hud-slot.boss {
+  left: 70%;
+}
+
+.battle-hud {
+  position: relative;
+  width: 164px;
+  padding: 5px 9px 6px 11px;
+  border: 2px solid #2b2820;
+  border-radius: 10px 4px 10px 4px;
+  background: linear-gradient(#fdfcf4, #ecead9);
+  color: #1a1814;
+  box-shadow:
+    inset 0 -2px 0 #0000001a,
+    0 3px 0 #0004;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+/* Franja del tipo a la izquierda */
+.battle-hud::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--type-color);
+}
+.battle-hud.boss {
+  width: 176px;
+  border-color: var(--red-dark);
+  background: linear-gradient(#fff6ef, #f3dfd2);
+}
+.battle-hud.struck {
+  animation: hud-struck 0.35s ease;
+}
+.battle-hud.down {
+  filter: grayscale(0.8);
+  opacity: 0.85;
+}
+
+/* Fila de arriba: puntos de tipo, nombre y nivel */
+.hud-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.hud-types {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.hud-types i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--type-color);
+  box-shadow: 0 0 0 1px #0005;
+}
+.hud-boss {
+  flex-shrink: 0;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 14px;
+}
+.hud-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 800;
+}
+.hud-level {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.hud-level small {
+  font-size: 9px;
+  margin-right: 1px;
+  color: #6e675b;
+}
+
+/* Barra de PS en su marco oscuro, con la etiqueta «PS» delante */
+.hud-bar {
+  display: flex;
+  align-items: center;
+  padding: 2px 3px 2px 2px;
+  border-radius: 99px;
+  background: #3a362c;
+  gap: 3px;
+}
+.hud-ps {
+  padding: 0 4px;
+  border-radius: 99px;
+  background: var(--yellow);
+  color: #6a4b00;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 10px;
+}
+.hud-bar .bar {
+  flex: 1;
+  height: 7px;
+  background: #5a5444;
+}
+/* Brillo de arriba, para que la barra se vea con volumen */
+.hud-bar .bar-fill {
+  box-shadow: inset 0 2px 0 #ffffff55;
+}
+/* Con pocos PS, el marco de la barra en rojo, fijo */
+.battle-hud.low .hud-bar {
+  box-shadow: 0 0 0 1px var(--red);
+}
+
+/* Fila de abajo: el estado alterado */
+.hud-foot {
+  display: flex;
+  align-items: center;
+  min-height: 15px;
+}
+.hud-status {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--type-color);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 15px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 0 #0006;
+  box-shadow: inset 0 -2px 0 #0003;
+  animation: status-in 0.35s ease-out;
+}
+.hud-status.down {
+  background: #6e675b;
+}
+
+@keyframes hud-struck {
+  30% {
+    translate: 0 2px;
+    border-color: var(--red);
+  }
+}
+@keyframes status-in {
+  from {
+    scale: 1.8;
+    opacity: 0;
+  }
+  60% {
+    scale: 0.9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle-hud.struck,
+  .hud-status {
+    animation: none;
+  }
+}

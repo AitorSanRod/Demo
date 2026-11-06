@@ -5,6 +5,7 @@ import { findMon, MonPlace, monPlace, type GameState } from '../core/state'
 import { RAID_ROTATIONS, RaidRotation, roomRotation } from './online/protocol'
 import { RAID_BOTS } from './raidBots'
 import { addPlayer, advanceRoom, isLinked, localHooks, newRaid, playerMembers, removePlayer, runLinkedClock, settleFall } from './raidEngine'
+import { beginEnding, isEnding, spendEnding } from './raidEnding'
 import { hasRoom, pendingLink, presentMembers, RaidMemberKind, type Raid } from './raidRoom'
 
 // Los jefes de la pestaña Raids: hay uno por rotación (online/protocol.ts), se manda a un Pokémon del rancho a cada uno
@@ -111,7 +112,7 @@ export function switchToLocalRaids(s: GameState) {
 /** Retirada antes de tiempo; si ya cumple el mínimo de presencia, cobrará cuando caiga el jefe */
 export function leaveRaid(s: GameState, uid: string) {
   const rotation = raidRotationOf(s, uid)
-  if (!rotation) return
+  if (!rotation || isEnding(s.raids[rotation]!)) return
   const raid = s.raids[rotation]!
   removePlayer(s, playerMembers(raid).find((m) => m.id === uid)!)
   // Si aún estaba entrando en una sala del servidor, ya no hace falta
@@ -136,22 +137,29 @@ function waitForBoss(raid: Raid, ms: number): number {
   return ms - waited
 }
 
-/** Avanza `ms` la sala de una rotación; la enlazada al servidor solo cuenta su reloj (la pelea la juega él) */
+/** Avanza `ms` la sala de una rotación; la enlazada al servidor solo cuenta su reloj (la pelea la juega él). Al caer el jefe, se ve el final */
 function advanceTabRaid(s: GameState, rotation: RaidRotation, ms: number, rng: Rng) {
   const raid = s.raids[rotation]
   if (!raid) return
+  if (isEnding(raid)) return finishTabEnding(s, rotation, raid, ms, rng)
   if (isLinked(raid) || (s.raidServer && raid.remote)) return runLinkedClock(raid, ms)
   // Con servidor y sin un Pokémon propio dentro, la sala que se ve es la del servidor: aquí no se juega nada
   if (s.raidServer && playerMembers(raid).length === 0) {
     s.raids[rotation] = null
     return
   }
-  let left: number | null = ms
-  while (s.raids[rotation] && left !== null) {
-    const current = s.raids[rotation]!
-    left = advanceRoom(current, waitForBoss(current, left), RAID_BOTS, rng, localHooks(s))
-    if (left !== null) fallTabRaid(s, rotation, current, rng)
-  }
+  const left = advanceRoom(raid, waitForBoss(raid, ms), RAID_BOTS, rng, localHooks(s))
+  if (left === null) return
+  beginEnding(raid)
+  finishTabEnding(s, rotation, raid, left, rng)
+}
+
+/** Gasta el final de la pelea; al terminar cae el jefe y lo que sobra cuenta para la espera y el siguiente */
+function finishTabEnding(s: GameState, rotation: RaidRotation, raid: Raid, ms: number, rng: Rng) {
+  const left = spendEnding(raid, ms)
+  if (left === null) return
+  fallTabRaid(s, rotation, raid, rng)
+  if (left > 0) advanceTabRaid(s, rotation, left, rng)
 }
 
 /** Avanza las peleas `ms` milisegundos de juego; si cae un jefe, el tiempo que sobra cuenta para la espera y el siguiente */

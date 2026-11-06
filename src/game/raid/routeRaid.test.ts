@@ -5,6 +5,7 @@ import { chooseStarter, seqRng } from '../core/test-utils'
 import { advanceRun, startRun, walk } from '../run/run'
 import { maxHp } from '../team/stats'
 import { RAID_ROUND_MS } from './raidCombat'
+import { isEnding, RAID_ENDING_MS } from './raidEnding'
 import { RaidMemberKind } from './raidRoom'
 import {
   advanceRouteRaid,
@@ -48,7 +49,7 @@ function arriveAtRaid(rng = NEW_ROOM) {
 function loseLastLife(s: GameState) {
   const me = currentRouteRaid(s)!.members.find((m) => m.id === activeMon(s)!.uid)!
   Object.assign(me, { lives: 1, hpFraction: Number.MIN_VALUE })
-  advanceRouteRaid(s, RAID_ROUND_MS, seqRng(0))
+  advanceRouteRaid(s, RAID_ROUND_MS + RAID_ENDING_MS, seqRng(0))
 }
 
 describe('jefe comunitario de ruta', () => {
@@ -82,7 +83,7 @@ describe('jefe comunitario de ruta', () => {
     const run = s.run!
     // Como si la parada no fuera la última: al caer el jefe hay más ruta por andar
     run.stop = 0
-    advanceRun(s, RAID_ROUND_MS * 2, seqRng(0))
+    advanceRun(s, RAID_ROUND_MS * 2 + RAID_ENDING_MS, seqRng(0))
     expect(run.earned.raidBosses).toEqual([raid.boss.speciesId])
     expect(run.phase).toBe('walking')
     expect(run.steps).toBeGreaterThan(0)
@@ -115,7 +116,7 @@ describe('jefe comunitario de ruta', () => {
     const { s, raid } = arriveAtRaid()
     const money = s.money
     raid.hp = 1
-    advanceRouteRaid(s, RAID_ROUND_MS, seqRng(0))
+    advanceRouteRaid(s, RAID_ROUND_MS + RAID_ENDING_MS, seqRng(0))
     const run = s.run!
     expect(run.phase).toBe('complete')
     expect(run.raid).toBeNull()
@@ -131,7 +132,7 @@ describe('jefe comunitario de ruta', () => {
     const { s, raid } = arriveAtRaid()
     recordRouteRaidFall(s, raid.place!, s.lastTick)
     raid.hp = 1
-    advanceRouteRaid(s, RAID_ROUND_MS, seqRng(0))
+    advanceRouteRaid(s, RAID_ROUND_MS + RAID_ENDING_MS, seqRng(0))
     expect(s.run!.earned.raidMoneyMult).toBe(ROUTE_RAID_REPEAT_MONEY_MULT)
     expect(s.routeRaidStreaks).not.toEqual({})
   })
@@ -179,6 +180,19 @@ describe('jefe comunitario de ruta', () => {
     walk(s, Number.MAX_SAFE_INTEGER, NEW_ROOM)
     const again = currentRouteRaid(s)!
     expect(again.hp).toBe(Math.floor(again.maxHp * ROUTE_RAID_JOIN_MIN_HP) + 1)
+  })
+
+  it('al caer el jefe la ruta espera a que se vea el final, y mientras no se puede retirar', () => {
+    const { s, raid } = arriveAtRaid()
+    raid.hp = 1
+    advanceRouteRaid(s, RAID_ROUND_MS, seqRng(0))
+    expect(isEnding(raid)).toBe(true)
+    retreatRouteRaid(s)
+    advanceRouteRaid(s, RAID_ENDING_MS - 1, seqRng(0))
+    expect(s.run!.phase).toBe('raid')
+    expect(s.run!.earned.raidBosses).toHaveLength(0)
+    advanceRouteRaid(s, 1, seqRng(0))
+    expect(s.run!.earned.raidBosses).toEqual([raid.boss.speciesId])
   })
 
   it('retirarse es una derrota y no da el premio del jefe', () => {

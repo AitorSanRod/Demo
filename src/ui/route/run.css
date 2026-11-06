@@ -64,6 +64,14 @@
 /* Derrota: la ruta se queda en gris y nuestro Pokémon en negro; solo el resumen de recompensas conserva el color.
    El filtro va en la escena y el panel, no en .run, para no afectar al resumen (que es position: fixed). */
 .run .scene,
+/* Aviso dentro de la cabecera mientras hay combate: abajo están los marcadores de vida */
+.run-hud-note {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
 .run .run-hud {
   transition: filter 0.6s ease;
 }

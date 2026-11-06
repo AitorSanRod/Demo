@@ -1,5 +1,6 @@
+import type { StatusId } from '../../data/passives'
 import type { BattleEvent, BattleRecord, Side } from '../../game/battle/battle'
-import { BATTLE_EVENT_MS, battleDuration } from '../../game/run/runBattle'
+import { battleMoment } from '../../game/run/battleTimeline'
 
 export interface BattleFrame {
   index: number
@@ -10,10 +11,15 @@ export interface BattleFrame {
 
 /** Qué momento del combate toca mostrar según el tiempo que le queda en el motor */
 export function battleFrame(record: BattleRecord, msLeft: number): BattleFrame {
-  const elapsed = battleDuration(record) - msLeft
-  const index = Math.min(record.events.length - 1, Math.floor(elapsed / BATTLE_EVENT_MS))
-  return { index, event: record.events[index], ended: elapsed >= record.events.length * BATTLE_EVENT_MS }
+  const { index, ended } = battleMoment(record, msLeft)
+  return { index, event: record.events[index], ended }
 }
+
+/** Golpe fuerte (crítico o muy eficaz): se ve con más fuerza */
+export const isHeavyHit = (e: BattleEvent): boolean => e.kind === 'hit' && (!!e.crit || (e.eff ?? 1) > 1)
+
+/** Clase de la animación de un estado alterado sobre el sprite (status-fx.css), mientras dura */
+export const statusClass = (status: StatusId | null): string => (status ? `status-${status}` : '')
 
 /** Clase de animación de cada Pokémon en este momento del combate */
 export function fighterClass(record: BattleRecord, frame: BattleFrame, side: Side): string {
@@ -22,5 +28,7 @@ export function fighterClass(record: BattleRecord, frame: BattleFrame, side: Sid
   if (frame.ended && side === 'enemy' && record.outcome === 'flee') return 'fleeing'
   if (frame.event.side !== side) return ''
   if (frame.event.kind === 'attack') return `attacking ${side}`
-  return frame.event.kind === 'hit' ? 'hit' : ''
+  if (frame.event.kind === 'heal') return 'healed'
+  if (frame.event.kind !== 'hit') return ''
+  return isHeavyHit(frame.event) ? 'hit heavy' : 'hit'
 }

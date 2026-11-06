@@ -1,0 +1,82 @@
+/* Estados alterados sobre el sprite, mientras duran (clase status-<id>, ver statusClass en battleFrame.ts). Van en la
+   imagen, no en su caja, para no pisar las animaciones de embestida, golpe o caída. Los colores son los del tipo que
+   representa cada estado en STATUS_INFO */
+
+/* Quemadura: brillo naranja que parpadea como una llama */
+.status-burn .sprite img {
+  animation: status-burn 0.9s ease-in-out infinite;
+}
+/* Veneno: halo violeta que late despacio */
+.status-poison .sprite img {
+  animation: status-poison 1.4s ease-in-out infinite;
+}
+/* Parálisis: de vez en cuando, un chispazo amarillo y un tirón */
+.status-paralysis .sprite img {
+  animation: status-paralysis 1.3s steps(1, end) infinite;
+}
+/* Congelación: azulado y quieto, con un destello frío */
+.status-freeze .sprite img {
+  animation: status-freeze 1.6s ease-in-out infinite;
+}
+/* Confusión: se tambalea */
+.status-confusion .sprite img {
+  transform-origin: bottom center;
+  animation: status-confusion 1.2s ease-in-out infinite;
+}
+
+@keyframes status-burn {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px #f08030) brightness(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 6px #f08030) drop-shadow(0 -2px 3px #ffd040) brightness(1.15);
+  }
+}
+@keyframes status-poison {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px #a040a0);
+  }
+  50% {
+    filter: drop-shadow(0 0 7px #a040a0) saturate(0.8) brightness(0.95);
+  }
+}
+@keyframes status-paralysis {
+  0%,
+  70%,
+  100% {
+    filter: none;
+    translate: 0 0;
+  }
+  76% {
+    filter: drop-shadow(0 0 5px #f8d030) brightness(1.6);
+    translate: -2px 0;
+  }
+  82% {
+    filter: drop-shadow(0 0 3px #f8d030) brightness(1.3);
+    translate: 2px 0;
+  }
+}
+@keyframes status-freeze {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px #98d8d8) saturate(0.45) brightness(1.1);
+  }
+  50% {
+    filter: drop-shadow(0 0 7px #c8f0ff) saturate(0.35) brightness(1.25);
+  }
+}
+@keyframes status-confusion {
+  25% {
+    rotate: -6deg;
+  }
+  75% {
+    rotate: 6deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sprite img {
+    animation: none !important;
+  }
+}

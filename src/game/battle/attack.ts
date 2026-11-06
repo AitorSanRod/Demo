@@ -46,14 +46,14 @@ export function attack(atk: Fighter, def: Fighter, push: Push, rng: Rng) {
 
   const mv = atk.move
   push({ kind: 'attack', side: atk.side, text: `${label(atk)} usó ${mv.name}.` })
-  if (rng() * 100 >= mv.accuracy) return push({ kind: 'miss', side: def.side, text: '¡Pero falló!' })
-  if (def.bonus.dodge > 0 && rng() < def.bonus.dodge) return push({ kind: 'miss', side: def.side, text: '¡Lo esquivó!' })
+  if (rng() * 100 >= mv.accuracy) return push({ kind: 'miss', side: def.side, miss: 'miss', text: '¡Pero falló!' })
+  if (def.bonus.dodge > 0 && rng() < def.bonus.dodge) return push({ kind: 'miss', side: def.side, miss: 'dodge', text: '¡Lo esquivó!' })
   const { dealt, eff, crit } = damage(atk, def, mv, rng)
-  if (eff === 0) return push({ kind: 'miss', side: def.side, text: `No afecta a ${label(def)}…` })
+  if (eff === 0) return push({ kind: 'miss', side: def.side, miss: 'immune', text: `No afecta a ${label(def)}…` })
 
   def.hp = Math.max(0, def.hp - dealt)
   const note = [crit ? '¡Crítico!' : '', eff > 1 ? '¡Es muy eficaz!' : eff < 1 ? 'No es muy eficaz…' : ''].filter(Boolean).join(' ')
-  push({ kind: 'hit', side: def.side, text: note })
+  push({ kind: 'hit', side: def.side, crit, eff, text: note })
   if (atk.bonus.drain > 0) heal(atk, dealt * atk.bonus.drain, push)
   if (def.hp === 0) return push({ kind: 'faint', side: def.side, text: `¡${label(def)} se debilitó!` })
   for (const { status, chance } of atk.bonus.inflicts) if (rng() < chance) inflictStatus(def, status, push)

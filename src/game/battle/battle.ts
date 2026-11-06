@@ -36,9 +36,21 @@ export interface BattleEvent {
   side?: Side
   /** Estado alterado del evento (al recibirlo, al sufrirlo o al hacer daño por él) */
   status?: StatusId
+  /** hit de un ataque: golpe crítico */
+  crit?: boolean
+  /** hit de un ataque: multiplicador de eficacia de tipos (2 = muy eficaz, 0,5 = poco eficaz) */
+  eff?: number
+  /** miss: por qué no le hizo nada */
+  miss?: MissReason
   playerHp: number
   enemyHp: number
+  /** Estado alterado de cada uno tras el evento (se ve en su barra de vida) */
+  playerStatus: StatusId | null
+  enemyStatus: StatusId | null
 }
+
+/** Falla por precisión, lo esquiva la pasiva del rival o el tipo del rival lo anula */
+export type MissReason = 'miss' | 'dodge' | 'immune'
 
 type BattleOutcome = 'win' | 'lose' | 'flee'
 
@@ -92,14 +104,15 @@ interface BattleResult {
 }
 
 /** Registro de eventos del combate; cada uno guarda los PS de ambos en ese momento */
-export type Push = (e: Omit<BattleEvent, 'playerHp' | 'enemyHp'>) => void
+export type Push = (e: Omit<BattleEvent, 'playerHp' | 'enemyHp' | 'playerStatus' | 'enemyStatus'>) => void
 
 export const label = (f: Fighter) => (f.side === 'enemy' ? `${f.name} salvaje` : f.name)
 
 /** Combate automático por turnos: actúa primero el más rápido; al final de cada turno pesan los estados y la regeneración */
 export function simulateBattle(player: Fighter, enemy: Fighter, rng: Rng = Math.random): BattleResult {
   const events: BattleEvent[] = []
-  const push: Push = (e) => events.push({ ...e, playerHp: player.hp, enemyHp: enemy.hp })
+  const push: Push = (e) =>
+    events.push({ ...e, playerHp: player.hp, enemyHp: enemy.hp, playerStatus: player.status, enemyStatus: enemy.status })
   const outcome = (): BattleOutcome | null => (enemy.hp === 0 ? 'win' : player.hp === 0 ? 'lose' : null)
 
   push({ kind: 'info', text: `¡Un ${enemy.name} salvaje de Nv. ${enemy.level} apareció!` })

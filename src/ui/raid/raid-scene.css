@@ -13,9 +13,22 @@
 .route-fighter.enemy.boss.raid-boss-fighter {
   left: 77%;
 }
+/* Los números sobre el jefe salen en carriles (--pop-x) para no pisarse; los del jugador, más grandes y en amarillo */
 .raid-boss-fighter .battle-pop {
-  top: 56px;
-  font-size: 22px;
+  top: 30px;
+  translate: calc(-50% + var(--pop-x, 0px)) 0;
+  font-size: 16px;
+  opacity: 0.85;
+}
+.raid-boss-fighter .battle-pop.mine {
+  z-index: 2;
+  font-size: 24px;
+  color: var(--yellow);
+  opacity: 1;
+}
+/* El marcador del jefe, a sus pies, algo más a la izquierda para que quepa en la pantalla */
+.battle-hud-slot.raid-boss-hud {
+  left: 72%;
 }
 .raid-boss-fighter .sprite {
   display: flex;

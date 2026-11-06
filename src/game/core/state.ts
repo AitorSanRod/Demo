@@ -152,7 +152,7 @@ export interface GameState {
   lastTick: number
 }
 
-export const SAVE_VERSION = 32
+export const SAVE_VERSION = 34
 
 export type TabRaids = Record<RaidRotation, Raid | null>
 

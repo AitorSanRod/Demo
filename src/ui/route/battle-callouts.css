@@ -1,0 +1,104 @@
+/* Combate en la ruta: nombre del ataque, golpes fuertes, curas y destello del crítico */
+
+/* Nombre del ataque sobre quien lo usa, con el color de su tipo (--type-color) */
+.move-callout {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  z-index: 2;
+  translate: -50% 0;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--type-color);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 #0006;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 3px 8px #0005;
+  animation: callout-in 0.25s ease-out;
+}
+@keyframes callout-in {
+  from {
+    scale: 0.5;
+    opacity: 0;
+  }
+  70% {
+    scale: 1.08;
+  }
+}
+
+/* Número de daño grande y, debajo, el motivo (crítico, eficacia, estado) */
+.battle-pop.hit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.battle-pop.hit b {
+  font-size: 22px;
+}
+.battle-pop small {
+  font-size: 12px;
+}
+.battle-pop.heavy {
+  color: #ffb43a;
+}
+.battle-pop.heavy b {
+  font-size: 30px;
+}
+.battle-pop.weak {
+  color: #d8d8d8;
+}
+.battle-pop.weak b {
+  font-size: 17px;
+}
+
+/* Golpe fuerte: sacudida más larga y con destello rojo; cura: brillo verde */
+.scene .scene-walker.hit.heavy .sprite,
+.route-enemy.hit.heavy {
+  animation: shake-heavy 0.5s ease;
+}
+.scene .scene-walker.healed .sprite,
+.route-enemy.healed {
+  animation: healed 0.5s ease;
+}
+@keyframes shake-heavy {
+  15%,
+  45%,
+  75% {
+    translate: -10px 0;
+    filter: brightness(1.8) sepia(1) hue-rotate(-50deg) saturate(4);
+  }
+  30%,
+  60%,
+  90% {
+    translate: 10px 0;
+    filter: none;
+  }
+}
+@keyframes healed {
+  50% {
+    filter: drop-shadow(0 0 8px var(--hp-ok)) brightness(1.3);
+  }
+}
+
+/* Destello blanco de toda la escena en un crítico */
+.battle-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #fff;
+  pointer-events: none;
+  animation: battle-flash 0.3s ease-out forwards;
+}
+@keyframes battle-flash {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 0;
+  }
+}

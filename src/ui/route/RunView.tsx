@@ -5,6 +5,7 @@ import type { GameState, OwnedMon, Run } from '../../game/core/state'
 import { act } from '../../game/core/store'
 import { isSearching, playerMembers } from '../../game/raid/raidEngine'
 import type { Raid } from '../../game/raid/raidRoom'
+import { isEnding } from '../../game/raid/raidEnding'
 import { currentRouteRaid } from '../../game/raid/routeRaid'
 import { endRun, tapRun } from '../../game/run/run'
 import { landmarkInView } from '../../game/run/runLandmark'
@@ -14,7 +15,7 @@ import { ConfirmDialog } from '../shared/ConfirmDialog'
 import { formatMinutes } from '../shared/format'
 import { earningsRewards, levelUpReward, raidBossReward, repeatNote } from '../shared/rewardItems'
 import { RewardOverlay } from '../shared/RewardOverlay'
-import { battleFrame, fighterClass } from './battleFrame'
+import { battleFrame, fighterClass, statusClass } from './battleFrame'
 import { RouteBattle } from './RouteBattle'
 import { RaidBattle } from '../raid/RaidBattleScene'
 import { RaidHudLine, RaidSearching, RetreatButton } from './RouteRaidHud'
@@ -59,7 +60,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
         speciesId={routeRaid && !searching ? undefined : mon.speciesId}
         moving={walking}
         speed={Math.min(1.8, Math.max(0.6, spm / 22))}
-        walkerClass={battle ? `battling ${playerClass}` : run.heal ? 'healing' : ''}
+        walkerClass={battle && frame ? `battling ${playerClass} ${statusClass(frame.event.playerStatus)}` : run.heal ? 'healing' : ''}
         onStep={walking || battle ? () => act(tapRun) : undefined}
         landmark={landmark}
       >
@@ -75,7 +76,7 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
             Parada {run.stop}/{lastStop}
           </span>
           {run.phase === 'walking' && <AbandonButton />}
-          {routeRaid && <RetreatButton />}
+          {routeRaid && !isEnding(routeRaid) && <RetreatButton />}
         </div>
         <div className="row between small">
           <span>
@@ -89,12 +90,12 @@ export function RunView({ game, run, mon }: { game: GameState; run: Run; mon: Ow
         {/* En el combate de la última parada la ruta sigue 'walking' hasta que acaba, pero ya no hay tramo siguiente */}
         {run.phase === 'walking' && run.stop < lastStop && <LegProgress game={game} run={run} spm={spm} />}
         {routeRaid && <RaidHudLine game={game} raid={routeRaid} />}
+        {battle && <p className="run-hud-note">¡Combate! Toca para acelerarlo</p>}
+        {routeRaid && !searching && <p className="run-hud-note">Los que acaban la ruta se unen a la pelea</p>}
       </div>
 
       {walking && <div className="tap-hint">Toca para avanzar más rápido</div>}
       {run.heal && <div className="tap-hint">Parada de curación</div>}
-      {battle && <div className="tap-hint">¡Combate! Toca para acelerarlo</div>}
-      {routeRaid && !searching && <div className="tap-hint">¡Jefe comunitario! Los que acaban la ruta se unen a la pelea</div>}
 
       {ended && !battle && <RunSummary run={run} mon={mon} />}
     </div>

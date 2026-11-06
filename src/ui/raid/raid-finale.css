@@ -1,0 +1,78 @@
+/* Final de la pelea contra el jefe comunitario (RaidFinale.tsx y game/raid/raidEnding.ts): el jefe cae con el último
+   golpe, el grupo lo celebra y el cartel se queda hasta que se aplica el resultado */
+
+.raid-finale {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  z-index: 4;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 20px;
+  border: 2px solid #2b2820;
+  border-radius: 12px;
+  background: linear-gradient(#fdfcf4, #ecead9);
+  color: #1a1814;
+  box-shadow: 0 4px 0 #0004;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: finale-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.raid-finale strong {
+  font-size: 20px;
+  font-weight: 900;
+}
+.raid-finale span {
+  font-size: 12px;
+  color: #6e675b;
+}
+.raid-finale.won {
+  border-color: var(--yellow-dark);
+}
+.raid-finale.won strong {
+  color: var(--red);
+}
+.raid-finale.lost {
+  border-color: var(--red-dark);
+}
+
+/* El jefe cae al llegar su vida a 0; se queda caído durante el cierre */
+.raid-boss-fighter.felled .raid-idle.boss {
+  animation: boss-felled 1s ease-in forwards;
+}
+/* Los del grupo que siguen en pie dan saltitos al ganar */
+.raid-won .raid-party-mon:not(.down) .raid-idle {
+  animation: party-cheer 0.5s ease-in-out infinite var(--idle-delay, 0s);
+}
+
+@keyframes finale-in {
+  from {
+    scale: 0.4;
+    opacity: 0;
+  }
+}
+@keyframes boss-felled {
+  30% {
+    filter: brightness(2.2);
+  }
+  to {
+    translate: 0 30px;
+    rotate: 8deg;
+    opacity: 0;
+    filter: brightness(0.6) grayscale(1);
+  }
+}
+@keyframes party-cheer {
+  50% {
+    translate: 0 -12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .raid-finale,
+  .raid-won .raid-party-mon .raid-idle {
+    animation: none;
+  }
+}

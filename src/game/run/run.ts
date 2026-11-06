@@ -4,7 +4,8 @@ import type { Rng } from '../core/random'
 import { activeMon, MonPlace, monPlace, TutorialStep, type GameState } from '../core/state'
 import { advanceRouteRaid, enterRouteRaid } from '../raid/routeRaid'
 import { stepsPerMinute } from '../team/stats'
-import { BATTLE_EVENT_MS, completeRoute, spendBattleTime, startStopBattle } from './runBattle'
+import { battleMoment } from './battleTimeline'
+import { completeRoute, spendBattleTime, startStopBattle } from './runBattle'
 import { spendHealTime, drinkStopPotion } from './runHeal'
 
 export function runBlocker(s: GameState): string | null {
@@ -84,11 +85,11 @@ export function walk(s: GameState, steps: number, rng: Rng = Math.random): numbe
   return needed
 }
 
-/** Tocar la escena: caminando da un paso; en combate lo adelanta un evento (la cura no se adelanta) */
+/** Tocar la escena: caminando da un paso; en combate salta al siguiente evento (la cura no se adelanta) */
 export function tapRun(s: GameState) {
   const run = s.run
   if (!run) return
-  if (run.battleMsLeft > 0) spendBattleTime(s, route(run.routeId), BATTLE_EVENT_MS)
+  if (run.battleMsLeft > 0) spendBattleTime(s, route(run.routeId), battleMoment(run.lastBattle!, run.battleMsLeft).msToNext)
   else walk(s, 1)
 }
 

@@ -10,7 +10,8 @@ import { sparringSpecies, raidState } from '../raid-test-utils'
 import { RAID_ROUND_MS } from '../raidCombat'
 import { raidExpPerRound } from '../raidEngine'
 import { RaidMemberKind } from '../raidRoom'
-import { currentRouteRaid, retreatRouteRaid, ROUTE_RAID_RUNNING_CHANCE } from '../routeRaid'
+import { isEnding, RAID_ENDING_MS } from '../raidEnding'
+import { advanceRouteRaid, currentRouteRaid, retreatRouteRaid, ROUTE_RAID_RUNNING_CHANCE } from '../routeRaid'
 import { applyView, forgetRoom, roomRequest, type RoomKey } from './linkedRoom'
 import { newId, rng, T0 } from './online-test-utils'
 import { channelKey, RaidAction, RaidRotation, RoomSlot, type JoinRequest, type RoomView } from './protocol'
@@ -134,6 +135,11 @@ describe('sala enlazada al servidor', () => {
     const { s, room } = linkedTab()
     room.raid.hp = 0
     applyView(s, RaidRotation.Ordered, room.id, serverView(s, RaidRotation.Ordered, room))
+    expect(isEnding(s.raids[RaidRotation.Ordered]!)).toBe(true)
+    expect(roomRequest(s, RaidRotation.Ordered)).toBeNull()
+    expect(applyView(s, RaidRotation.Ordered, room.id, serverView(s, RaidRotation.Ordered, room))).toBe(false)
+    expect(s.raidPrizes).toHaveLength(0)
+    advanceRaid(s, RAID_ENDING_MS)
     expect(s.raidPrizes).toHaveLength(1)
     expect(s.raids[RaidRotation.Ordered]).toBeNull()
     advanceRaid(s, 5 * RAID_ROUND_MS)
@@ -172,6 +178,8 @@ describe('sala enlazada al servidor', () => {
     const { s, room } = linkedStop()
     room.raid.hp = 0
     applyView(s, RoomSlot.Route, room.id, serverView(s, RoomSlot.Route, room))
+    expect(s.run!.phase).toBe('raid')
+    advanceRouteRaid(s, RAID_ENDING_MS)
     expect(s.run!.phase).not.toBe('raid')
     expect(s.run!.earned.raidBosses).toEqual([room.raid.boss.speciesId])
   })
@@ -181,6 +189,7 @@ describe('sala enlazada al servidor', () => {
     const view = serverView(s, RoomSlot.Route, room)
     Object.assign(view.raid.members.find((m) => m.kind === RaidMemberKind.Player)!, { lives: 0, left: true })
     applyView(s, RoomSlot.Route, room.id, view)
+    advanceRouteRaid(s, RAID_ENDING_MS)
     expect(s.run).toMatchObject({ stop: 0, phase: 'walking' })
     expect(s.run!.raidRejoinHp).not.toBeNull()
   })

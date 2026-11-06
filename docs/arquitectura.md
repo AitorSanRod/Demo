@@ -219,10 +219,13 @@ RouteStartDialog (camino principal, pathFrom) → startRun(routeId, path) → 'w
 ```
 
 El motor **nunca espera a la UI**: el combate se resuelve entero al llegar (`simulateBattle` devuelve la lista
-de eventos) y dura un tiempo fijo (`battleDuration`: `BATTLE_EVENT_MS` por evento + `BATTLE_END_MS`). Mientras
+de eventos) y dura un tiempo fijo (`game/run/battleTimeline.ts › battleDuration`: lo de cada evento según su tipo en
+`BATTLE_EVENT_MS` + `BATTLE_END_MS`). Cada evento lleva los PS y el estado alterado de ambos en ese momento y, si hace
+falta, el crítico, la eficacia o por qué falló, para que la UI no tenga que leer el texto. Mientras
 `run.battleMsLeft > 0` no se dan pasos; al llegar a 0 se aplica el resultado, así el estado no se adelanta a lo
-que se ve. Tocar la escena (`tapRun`) adelanta el combate un evento. `RunView` solo calcula qué evento toca
-mostrar a partir de `battleMsLeft` (`ui/route/battleFrame.ts`) y `RouteBattle` lo pinta sobre la escena. Con la app
+que se ve. Tocar la escena (`tapRun`) salta al siguiente evento (`battleMoment`). `RunView` solo calcula qué evento toca
+mostrar a partir de `battleMsLeft` (`ui/route/battleFrame.ts`) y `RouteBattle` lo pinta sobre la escena: nombre del
+ataque, barras con su estado, números (`BattlePop`) y efecto del tipo (`HitEffect`). Con la app
 cerrada el tiempo de los combates se consume igual y no se reproducen.
 
 ## Expediciones
@@ -238,7 +241,11 @@ Hay dos clases de sala (`Raid`), con la misma mecánica (`raidEngine.ts`): `adva
 en rondas fijas (`RAID_ROUND_MS`): pasa el tiempo (presencia y revivir), entran y salen bots según su `BotPolicy`, el
 Pokémon del jugador gana su EXP y se juega la ronda (`playRound`). `lastRound` guarda los golpes de la última ronda
 para que la UI los pinte: `ui/raid/roundReplay.ts` los reparte en orden a lo largo de la ronda siguiente (con
-`roundMsLeft`), así la pelea se ve por turnos aunque el motor la juegue de golpe. Al caer el jefe, `settleFall` tira el premio de cada Pokémon del jugador que cobra, los saca
+`roundMsLeft`), así la pelea se ve por turnos aunque el motor la juegue de golpe. Por eso, cuando la pelea se para
+(cae el jefe o el Pokémon de la ruta gasta sus vidas), la sala no se cierra en el acto: `raidEnding.ts` le da un final
+(`endingMs`) en el que se ve entera la última ronda y un cierre con su cartel (`ui/raid/RaidFinale.tsx`); solo al
+acabar se aplica el resultado. Las salas del servidor también: al llegar la respuesta con el jefe a 0 empieza el final y,
+mientras dura, no se piden ni aplican más respuestas para esa sala. Al caer el jefe, `settleFall` tira el premio de cada Pokémon del jugador que cobra, los saca
 de la sala y devuelve los premios: cada clase de sala decide qué hace con ellos.
 
 - **Pestaña Raids** (`GameState.raids`, una sala por rotación, `place: null`): sin servidor solo se juega la

@@ -7,10 +7,10 @@ import { raidMinutesLeft } from '../../game/raid/raidEstimate'
 import { presentMembers, RAID_ROOM_SIZE, type Raid } from '../../game/raid/raidRoom'
 import { retreatRouteRaid } from '../../game/raid/routeRaid'
 import { useWatchRaid } from '../../net/raidSync'
+import { fallText } from '../raid/fallText'
 import { RaidLinkNote } from '../raid/RaidLinkNote'
 import { RaidRoster } from '../raid/RaidRoster'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
-import { formatMinutes } from '../shared/format'
 import { ICON } from '../shared/icons'
 import { ItemIcon } from '../shared/ItemIcon'
 
@@ -29,7 +29,7 @@ export function RaidHudLine({ game, raid }: { game: GameState; raid: Raid }) {
           <ItemIcon item={ICON.Raid} size={18} /> <strong>{species(raid.boss.speciesId).name}</strong> · {presentMembers(raid).length}/
           {RAID_ROOM_SIZE} {rosterOpen ? '▴' : '▾'}
         </button>
-        <span>{minutesLeft === null ? 'Nadie le hace daño' : `Caerá en ≈ ${formatMinutes(minutesLeft / game.timeScale)}`}</span>
+        <span>{fallText(raid, minutesLeft, game.timeScale)}</span>
       </div>
       {rosterOpen && (
         <div className="raid-hud-roster">

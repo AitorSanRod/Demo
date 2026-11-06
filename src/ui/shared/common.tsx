@@ -57,6 +57,8 @@ export function Bar({ value, max, kind }: { value: number; max: number; kind: 'h
   const tone = kind !== 'hp' ? kind : pct > 50 ? 'hp-ok' : pct > 20 ? 'hp-mid' : 'hp-low'
   return (
     <div className="bar">
+      {/* Estela de los PS: va detrás y baja con retraso, así se ve el trozo que se acaba de perder */}
+      {kind === 'hp' && <div className="bar-ghost" style={{ width: `${pct}%` }} />}
       <div className={`bar-fill ${tone}`} style={{ width: `${pct}%` }} />
     </div>
   )

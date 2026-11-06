@@ -43,6 +43,7 @@ export function newRaid(boss: RaidBoss, place: RaidPlace | null, opts: { felled?
     maxHp: hp,
     elapsedMs: 0,
     roundMsLeft: RAID_ROUND_MS,
+    endingMs: 0,
     round: 0,
     members: [],
     lastRound: [],

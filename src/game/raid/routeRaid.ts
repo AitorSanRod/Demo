@@ -4,6 +4,7 @@ import { activeMon, type GameState } from '../core/state'
 import { completeRoute, faint } from '../run/runBattle'
 import { maxHp } from '../team/stats'
 import { addPlayer, isLinked, isSearching, localHooks, passivesOf, playerMembers, removePlayer, runLinkedClock, settleFall } from './raidEngine'
+import { beginEnding, isEnding, spendEnding } from './raidEnding'
 import { applyPrize } from './raidPrizes'
 import { pendingLink, type Raid, type RaidPlace, type RaidPrize } from './raidRoom'
 import { recordRouteRaidFall, routeRaidMoneyMult } from './routeRaidStreak'
@@ -59,7 +60,7 @@ export const currentRouteRaid = (s: GameState): Raid | null => (s.run?.phase ===
 /** Retirarse cuenta como derrota: la ruta acaba sin completarse y sin el premio del jefe */
 export function retreatRouteRaid(s: GameState) {
   const raid = currentRouteRaid(s)
-  if (!raid) return
+  if (!raid || isEnding(raid)) return
   for (const m of playerMembers(raid)) removePlayer(s, m)
   if (raid.remote?.roomId) s.roomsToLeave.push(raid.remote.roomId)
   s.run!.raid = null
@@ -105,18 +106,20 @@ export function startOver(s: GameState, raid: Raid) {
   Object.assign(s.run!, { raid: null, raidRejoinHp: raid.hp / raid.maxHp, stop: 0, steps: 0, phase: 'walking', lastBattle: null, battleMsLeft: 0 })
 }
 
-/** La pelea se ha parado: o ha caído el jefe o el Pokémon ha gastado sus vidas */
+/** La pelea se ha parado (o ha caído el jefe o el Pokémon ha gastado sus vidas) y ya se ha visto su final */
 const endFight = (s: GameState, raid: Raid, rng: Rng) => (raid.hp === 0 ? finishRouteRaid(s, raid, rng) : startOver(s, raid))
 
 /**
  * Avanza la pelea de la parada `ms` milisegundos de juego y devuelve los que ha gastado (menos si la pelea acaba
  * antes: el resto es para seguir la ruta). Si la sala es del servidor, allí se juega. Mientras se busca sala en él, la
  * pelea espera (antes de una sala con bots se mira si hay una con jugadores), salvo que el salto sea mayor que
- * ROUTE_RAID_SEARCH_MS: entonces la app no estaba para buscarla y la sala se juega en local
+ * ROUTE_RAID_SEARCH_MS: entonces la app no estaba para buscarla y la sala se juega en local. Cuando la pelea se para, se
+ * ve su final (raidEnding.ts) antes de seguir la ruta
  */
 export function advanceRouteRaid(s: GameState, ms: number, rng: Rng = Math.random): number {
   const raid = currentRouteRaid(s)
   if (!raid) return 0
+  if (isEnding(raid)) return spendRouteEnding(s, raid, ms, rng)
   if (isSearching(raid)) {
     if (ms <= ROUTE_RAID_SEARCH_MS) return ms
     raid.remote = null
@@ -126,6 +129,14 @@ export function advanceRouteRaid(s: GameState, ms: number, rng: Rng = Math.rando
     return ms
   }
   const left = advanceStopRoom(raid, ms, rng, localHooks(s))
+  if (left === null) return ms
+  beginEnding(raid)
+  return ms - left + spendRouteEnding(s, raid, left, rng)
+}
+
+/** Gasta el final de la pelea; al terminar, aplica el resultado. Devuelve los milisegundos gastados */
+function spendRouteEnding(s: GameState, raid: Raid, ms: number, rng: Rng): number {
+  const left = spendEnding(raid, ms)
   if (left === null) return ms
   endFight(s, raid, rng)
   return ms - left

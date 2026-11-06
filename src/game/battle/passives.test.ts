@@ -43,6 +43,16 @@ describe('pasivas en combate', () => {
     expect(result.events.some((e) => e.kind === 'status' && e.side === 'enemy' && e.status === StatusId.Burn)).toBe(true)
   })
 
+  it('desde que recibe un estado, cada evento lo lleva en su lado', () => {
+    const player = makeFighter('player', SPECIES_ID, 50, { passives: [{ type: 'fire', level: 2 }] })
+    const enemy = makeFighter('enemy', RIVAL_ID, 50)
+    const { events } = simulateBattle(player, enemy, seqRng(0.01))
+    const inflicted = events.findIndex((e) => e.kind === 'status' && e.side === 'enemy')
+    expect(events.slice(0, inflicted).every((e) => e.enemyStatus === null)).toBe(true)
+    expect(events.slice(inflicted).every((e) => e.enemyStatus === StatusId.Burn)).toBe(true)
+    expect(events.every((e) => e.playerStatus === null)).toBe(true)
+  })
+
   it('la quemadura quita PS al final de cada turno', () => {
     const player = makeFighter('player', SPECIES_ID, 50, { passives: [{ type: 'fire', level: 2 }] })
     const enemy = makeFighter('enemy', RIVAL_ID, 50)

@@ -8,6 +8,7 @@ import { advanceRaid, ensureRaid, joinRaid, leaveRaid, LOCAL_ROTATION, monRaidBl
 import { RAID_BOTS } from './raidBots'
 import { RAID_SOLO_MINUTES, raidBossHp, raidExpPerRound } from './raidEngine'
 import { RAID_ROUND_MS } from './raidCombat'
+import { inFinale, isEnding, RAID_ENDING_MS, RAID_FINALE_MS } from './raidEnding'
 import { newMember, RaidMemberKind } from './raidRoom'
 import { raidState, sparringSpecies } from './raid-test-utils'
 
@@ -105,7 +106,7 @@ describe('jefe comunitario', () => {
     const { s, raid, mon } = raidState()
     joinRaid(s, mon.uid)
     raid.hp = 1
-    advanceRaid(s, RAID_ROUND_MS, seqRng(0))
+    advanceRaid(s, RAID_ROUND_MS + RAID_ENDING_MS, seqRng(0))
     expect(s.raidPrizes).toHaveLength(1)
     expect(s.raids[LOCAL_ROTATION]!.felled).toBe(1)
     expect(s.raids[LOCAL_ROTATION]!.boss).toEqual(raidBossAt(1))
@@ -114,11 +115,29 @@ describe('jefe comunitario', () => {
     expect(s.raids[LOCAL_ROTATION]!.startsInMs).toBe(RAID_COOLDOWN_MS)
   })
 
+  it('al caer el jefe la sala no se cierra: se ve su final (la última ronda y el cierre) y no se puede salir', () => {
+    const { s, raid, mon } = raidState()
+    joinRaid(s, mon.uid)
+    raid.hp = 1
+    advanceRaid(s, RAID_ROUND_MS, seqRng(0))
+    expect(s.raids[LOCAL_ROTATION]).toBe(raid)
+    expect(isEnding(raid)).toBe(true)
+    expect(raid.roundMsLeft).toBe(RAID_ROUND_MS)
+    leaveRaid(s, mon.uid)
+    expect(monPlace(s, mon.uid)).toBe(MonPlace.Raid)
+    advanceRaid(s, RAID_ROUND_MS, seqRng(0))
+    expect(inFinale(raid)).toBe(true)
+    expect(s.raidPrizes).toHaveLength(0)
+    advanceRaid(s, RAID_FINALE_MS, seqRng(0))
+    expect(s.raids[LOCAL_ROTATION]).not.toBe(raid)
+    expect(s.raidPrizes).toHaveLength(1)
+  })
+
   it('el siguiente jefe aparece pasado RAID_COOLDOWN_MS: hasta entonces no hay rondas, ni bots, ni se puede entrar', () => {
     const { s, raid, mon } = raidState()
     raid.hp = 1
     joinRaid(s, mon.uid)
-    advanceRaid(s, RAID_ROUND_MS, seqRng(0))
+    advanceRaid(s, RAID_ROUND_MS + RAID_ENDING_MS, seqRng(0))
     const next = s.raids[LOCAL_ROTATION]!
     advanceRaid(s, RAID_COOLDOWN_MS - 1, seqRng(0))
     expect(raidWaiting(next)).toBe(true)
@@ -143,7 +162,7 @@ describe('jefe comunitario', () => {
     // Un bot que seguro que le hace daño, para que caiga sin el Pokémon del jugador
     const bot = { id: 'bot-x', kind: RaidMemberKind.Bot, trainer: '', speciesId: sparringSpecies(raid.boss.speciesId), level: 1, stars: 0 }
     raid.members.push(newMember(bot, 1, RAID_ROUND_MS * 10))
-    advanceRaid(s, RAID_ROUND_MS, seqRng(0))
+    advanceRaid(s, RAID_ROUND_MS + RAID_ENDING_MS, seqRng(0))
     expect(s.raids[LOCAL_ROTATION]!.felled).toBe(1)
     expect(s.raidPrizes).toHaveLength(0)
   })

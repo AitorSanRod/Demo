@@ -14,6 +14,10 @@ export type StatusId = (typeof StatusId)[keyof typeof StatusId]
 
 interface StatusInfo {
   name: string
+  /** Abreviatura de tres letras para la insignia de la barra de vida */
+  short: string
+  /** Tipo cuyo color y efecto de golpe lo representan */
+  type: PokeType
   /** Texto al recibirlo («se quemó») */
   verb: string
   /** Fracción de los PS máximos que pierde al final de cada turno */
@@ -30,11 +34,11 @@ interface StatusInfo {
 
 /** Estados alterados que pueden infligir las pasivas; duran todo el combate salvo la congelación */
 export const STATUS_INFO: Record<StatusId, StatusInfo> = {
-  [StatusId.Burn]: { name: 'Quemadura', verb: 'se quemó', damagePerTurn: 0.06, atkMult: 0.75 },
-  [StatusId.Poison]: { name: 'Veneno', verb: 'fue envenenado', damagePerTurn: 0.08 },
-  [StatusId.Paralysis]: { name: 'Parálisis', verb: 'quedó paralizado', skipChance: 0.25 },
-  [StatusId.Freeze]: { name: 'Congelación', verb: 'quedó congelado', skipTurns: 1 },
-  [StatusId.Confusion]: { name: 'Confusión', verb: 'quedó confuso', selfHitChance: 0.33 },
+  [StatusId.Burn]: { name: 'Quemadura', short: 'QUE', type: 'fire', verb: 'se quemó', damagePerTurn: 0.06, atkMult: 0.75 },
+  [StatusId.Poison]: { name: 'Veneno', short: 'ENV', type: 'poison', verb: 'fue envenenado', damagePerTurn: 0.08 },
+  [StatusId.Paralysis]: { name: 'Parálisis', short: 'PAR', type: 'electric', verb: 'quedó paralizado', skipChance: 0.25 },
+  [StatusId.Freeze]: { name: 'Congelación', short: 'CON', type: 'ice', verb: 'quedó congelado', skipTurns: 1 },
+  [StatusId.Confusion]: { name: 'Confusión', short: 'CNF', type: 'psychic', verb: 'quedó confuso', selfHitChance: 0.33 },
 }
 
 /**
