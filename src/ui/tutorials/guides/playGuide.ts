@@ -21,7 +21,7 @@ export const PLAY_GUIDE: Guide = {
     {
       image: shot('play-routes'),
       title: 'Elige una ruta',
-      text: 'En la pestaña Ruta está el mapa. Cada línea dice el nivel de sus Pokémon y la ✓ marca las que ya completaste. Toca «Comenzar» en la que quieras.',
+      text: 'En la pestaña Ruta está el mapa. Cada línea dice el nivel de sus Pokémon y la ✓ marca las que ya completaste. Toca la que quieras para salir a ella.',
     },
     {
       image: shot('play-start'),
@@ -36,7 +36,7 @@ export const PLAY_GUIDE: Guide = {
     {
       image: shot('play-expeditions'),
       title: 'Manda al resto de expedición',
-      text: 'Arriba, el icono de la bicicleta abre Expediciones: elige una ruta, quién va y cuánto tiempo. Vuelven con EXP, dinero, tickets y a veces Pokémon nuevos, sin riesgo.',
+      text: 'Arriba, el icono de la bicicleta abre Expediciones: elige una ruta que ya hayas completado, quién va y cuánto tiempo. Vuelven con EXP, dinero, tickets y a veces Pokémon nuevos, sin riesgo.',
     },
     {
       image: shot('play-gacha'),

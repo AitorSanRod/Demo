@@ -13,6 +13,7 @@ import {
   expeditionBlocker,
   expeditionsBlocker,
   expeditionRewardMult,
+  expeditionRouteBlocker,
   expeditionWinRate,
   isExpeditionDone,
   scaleCount,
@@ -30,6 +31,7 @@ function stateOnExpedition(durationMin = DURATION) {
   const s = initialState()
   chooseStarter(s, POKEMON.Bulbasaur)
   const mon = activeMon(s)!
+  s.completedRoutes.push(RouteId.PuebloPaleta)
   sendExpedition(s, mon.uid, RouteId.PuebloPaleta, durationMin)
   return { s, mon }
 }
@@ -38,6 +40,20 @@ describe('expediciones', () => {
   it('no se puede salir de ruta con el Pokémon que está de expedición', () => {
     const { s } = stateOnExpedition()
     expect(runBlocker(s)).toMatch(/expedición/)
+  })
+
+  it('solo se puede mandar a una ruta ya completada', () => {
+    const s = initialState()
+    chooseStarter(s, POKEMON.Bulbasaur)
+    const mon = activeMon(s)!
+    s.unlockedRoutes.push(RouteId.PuebloPaleta)
+    expect(expeditionRouteBlocker(s, RouteId.PuebloPaleta)).not.toBeNull()
+    sendExpedition(s, mon.uid, RouteId.PuebloPaleta, DURATION)
+    expect(s.expeditions).toHaveLength(0)
+    s.completedRoutes.push(RouteId.PuebloPaleta)
+    expect(expeditionRouteBlocker(s, RouteId.PuebloPaleta)).toBeNull()
+    sendExpedition(s, mon.uid, RouteId.PuebloPaleta, DURATION)
+    expect(s.expeditions).toHaveLength(1)
   })
 
   it('solo acepta las duraciones previstas', () => {

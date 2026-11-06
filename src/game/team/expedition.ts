@@ -59,8 +59,13 @@ export function expeditionBlocker(s: GameState, uid: string): string | null {
   return null
 }
 
+/** Por qué no se puede mandar a nadie a esa ruta (solo a las ya completadas), o null si se puede */
+export function expeditionRouteBlocker(s: GameState, routeId: string): string | null {
+  return s.completedRoutes.includes(routeId) ? null : 'Complétala primero para mandar expediciones a ella.'
+}
+
 export function sendExpedition(s: GameState, uid: string, routeId: string, durationMin: number) {
-  if (expeditionBlocker(s, uid) || !s.unlockedRoutes.includes(routeId)) return
+  if (expeditionBlocker(s, uid) || expeditionRouteBlocker(s, routeId)) return
   if (!EXPEDITION_DURATIONS.includes(durationMin)) return
   s.expeditions.push({ uid, routeId, durationMin, elapsedMin: 0 })
 }

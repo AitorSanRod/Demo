@@ -7,8 +7,8 @@ import { RouteLock, RouteRow, RouteRowTitle } from './RouteRow'
 import { RouteStartDialog } from './RouteStartDialog'
 
 /**
- * Lista de rutas, una por línea: nombre, niveles, si está completada y «Comenzar» (o un candado si sigue bloqueada),
- * sobre la imagen de su zona difuminada.
+ * Lista de rutas, una por línea: nombre, niveles y si está completada, sobre la imagen de su zona difuminada. Toda la
+ * línea es el botón de comenzarla (con un candado si sigue bloqueada).
  */
 export function RouteMap({ game }: { game: GameState }) {
   const [starting, setStarting] = useState<Route | null>(null)
@@ -27,22 +27,22 @@ export function RouteMap({ game }: { game: GameState }) {
           const guided = game.tutorial === TutorialStep.Route && unlocked && !starting
           return (
             <Fragment key={r.id}>
-              {/* El bocadillo señala hacia abajo: va encima de la línea, apuntando a «Comenzar» */}
-              {guided && <TutorialHint arrowX="88%">Toca «Comenzar» para salir a tu primera ruta.</TutorialHint>}
-              <RouteRow route={r} locked={!unlocked}>
+              {/* El bocadillo señala hacia abajo: va encima de la línea, apuntando a ella */}
+              {guided && <TutorialHint arrowX="50%">Toca la ruta para salir por primera vez.</TutorialHint>}
+              <RouteRow
+                route={r}
+                locked={!unlocked}
+                className={guided ? 'tutorial-target' : ''}
+                disabled={!!blocker}
+                onClick={() => setStarting(r)}
+              >
                 <RouteRowTitle route={r} />
                 {done && (
                   <span className="route-done" title="Completada" aria-label="Completada">
                     ✓
                   </span>
                 )}
-                {unlocked ? (
-                  <button className={`btn primary small ${guided ? 'tutorial-target' : ''}`} disabled={!!blocker} onClick={() => setStarting(r)}>
-                    Comenzar
-                  </button>
-                ) : (
-                  <RouteLock />
-                )}
+                {!unlocked && <RouteLock />}
               </RouteRow>
             </Fragment>
           )

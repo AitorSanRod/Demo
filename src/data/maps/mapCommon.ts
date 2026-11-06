@@ -29,6 +29,7 @@ export const RouteId = {
   CiudadPlateada: 'ciudad-plateada',
   CiudadPlateada2: 'ciudad-plateada2',
   CiudadPlateada3: 'ciudad-plateada3',
+  Ruta3: 'ruta-3',
   MonteMoon: 'monte-moon',
   RutaMarina: 'ruta-marina',
 } as const

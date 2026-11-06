@@ -60,12 +60,12 @@ export const SHOTS = [
   // Cómo jugar
   { name: 'play-ranch', focus: '.ranch-mon' },
   { name: 'play-companion', steps: (p) => openRanchMon(p, 'Eevee'), focus: '.companion-button' },
-  { name: 'play-routes', steps: toRoute, focus: '.route-row:nth-child(2) .btn' },
+  { name: 'play-routes', steps: toRoute, focus: '.route-row:nth-child(2)' },
   {
     name: 'play-start',
     steps: async (p) => {
       await toRoute(p)
-      await tap(p, '.route-row:nth-child(2) .btn')
+      await tap(p, '.route-row:nth-child(2)')
     },
     focus: '::-p-text(¡En marcha!)',
   },
@@ -129,7 +129,7 @@ export const SHOTS = [
     name: 'money-expedition',
     steps: async (p) => {
       await toRouteTab(p, 'Expediciones')
-      await tap(p, '::-p-text(Enviar)')
+      await tap(p, '.route-list .route-row.tappable')
     },
     focus: '.route-start .segmented',
   },

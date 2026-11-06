@@ -50,6 +50,47 @@
 .route-row.locked {
   opacity: 0.55;
 }
+/* La tarjeta entera es el botón: sin estilo de botón, se hunde un poco al tocarla y lleva una flecha a la derecha */
+.route-row.tappable {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    scale 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.route-row.tappable:active:not(:disabled) {
+  scale: 0.98;
+}
+.route-row.tappable:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.route-row.tappable:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+/* Flecha en un círculo claro, para que se vea sobre cualquier imagen */
+.route-go {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  box-shadow: 0 1px 0 #0002;
+}
+.route-go::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-left: -3px;
+  border-top: 3px solid var(--text);
+  border-right: 3px solid var(--text);
+  rotate: 45deg;
+}
 /* Completada: insignia redonda verde */
 .route-done {
   display: grid;

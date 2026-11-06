@@ -40,6 +40,7 @@ describe('rancho', () => {
     const s = stateWithStarter()
     const mon = activeMon(s)!
     mon.hp = 5
+    s.completedRoutes.push(RouteId.PuebloPaleta)
     sendExpedition(s, mon.uid, RouteId.PuebloPaleta, EXPEDITION_DURATIONS[0])
     restInRanch(s, 60)
     expect(mon.hp).toBe(5)

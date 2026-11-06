@@ -18,6 +18,7 @@ function withExpedition() {
   chooseStarter(s, STARTERS[0])
   const mon = createMon(STARTERS[1], s.owned[0].level, 0)
   s.owned.push(mon)
+  s.completedRoutes.push(RouteId.PuebloPaleta)
   sendExpedition(s, mon.uid, RouteId.PuebloPaleta, EXPEDITION_DURATIONS[0])
   return { s, mon }
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { KANTO, type Route } from '../../data/maps'
 import { MonPlace, monPlace, type GameState } from '../../game/core/state'
-import { expeditionSlots, expeditionsBlocker } from '../../game/team/expedition'
+import { expeditionRouteBlocker, expeditionSlots, expeditionsBlocker } from '../../game/team/expedition'
 import { RouteLock, RouteRow, RouteRowTitle } from '../route/RouteRow'
 import { ExpeditionList } from './ExpeditionList'
 import { ExpeditionStartDialog } from './ExpeditionStartDialog'
@@ -28,22 +28,18 @@ export function ExpeditionScreen({ game }: { game: GameState }) {
       {blocker && <p className="notice">{blocker}</p>}
       <div className="route-list">
         {KANTO.routes.map((r) => {
-          const unlocked = game.unlockedRoutes.includes(r.id)
+          const routeBlocker = expeditionRouteBlocker(game, r.id)
           return (
-            <RouteRow key={r.id} route={r} locked={!unlocked}>
+            <RouteRow key={r.id} route={r} locked={!!routeBlocker} disabled={!!blocker} onClick={() => setSending(r)}>
               <RouteRowTitle route={r} />
-              {unlocked ? (
-                <button className="btn primary small" disabled={!!blocker} onClick={() => setSending(r)}>
-                  Enviar
-                </button>
-              ) : (
-                <RouteLock />
-              )}
+              {routeBlocker && <RouteLock reason={routeBlocker} />}
             </RouteRow>
           )
         })}
       </div>
-      <p className="tiny muted">En expedición no hay riesgo: el Pokémon vuelve con lo que haya ganado.</p>
+      <p className="tiny muted">
+        Solo se puede mandar a las rutas ya completadas. En expedición no hay riesgo: el Pokémon vuelve con lo que haya ganado.
+      </p>
       {sending && home.length > 0 && <ExpeditionStartDialog game={game} route={sending} mons={home} onClose={() => setSending(null)} />}
     </div>
   )
