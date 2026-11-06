@@ -70,13 +70,31 @@
   border-radius: 10px;
   background: color-mix(in srgb, var(--favorite) 15%, transparent);
 }
+/* El contenido del diálogo ocupa el alto que dejan título y botones, con su propio scroll: los botones siempre se ven */
 .trade-new {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 60vh;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
   text-align: left;
+}
+/* Que nada se aplaste al faltar alto: lo que no cabe, se ve con scroll */
+.trade-new > * {
+  flex-shrink: 0;
+}
+/* Pestañas de cuatro: estrechas y con el nombre en dos líneas si hace falta, sin salirse por la derecha */
+.trade-new .segmented {
+  grid-auto-columns: minmax(0, 1fr);
+}
+.trade-new .segmented button {
+  padding: 2px 4px;
+  font-size: 12px;
+  line-height: 1.15;
 }
 .trade-new h4 {
   margin: 4px 0 0;

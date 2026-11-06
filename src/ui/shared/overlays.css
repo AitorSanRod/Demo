@@ -96,6 +96,11 @@
 }
 .confirm-dialog {
   width: 100%;
+  /* Nunca más alto que la pantalla visible (dvh descuenta la barra del navegador del móvil) */
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  min-width: 0;
+  overflow-y: auto;
   animation: reward-in 0.3s ease-out;
 }
 .confirm-actions .btn {
