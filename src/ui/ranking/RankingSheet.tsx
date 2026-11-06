@@ -35,7 +35,7 @@ export function RankingSheet({ onBack }: { onBack: () => void }) {
   return (
     <>
       <MenuSheetHeader icon={ICON.Ranking} title="Ranking" onBack={onBack} />
-      <p className="tiny muted">Los entrenadores con más dinero. Se actualiza cada hora.</p>
+      <p className="tiny muted">Celebración de la fiesta capitalista. Se actualiza cada hora.</p>
       {status !== AccountStatus.SignedIn ? (
         <p className="notice small">Para ver el ranking necesitas una cuenta. Entra o crea una en Ajustes › Cuenta.</p>
       ) : code === RankingCode.NoNickname ? (

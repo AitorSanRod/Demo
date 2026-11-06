@@ -69,7 +69,7 @@ export function RanchMenu({ game }: { game: GameState }) {
                   Lo que has comprado y aún no has usado
                 </MenuItem>
                 <MenuItem icon={ICON.Ranking} title="Ranking" onClick={() => setPanel('ranking')}>
-                  Los entrenadores con más dinero
+                  La fiesta capitalista
                 </MenuItem>
                 <MenuItem icon={ICON.Tutorials} title="Tutoriales" onClick={() => setPanel('tutorials')}>
                   Cómo jugar, raids, evolucionar y ganar dinero
