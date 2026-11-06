@@ -77,7 +77,7 @@ export const KANTO: GameMap = {
       biome: Biome.Forest,
       backdrop: { image: viridianForest, focusY: 50 },
       levels: [9, 16],
-      encounters: enc([POKEMON.Caterpie, 20], [POKEMON.Weedle, 20], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Pidgey, 8], [POKEMON.Oddish, 8], [POKEMON.Bellsprout, 8], [POKEMON.Pikachu, 6]),
+      encounters: enc([POKEMON.Caterpie, 25], [POKEMON.Weedle, 25], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Pidgey, 8], [POKEMON.Oddish, 5], [POKEMON.Bellsprout, 5], [POKEMON.Pikachu, 2]),
       reward: { tickets: 2, money: 400, exp: 350 },
       unlocks: RouteId.CiudadPlateada,
       nodes: chain(
@@ -89,7 +89,7 @@ export const KANTO: GameMap = {
         { id: 'd', name: 'Claro', kind: NodeKind.Wild, steps: 80, levelBonus: 1, encounters: enc([POKEMON.Pikachu, 25], [POKEMON.Caterpie, 20], [POKEMON.Metapod, 20], [POKEMON.Kakuna, 15], [POKEMON.Oddish, 10], [POKEMON.Pidgey, 10]) },
         { id: 'p2', name: 'Cabaña del guardabosques', kind: NodeKind.Heal, steps: 15, potion: Potion.Potion },
         { id: 'e', name: 'Corazón del bosque', kind: NodeKind.Wild, steps: 70, levelBonus: 2, encounters: enc([POKEMON.Pikachu, 50], [POKEMON.Metapod, 15], [POKEMON.Kakuna, 15], [POKEMON.Butterfree, 10], [POKEMON.Beedrill, 10]) },
-        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Shroomish, 17, RaidTier.Low, { soloMinutes: 10 }) },
+        { id: 'g', name: 'Final', kind: NodeKind.Raid, steps: 45, boss: raidBoss(POKEMON.Shroomish, 17, RaidTier.Low, { soloMinutes: 18 }) },
       ),
     },
     {
@@ -99,7 +99,7 @@ export const KANTO: GameMap = {
       biome: Biome.PewterCity,
       backdrop: { image: pewterCity, focusY: 45 },
       levels: [14, 20],
-      encounters: enc([POKEMON.Geodude, 20], [POKEMON.Sandshrew, 15], [POKEMON.Spearow, 15], [POKEMON.Pidgey, 15], [POKEMON.Diglett, 10], [POKEMON.Mankey, 10], [POKEMON.Rattata, 10], [POKEMON.Jigglypuff, 5]),
+      encounters: enc([POKEMON.Geodude, 20], [POKEMON.Sandshrew, 13], [POKEMON.Spearow, 15], [POKEMON.Pidgey, 15], [POKEMON.Diglett, 10], [POKEMON.Mankey, 5], [POKEMON.Rattata, 20], [POKEMON.Jigglypuff, 2]),
       reward: { tickets: 3, money: 400, exp: 200 },
       unlocks: RouteId.CiudadPlateada2,
       nodes: chain(
@@ -126,7 +126,7 @@ export const KANTO: GameMap = {
       unlocks: RouteId.CiudadPlateada3,
       nodes: chain(
         { id: 's', name: 'Entrada del gimnasio', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Líder del gimnasio', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Onix, 23, RaidTier.Low, { soloMinutes: 20 }) },
+        { id: 'a', name: 'Líder del gimnasio', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Onix, 23, RaidTier.Low, { soloMinutes: 30 }) },
       ),
     },
     {
@@ -141,9 +141,9 @@ export const KANTO: GameMap = {
       //unlocks: RouteId.MonteMoon,
       nodes: chain(
         { id: 's', name: 'Afueras de la ciudad', kind: NodeKind.Start, steps: 0 },
-        { id: 'a', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Meowth, 25, RaidTier.Low, { soloMinutes: 15 }) },
-        { id: 'b', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Koffing, 25, RaidTier.Low, { soloMinutes: 15 }) },
-        { id: 'c', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Ekans, 25, RaidTier.Mid, { soloMinutes: 20 }) },
+        { id: 'a', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Meowth, 25, RaidTier.Low, { soloMinutes: 10 }) },
+        { id: 'b', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Koffing, 25, RaidTier.Low, { soloMinutes: 10 }) },
+        { id: 'c', name: 'Rocket team', kind: NodeKind.Raid, steps: 20, boss: raidBoss(POKEMON.Ekans, 25, RaidTier.Mid, { soloMinutes: 30 }) },
       ),
     },
     // {
