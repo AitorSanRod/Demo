@@ -1,7 +1,7 @@
 import { Component, type ReactNode } from 'react'
-import { resetGame } from '../../game/core/store'
+import { reloadApp } from '../../net/appUpdate'
 
-/** Muestra el error en pantalla (en el móvil no hay consola a mano) y permite recuperarse */
+/** Muestra el error en pantalla (en el móvil no hay consola a mano) y permite reintentar sin tocar la partida */
 export class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null }
 
@@ -20,14 +20,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
           <button className="btn primary" onClick={() => this.setState({ error: null })}>
             Reintentar
           </button>
-          <button
-            className="btn ghost small danger"
-            onClick={() => {
-              resetGame()
-              this.setState({ error: null })
-            }}
-          >
-            Reiniciar partida
+          <button className="btn" onClick={() => void reloadApp()}>
+            Recargar aplicación
           </button>
         </div>
       </div>

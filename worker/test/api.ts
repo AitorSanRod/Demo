@@ -2,12 +2,12 @@ import type { Env } from '../env'
 import worker from '../index'
 import { fakeD1 } from './fakeD1'
 
-// Un Worker de pruebas con su propia base de datos y un navegador que guarda la cookie de sesión como el de verdad
+// Un Worker de pruebas con su propia base de datos (o la de otro, para tener dos jugadores) y un navegador que guarda la
+// cookie de sesión como el de verdad
 
 const ORIGIN = 'https://pokerancho.test'
 
-export function testWorker() {
-  const env: Env = { ASSETS: { fetch: async () => new Response('web') } as unknown as Fetcher, DB: fakeD1() }
+export function testWorker(env: Env = { ASSETS: { fetch: async () => new Response('web') } as unknown as Fetcher, DB: fakeD1() }) {
   let cookie = ''
 
   async function call(path: string, init: { method?: string; body?: unknown; origin?: string | null } = {}) {

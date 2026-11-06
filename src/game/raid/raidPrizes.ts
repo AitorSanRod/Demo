@@ -43,6 +43,15 @@ export function applyPrize(s: GameState, p: RaidPrize): number {
   return mon && p.exp > 0 ? gainExp(mon, p.exp).levelsGained : 0
 }
 
+/** Entrega solo el premio pendiente que está en la posición `index` (Notificaciones); null si no hay ninguno ahí */
+export function collectRaidPrize(s: GameState, index: number): RaidPrize | null {
+  const prize = s.raidPrizes[index]
+  if (!prize) return null
+  s.raidPrizes = s.raidPrizes.filter((_, i) => i !== index)
+  applyPrize(s, prize)
+  return prize
+}
+
 /** Entrega los premios pendientes de los jefes de la pestaña Raids */
 export function collectRaidPrizes(s: GameState): RaidPrize[] {
   const prizes = s.raidPrizes

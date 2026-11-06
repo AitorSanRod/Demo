@@ -4,7 +4,7 @@ import { boostedMoney } from '../battle/rewards'
 import { isSeen } from '../collection/dex'
 import { seqRng } from '../core/test-utils'
 import { raidBossAt } from './raid'
-import { applyPrize, collectRaidPrizes, earnsPrize, presenceShare, RAID_MIN_PRESENCE, rollPrize } from './raidPrizes'
+import { applyPrize, collectRaidPrize, collectRaidPrizes, earnsPrize, presenceShare, RAID_MIN_PRESENCE, rollPrize } from './raidPrizes'
 import { newMember, RaidMemberKind } from './raidRoom'
 import { raidState } from './raid-test-utils'
 import { expToNext } from '../team/stats'
@@ -81,6 +81,19 @@ describe('premio del jefe', () => {
     expect(s.pieces[boss.speciesId] ?? 0).toBe(prize.pieces * 2)
     expect(isSeen(s, boss.speciesId)).toBe(true)
     expect(s.raidPrizes).toHaveLength(0)
+  })
+
+  it('se puede recoger uno solo; los demás siguen pendientes', () => {
+    const { s } = raidState()
+    const first = rollPrize(raidBossAt(0), UID, seqRng(0))
+    const second = { ...first, money: first.money + 1 }
+    s.raidPrizes = [first, second]
+    const money = s.money
+    expect(collectRaidPrize(s, 1)).toEqual(second)
+    expect(s.money).toBe(money + second.money)
+    expect(s.raidPrizes).toEqual([first])
+    expect(collectRaidPrize(s, 5)).toBeNull()
+    expect(s.raidPrizes).toHaveLength(1)
   })
 
   it('su EXP es para el Pokémon que luchó y devuelve los niveles que sube', () => {

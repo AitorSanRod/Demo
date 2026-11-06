@@ -19,6 +19,7 @@ interface AppUpdate {
 let update: AppUpdate = { ready: false, dismissed: false }
 const listeners = new Set<() => void>()
 let activate: ((reload?: boolean) => Promise<void>) | null = null
+let swRegistration: ServiceWorkerRegistration | null = null
 
 function set(patch: Partial<AppUpdate>) {
   update = { ...update, ...patch }
@@ -27,6 +28,7 @@ function set(patch: Partial<AppUpdate>) {
 
 /** Comprueba si hay versión nueva cada UPDATE_CHECK_MS y al volver a la app */
 function watchForUpdates(registration: ServiceWorkerRegistration) {
+  swRegistration = registration
   const check = () => void registration.update().catch(() => undefined)
   setInterval(check, UPDATE_CHECK_MS)
   document.addEventListener('visibilitychange', () => {
@@ -49,6 +51,25 @@ export function startAppUpdates() {
 export function reloadToUpdate() {
   void activate?.(true)
   setTimeout(() => location.reload(), RELOAD_FALLBACK_MS)
+}
+
+/** Espera a que termine de instalarse la versión que se esté descargando (si hay alguna) */
+function installed(worker: ServiceWorker | null): Promise<void> {
+  if (!worker) return Promise.resolve()
+  return new Promise((resolve) => {
+    worker.addEventListener('statechange', () => worker.state !== 'installing' && resolve())
+    setTimeout(resolve, RELOAD_FALLBACK_MS)
+  })
+}
+
+/** Recarga la app entera; antes mira si hay versión nueva y, si la hay, recarga ya con ella */
+export async function reloadApp() {
+  if (swRegistration) {
+    await swRegistration.update().catch(() => undefined)
+    await installed(swRegistration.installing)
+    if (swRegistration.waiting) return reloadToUpdate()
+  }
+  location.reload()
 }
 
 export const dismissUpdate = () => set({ dismissed: true })

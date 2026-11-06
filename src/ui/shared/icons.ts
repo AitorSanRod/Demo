@@ -28,6 +28,12 @@ export const ICON = {
   /** Mochila: lo comprado y aún sin usar */
   Bag: ITEM.ExplorerKit,
   Tutorials: ITEM.TeachyTv,
+  /** Intercambios entre jugadores */
+  Trade: ITEM.LinkingCord,
+  /** Venta directa al servidor */
+  Sell: ITEM.Nugget,
+  /** Notificaciones: lo pendiente de recoger */
+  Inbox: ITEM.OrangeMail,
   Heal: ITEM.Potion,
   Rest: ITEM.FullRestore,
   Train: ITEM.RareCandy,

@@ -44,3 +44,16 @@
   height: 5px;
   margin-top: 2px;
 }
+/* Los que no se pueden elegir (p. ej. favoritos al intercambiar): apagados, con el corazón arriba si son favoritos */
+.mon-pick {
+  position: relative;
+}
+.mon-pick:disabled {
+  opacity: 0.5;
+}
+.mon-pick-heart {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  fill: var(--favorite);
+}

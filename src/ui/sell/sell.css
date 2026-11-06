@@ -1,0 +1,21 @@
+/* Tienda › Venta: los mismos desplegables y casillas que la Tienda (ShopTile) */
+
+.shop-fold-sell {
+  --fold-bg: linear-gradient(135deg, #e0a526 0%, #9a6a0c 100%);
+}
+.shop-fold-sell-pieces {
+  --fold-bg: linear-gradient(135deg, #4aa3df 0%, #1f5f99 100%);
+}
+.shop-fold-sell-shards {
+  --fold-bg: linear-gradient(135deg, #9b6bd6 0%, #5a2f99 100%);
+}
+.sell-mon-icon {
+  position: relative;
+  display: inline-grid;
+}
+.sell-heart {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  fill: var(--favorite);
+}

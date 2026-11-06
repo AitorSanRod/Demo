@@ -37,6 +37,9 @@ export const ITEM = {
   PokeDoll: 'poke-doll',
   ExplorerKit: 'explorer-kit',
   TeachyTv: 'teachy-tv',
+  LinkingCord: 'linking-cord',
+  Nugget: 'nugget',
+  OrangeMail: 'orange-mail',
 } as const
 export type Item = (typeof ITEM)[keyof typeof ITEM]
 

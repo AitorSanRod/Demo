@@ -23,8 +23,9 @@ Cómo funciona por dentro: [arquitectura.md › Salas compartidas](arquitectura.
 | Partida en la nube: `GET` / `POST /api/save` (solo con sesión) | `worker/save.ts` + `worker/db/saves.ts` |
 | Cuentas: `/api/auth/*` (crear, confirmar, entrar, salir, recuperar, apodo) | `worker/auth/` + `worker/db/users.ts` |
 | Obsequio diario: `GET` / `POST /api/gift` (solo con sesión) | `worker/gift.ts` + `worker/db/gifts.ts` |
+| Intercambios: `GET` (tablón) / `POST /api/trade` (anunciar, aceptar, retirar, recoger; solo con sesión) | `worker/trade.ts` + `worker/tradeActions.ts` + `worker/db/trades.ts`, `tradeWrites.ts`; tablas en `migrations/0007_trades.sql` |
 | Notificaciones push: `/api/push/*` y el envío (VAPID, cifrado) | `worker/push/` |
-| Tarea programada cada minuto (raids sin nadie mirando, borrar paradas viejas, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
+| Tarea programada cada minuto (raids sin nadie mirando, borrar paradas viejas, anuncios caducados, avisos que tocan) | `worker/scheduled.ts`, `triggers` en `wrangler.jsonc` |
 | Correos (Brevo) y su texto | `worker/mail.ts` |
 | Lógica del juego que usa el servidor (con tests) | `src/game/raid/online/`, `src/game/core/cloudSave.ts`, `accountRules.ts` |
 | Cliente: cuenta, partida en la nube, id y apodo, cada cuánto consulta | `src/net/` |
@@ -139,6 +140,7 @@ Lo que consulta cada jugador (solo con la app delante; cerrada, el servidor sigu
 | Mirando la pelea de un jefe (cada 5 s) | ≈ 720 |
 | App abierta en otra pestaña con un Pokémon en una sala (cada 60 s; se puede estar en una sala de cada rotación de Raids y en la de la ruta) | ≈ 60 por sala |
 | Con cuenta: subir la partida (cada 2 min) | ≈ 30 |
+| Con cuenta: tablón de intercambios y Notificaciones (cada 60 s, `REFRESH_EVERY_MS` en `src/net/tradeBoard.ts`) | ≈ 60 |
 | Sin Pokémon en salas y sin cuenta | 0 |
 
 Con 100 000 peticiones al día caben ≈ 130 horas diarias de alguien mirando una pelea: de sobra para poco tráfico. Si

@@ -49,6 +49,7 @@ function advancedGame(): GameState {
     ],
     raidPrizes: [{ bossSpeciesId: C, uid: first.uid, money: 80, tickets: 1, pieces: 1, exp: 5 }],
     routeRaidStreaks: { 'bosque-verde/g': { count: 2, lastAt: 1000 } },
+    tradeStamp: 4,
     lastTick: Date.now() - 60_000,
   })
   return s
@@ -59,7 +60,7 @@ const fromOldVersion = (s: GameState, version = OLD) => JSON.parse(JSON.stringif
 
 const KEPT: (keyof GameState)[] = [
   'money', 'tickets', 'missingnoShards', 'seen', 'caught', 'favorites', 'pieces', 'upgrades', 'ranchTypeItems', 'ranchTypeOf',
-  'stones', 'tutorial', 'unlockedRoutes', 'completedRoutes', 'owned', 'activeUid', 'expeditions', 'raidPrizes', 'routeRaidStreaks', 'lastTick',
+  'stones', 'tutorial', 'unlockedRoutes', 'completedRoutes', 'owned', 'activeUid', 'expeditions', 'raidPrizes', 'routeRaidStreaks', 'tradeStamp', 'lastTick',
 ]
 
 afterEach(() => {

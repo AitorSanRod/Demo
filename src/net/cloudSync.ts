@@ -1,15 +1,14 @@
 import { useSyncExternalStore } from 'react'
-import { CloudAction, cloudAction, cloudUpload, stateFromSaved, type CloudLink, type CloudSave } from '../game/core/cloudSave'
+import { CloudAction, cloudAction, cloudUpload, stateFromSaved, type CloudSave } from '../game/core/cloudSave'
 import { getState, replaceState } from '../game/core/store'
 import { account, AccountStatus, refreshAccount, subscribeAccount } from './account'
+import { readLink, writeLink } from './cloudLink'
 
 // Mantiene la partida de la cuenta en la nube (worker/save.ts): al entrar o al volver a la app baja la
 // de la nube si otro dispositivo ha jugado después; con la app delante la sube cada poco y al ocultarla. Gana la
 // última subida: si al subir resulta que otro dispositivo subió antes, se carga la suya y se avisa.
 
 const SAVE_API = '/api/save'
-/** Lo que el dispositivo recuerda de la nube (ver CloudLink), aparte de la partida */
-const LINK_KEY = 'pokerancho-cloud'
 /** Milisegundos reales entre subidas con la app delante */
 const UPLOAD_EVERY_MS = 2 * 60_000
 /** Cada cuánto se mira si toca subir */
@@ -35,23 +34,6 @@ let lastUploadAt = 0
 function update(patch: Partial<CloudState>) {
   cloud = { ...cloud, ...patch }
   listeners.forEach((l) => l())
-}
-
-function readLink(): CloudLink | null {
-  try {
-    return JSON.parse(localStorage.getItem(LINK_KEY) ?? 'null') as CloudLink | null
-  } catch {
-    return null
-  }
-}
-
-function writeLink(link: CloudLink | null) {
-  try {
-    if (link) localStorage.setItem(LINK_KEY, JSON.stringify(link))
-    else localStorage.removeItem(LINK_KEY)
-  } catch {
-    // Sin almacenamiento: se volverá a preguntar al entrar
-  }
 }
 
 const userId = () => (account().status === AccountStatus.SignedIn ? account().user!.id : null)
@@ -108,6 +90,32 @@ async function exclusive(run: () => Promise<void>) {
     update({ failing: false })
   } catch {
     update({ failing: true })
+  } finally {
+    busy = false
+  }
+}
+
+/** Milisegundos entre miradas a si ha acabado la operación con la nube en curso */
+const WAIT_STEP_MS = 100
+
+/**
+ * Para los intercambios: espera a que no haya otra operación con la nube, sube la partida y, con la nube ya igual que
+ * aquí, hace `run` con su revisión. `run` cambia la partida igual que el servidor y llama a `adoptRevision` con la
+ * nueva. Si algo falla a medias, se vuelve a mirar la nube (si el servidor llegó a cambiarla, se baja)
+ */
+export async function withCloudInSync<T>(run: (revision: number, adoptRevision: (revision: number) => void) => Promise<T>): Promise<T> {
+  while (busy) await new Promise((resolve) => setTimeout(resolve, WAIT_STEP_MS))
+  if (!userId() || cloud.choice) throw new Error('Sin partida en la nube')
+  busy = true
+  try {
+    await upload(knownRevision())
+    const revision = knownRevision()
+    if (revision === null) throw new Error('Sin partida en la nube')
+    return await run(revision, (next) => writeLink({ userId: userId()!, revision: next }))
+  } catch (e) {
+    busy = false
+    void connect()
+    throw e
   } finally {
     busy = false
   }

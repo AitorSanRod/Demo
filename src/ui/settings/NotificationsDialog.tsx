@@ -8,6 +8,7 @@ const TOPIC_TEXT: Record<PushTopic, { title: string; detail: string }> = {
   [PushTopic.Run]: { title: 'Fin de la ruta', detail: 'Cuando tu Pokémon acaba la ruta, se debilita o llega al jefe (hora aproximada)' },
   [PushTopic.Gift]: { title: 'Obsequio diario listo', detail: 'Cuando vuelve a poderse recoger (con cuenta)' },
   [PushTopic.Raid]: { title: 'Jefes de Raids', detail: 'Cuando cae un jefe contigo dentro, se escapa o aparece el siguiente' },
+  [PushTopic.Trade]: { title: 'Intercambios', detail: 'Cuando alguien acepta tu anuncio o se resuelve una retirada (con cuenta)' },
 }
 
 const STATUS_TEXT: Partial<Record<PushStatus, string>> = {
@@ -40,7 +41,7 @@ export function NotificationsDialog({ onClose }: { onClose: () => void }) {
               <strong className="small">{TOPIC_TEXT[topic].title}</strong>
               <span className="tiny muted notify-detail">
                 {TOPIC_TEXT[topic].detail}
-                {topic === PushTopic.Gift && status !== AccountStatus.SignedIn && ' · Entra en tu cuenta para recibirlo'}
+                {(topic === PushTopic.Gift || topic === PushTopic.Trade) && status !== AccountStatus.SignedIn && ' · Entra en tu cuenta para recibirlo'}
               </span>
             </span>
           </label>

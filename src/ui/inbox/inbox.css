@@ -1,0 +1,33 @@
+/* Notificaciones (menú del rancho): una fila por cosa pendiente de recoger */
+
+.inbox-entry {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+}
+.inbox-entry .grow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.inbox-thing {
+  flex: 0 0 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.inbox-thing-name {
+  font-weight: 700;
+}
+.inbox-blocker {
+  display: block;
+}
+.inbox-notice {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--card);
+}

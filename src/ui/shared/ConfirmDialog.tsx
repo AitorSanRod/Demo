@@ -11,6 +11,7 @@ export function ConfirmDialog({
   children,
   confirmLabel,
   cancelLabel = 'Cancelar',
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: {
@@ -19,6 +20,8 @@ export function ConfirmDialog({
   confirmLabel: string
   /** Texto del botón de no hacer nada; cambiarlo cuando la propia acción sea «cancelar» algo */
   cancelLabel?: string
+  /** Sin poder aceptar aún (falta elegir algo o se está esperando al servidor) */
+  confirmDisabled?: boolean
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -31,7 +34,7 @@ export function ConfirmDialog({
           <button className="btn grow" onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button className="btn primary grow" onClick={onConfirm}>
+          <button className="btn primary grow" disabled={confirmDisabled} onClick={onConfirm}>
             {confirmLabel}
           </button>
         </div>

@@ -72,6 +72,7 @@ const RULES: Partial<Record<keyof GameState, (v: unknown) => unknown>> = {
   money: (v) => (isInt(v) ? v : undefined),
   tickets: (v) => (isInt(v) ? v : undefined),
   missingnoShards: (v) => (isInt(v) ? v : undefined),
+  tradeStamp: (v) => (isInt(v) ? v : undefined),
   seen: (v) => listOf(v, isSpecies),
   caught: (v) => listOf(v, isSpecies),
   favorites: (v) => listOf(v, isSpecies),

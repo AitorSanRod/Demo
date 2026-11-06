@@ -41,14 +41,17 @@ src/
                       pestaña Raids), routeRaid (jefes de las paradas de ruta), raidRoom (tipos y sala), raidCombat
                       (rondas), raidBots (bots de la sala), raidPrizes (reparto y recogida), raidEstimate (tiempo que
                       falta), stopRoom (salas de parada sin la partida)
+    trade/            Intercambios: tradeGoods (qué se ofrece y pide, límites, validar), tradeGive (lo que sale de la
+                      partida), tradeReceive (lo que entra; repetidos), tradeOps (operaciones que aplican servidor y móvil),
+                      tradeProtocol (tablón y peticiones), goodText (textos), serverSale (venta al servidor)
       online/         Salas compartidas: protocol (lo que se dicen juego y servidor), linkedRoom (la sala de la
                       partida enlazada a la del servidor), sharedRoom + roomServer (lo que hace el servidor),
                       raidCycle + tabRooms (los jefes de la pestaña Raids por rotaciones y ciclos), skipAhead (resumir salas
                       viejas), requests (validar lo que le llega)
   net/                identity (id de jugador y apodo), raidApi (fetch a /api/raid), raidSync (bucle de consultas),
                       raidFeed (la pestaña Raids según el servidor),
-                      account (cuenta: /api/auth), cloudSync (partida en la nube), dailyGift (obsequio diario),
-                      push (notificaciones)
+                      account (cuenta: /api/auth), cloudSync + cloudLink (partida en la nube), dailyGift (obsequio diario),
+                      push (notificaciones), tradeApi + tradeBoard (intercambios: /api/trade)
   ui/
     shared/           Sprite, ItemIcon e icons (iconos con objetos de PokeAPI) y piezas comunes, pantallas superpuestas (premios, aparición, confirmación),
                       barra superior, bocadillos del tutorial, ErrorBoundary
@@ -58,6 +61,8 @@ src/
     starter/          Elección del inicial (primer paso del tutorial)
     account/          Cuenta: entrar, crearla, recuperar la contraseña (AccountDialog), elegir partida y avisos (AccountHost)
     gift/             Obsequio diario (DailyGiftSheet), que se abre desde el menú del rancho (ranch/RanchMenu)
+    shop/             Tienda (ShopScreen: pestañas Tienda, Intercambios y Venta); trade/ (Intercambios), sell/ (Venta)
+    inbox/            Notificaciones del menú del rancho (InboxSheet): obsequio listo, premios de raid e intercambios
     ranch/            Rancho (varios ranchos, arrastre, Caja); al tocar un Pokémon abre PokemonSheet
     settings/         Menú ⚙️ y notificaciones
     route/            Pestaña Ruta: lista de rutas y diálogo de comenzar, ruta en curso, combate, escena por bioma
@@ -145,7 +150,9 @@ estilos base se cargan antes (`main.tsx`), así los de cada pantalla pueden pisa
 | `game/core/accountRules.ts` | Lo que comparten web y servidor de cuentas: email, contraseña, códigos de error |
 | `game/core/cloudSave.ts` | Partida en la nube: qué hacer al conectar (`cloudAction`), recuperar una copia (`stateFromSaved`), resumen y validar la subida |
 | `net/account.ts` | Cuenta opcional: sesión, enlaces de los correos, entrar, crearla, recuperar la contraseña (`/api/auth`) |
-| `net/cloudSync.ts` | Subir y bajar la partida de la cuenta; conflictos entre dispositivos |
+| `net/cloudSync.ts` | Subir y bajar la partida de la cuenta; conflictos entre dispositivos; `withCloudInSync` para los intercambios |
+| `game/trade/tradeOps.ts` | Operaciones de intercambio (anunciar, pagar, recoger) que aplica el servidor a la partida de la nube y el móvil a la suya |
+| `net/tradeApi.ts`, `net/tradeBoard.ts` | Peticiones de intercambio y el tablón (con lo pendiente de Notificaciones), consultado cada minuto |
 
 ## Store y acciones
 
@@ -327,6 +334,15 @@ Opcionales, con email y contraseña, en el propio Worker (`worker/auth/`, tablas
   servidor, para que no se recoja dos veces desde dos móviles. Se guarda cuántos lleva y cuándo fue el último; recoger
   es una sola consulta (`INSERT … ON CONFLICT DO UPDATE … WHERE last_claim_at <= ahora − 24 h RETURNING`). El cliente
   (`net/dailyGift.ts`) suma el obsequio a la partida (`applyGift`) y la sube enseguida a la nube.
+- **Intercambios** (`game/trade/`, `worker/trade.ts`, tablas `trade_listings` y `trade_inbox`): todo lo que cambia la
+  partida se hace **sobre la partida de la nube**. El móvil sube la suya (`withCloudInSync`) y pide la operación encima
+  de esa revisión; el servidor aplica la misma función pura (`applyTradeOp`) a la partida de la nube y la guarda junto
+  con el anuncio en un solo lote (`worker/db/tradeWrites.ts`), donde cada paso solo se hace si el anterior se hizo:
+  dos compradores no pueden quedarse el mismo anuncio y no puede quedar un anuncio sin la partida cambiada. Responde
+  con la operación y el móvil la repite sobre la suya (si se pierde la respuesta, al volver se baja la de la nube).
+  Cada operación sube `GameState.tradeStamp`; la columna `saves.trade_stamp` impide subir una partida con un sello más
+  viejo (una copia restaurada o elegir la de este dispositivo): se carga la de la nube. Lo que se recibe va a
+  `trade_inbox` y se recoge con otra operación; caducar (24 h, también en el cron) y retirar no tocan la partida.
 - **Raids**: con sesión, el id de jugador es el de la cuenta (`setAccountId`), así los asientos son los mismos en
   cualquier dispositivo; al cambiar de id, `raidSync` saca de las salas los asientos del anterior. El apodo se guarda
   también en la cuenta.
@@ -334,7 +350,7 @@ Opcionales, con email y contraseña, en el propio Worker (`worker/auth/`, tablas
 ## Notificaciones
 
 Push estándar (Web Push) desde el Worker: llegan aunque la app esté cerrada. Cada aviso es de un tema
-(`PushTopic`: expedición, ruta, obsequio, raids) que el jugador activa por separado en Ajustes › Notificaciones
+(`PushTopic`: expedición, ruta, obsequio, raids, intercambios) que el jugador activa por separado en Ajustes › Notificaciones
 (`ui/settings/NotificationsDialog.tsx`), con un botón para todos.
 
 - **Suscripción** (`net/push.ts`): con permiso, el navegador se suscribe con la clave pública VAPID del servidor

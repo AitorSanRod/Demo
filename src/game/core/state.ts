@@ -142,12 +142,17 @@ export interface GameState {
    * se juega nada aquí y el jefe que se ve es el del servidor. false: sin servidor, todo en local con bots
    */
   raidServer: boolean
+  /**
+   * Sello de intercambios: sube con cada intercambio que el servidor aplica a la partida de la nube (ver
+   * trade/tradeOps.ts). El servidor no deja subir una partida con un sello más viejo que el suyo: así no vuelve lo ya dado
+   */
+  tradeStamp: number
   /** Multiplicador de tiempo (x1 = tiempo real); solo se puede cambiar en desarrollo, desde la barra superior */
   timeScale: number
   lastTick: number
 }
 
-export const SAVE_VERSION = 31
+export const SAVE_VERSION = 32
 
 export type TabRaids = Record<RaidRotation, Raid | null>
 
@@ -180,6 +185,7 @@ export function initialState(): GameState {
     roomsToLeave: [],
     routeRaidStreaks: {},
     raidServer: false,
+    tradeStamp: 0,
     timeScale: 1,
     lastTick: Date.now(),
   }

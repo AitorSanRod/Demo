@@ -7,6 +7,7 @@ import { startCloudSync } from './net/cloudSync'
 import { startPush } from './net/push'
 import { startRaidFeed } from './net/raidFeed'
 import { startRaidSync } from './net/raidSync'
+import { startTradeBoard } from './net/tradeBoard'
 import { AccountHost } from './ui/account/AccountHost'
 import { UpdatePrompt } from './ui/shared/UpdatePrompt'
 import { act, useGame } from './game/core/store'
@@ -18,7 +19,7 @@ import { RanchScreen } from './ui/ranch/RanchScreen'
 import { RouteScreen } from './ui/route/RouteScreen'
 import { TopBar } from './ui/shared/TopBar'
 import { TutorialNavHint } from './ui/shared/TutorialHint'
-import { UpgradeShop } from './ui/shop/UpgradeShop'
+import { ShopScreen } from './ui/shop/ShopScreen'
 import { StarterScreen } from './ui/starter/StarterScreen'
 import { ICON } from './ui/shared/icons'
 import { ItemIcon } from './ui/shared/ItemIcon'
@@ -55,6 +56,8 @@ export default function App() {
     void startAccount()
     return startCloudSync()
   }, [])
+  // Intercambios: el tablón y lo pendiente de recoger en Notificaciones (con cuenta)
+  useEffect(startTradeBoard, [])
 
   // Los puntos rojos se apagan al entrar en la pestaña y vuelven si aparece algo nuevo
   const runNeedsLook = game.run && game.run.phase !== 'walking' ? [`${game.run.routeId}:${game.run.phase}`] : []
@@ -86,7 +89,7 @@ export default function App() {
       <main className="content">
         {tab === 'route' && <RouteScreen game={game} />}
         {tab === 'ranch' && <RanchScreen game={game} />}
-        {tab === 'shop' && <UpgradeShop game={game} />}
+        {tab === 'shop' && <ShopScreen game={game} />}
         {tab === 'gacha' && <GachaScreen game={game} />}
         {tab === 'dex' && <DexScreen game={game} />}
         <TutorialNavHint game={game} currentTab={tab} tabIds={TABS.map((t) => t.id)} />
